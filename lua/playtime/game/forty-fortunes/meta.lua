@@ -1,0 +1,1 @@
+ return {name = "Forty Fortunes", mod = "forty-fortunes", authors = {"Playtime"}, desc = "An open-information patience game with a high solve rate, made popular in the 20s by Playtime.", categories = {"classic", "card"}}
