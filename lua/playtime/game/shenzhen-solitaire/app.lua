@@ -95,12 +95,11 @@
  AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, locations, pos)
  if ((_G.type(locations) == "table") and ((_G.type(locations[1]) == "table") and (locations[1][1] == "button") and (locations[1][2] == "lock") and (nil ~= locations[1][3]))) then local color = locations[1][3]
 
- local function _18_(...) local _19_, _20_ = ... if ((nil ~= _19_) and (nil ~= _20_)) then local next_game = _19_ local events = _20_ local function _21_(...) local _22_, _23_ = ... if true then local _ = _22_
-
+ local function _18_(...) local _19_, _20_ = ... if ((nil ~= _19_) and (nil ~= _20_)) then local next_game = _19_ local events = _20_
 
  local timeline
 
- local function _24_() app["queue-event"](app, "app", "noop") app["queue-event"](app, "app", "maybe-auto-move") app["switch-state"](app, AppState.Default) return app["update-game"](app, next_game, {"lock-dragon", color}) end timeline = app["build-event-animation"](app, events, _24_, {["stagger-ms"] = 120}) return app["switch-state"](app, AppState.Animating, timeline) elseif ((_22_ == nil) and (nil ~= _23_)) then local err = _23_ return app:notify(err) else return nil end end return _21_(print("ok")) elseif ((_19_ == nil) and (nil ~= _20_)) then local err = _20_ return app:notify(err) else return nil end end return _18_(Logic.Action["lock-dragon"](app.game, color)) else local _ = locations
+ local function _21_() app["queue-event"](app, "app", "noop") app["queue-event"](app, "app", "maybe-auto-move") app["switch-state"](app, AppState.Default) return app["update-game"](app, next_game, {"lock-dragon", color}) end timeline = app["build-event-animation"](app, events, _21_, {["stagger-ms"] = 120}) return app["switch-state"](app, AppState.Animating, timeline) elseif ((_19_ == nil) and (nil ~= _20_)) then local err = _20_ return app:notify(err) else return nil end end return _18_(Logic.Action["lock-dragon"](app.game, color)) else local _ = locations
 
 
 

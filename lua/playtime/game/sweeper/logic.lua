@@ -187,7 +187,7 @@
  return (state["lost?"] or state["won?"]) end
 
  M.Query["game-result"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:189")
- if state["lost?"] then return "lost" elseif state["won?"] then return "won" elseif _ then return "unknown" else return nil end end
+ if state["lost?"] then return "lost" elseif state["won?"] then return "won" else return "unknown" end end
 
 
 

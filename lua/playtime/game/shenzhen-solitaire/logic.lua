@@ -280,7 +280,6 @@
  return not (nil == check_pick_up(state, location)) end
 
  M.Query["droppable?"] = function(state, location)
- print("droppable?", vim.inspect(location))
  if ((_G.type(location) == "table") and (nil ~= location[1])) then local field = location[1]
  return eq_any_3f(field, {"tableau", "cell", "flower", "foundation"}) else local _ = location return false end end
 
