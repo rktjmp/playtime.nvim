@@ -189,6 +189,6 @@
 (λ M.Query.game-result [state]
   (if state.lost? :lost
     state.won? :won
-    _ :unknown))
+    :unknown))
 
 M
