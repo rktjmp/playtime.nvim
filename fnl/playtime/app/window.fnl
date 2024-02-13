@@ -51,7 +51,7 @@
   (api.nvim_buf_set_keymap buf :n lhs "" {:callback callback :desc desc}))
 
 (λ M.open [filetype dispatch {: width : height : window-position : minimise-position}]
-  (λ sync-position-configs! [max-config min-config]
+  (λ sync-configs-to-geometry! [max-config min-config]
     (let [max-pos (case-try
                     (case window-position
                       :center {:row 1 :col (- (/ vim.o.columns 2) (/ width 2))}
@@ -73,6 +73,7 @@
                     {: row : col}
                     (catch
                       ?pos (error (<s> "Unsupported minimise position: #{?pos}"))))]
+      (set max-config.height (math.min height (- vim.o.lines 4)))
       (set max-config.row max-pos.row)
       (set max-config.col max-pos.col)
       (set min-config.row min-pos.row)
@@ -88,7 +89,7 @@
                          :height 1
                          :style :minimal
                          :border :none}
-        _ (sync-position-configs! win-maxi-config win-mini-config)
+        _ (sync-configs-to-geometry! win-maxi-config win-mini-config)
         buf (api.nvim_create_buf false true)
         win (api.nvim_open_win buf true win-maxi-config)
         internal-name (string.format "%s-%s" filetype (Id.new))
@@ -125,7 +126,8 @@
     (api.nvim_create_autocmd :VimResized
                              {:group augroup
                               :callback (fn []
-                                          (let [_ (sync-position-configs! win-maxi-config win-mini-config)]
+                                          (let [_ (sync-configs-to-geometry! win-maxi-config
+                                                                             win-mini-config)]
                                             (if view.minimised?
                                               (api.nvim_win_set_config win win-mini-config)
                                               (api.nvim_win_set_config win win-maxi-config))))})
