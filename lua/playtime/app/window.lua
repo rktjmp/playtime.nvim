@@ -51,7 +51,7 @@
  return api.nvim_buf_set_keymap(buf, "n", lhs, "", {callback = callback, desc = desc}) end
 
  M.open = function(filetype, dispatch, _26_) local _arg_27_ = _26_ local width = _arg_27_["width"] local height = _arg_27_["height"] local window_position = _arg_27_["window-position"] local minimise_position = _arg_27_["minimise-position"] _G.assert((nil ~= minimise_position), "Missing argument minimise-position on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= window_position), "Missing argument window-position on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= height), "Missing argument height on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= width), "Missing argument width on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= dispatch), "Missing argument dispatch on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= filetype), "Missing argument filetype on fnl/playtime/app/window.fnl:53")
- local function sync_position_configs_21(max_config, min_config) _G.assert((nil ~= min_config), "Missing argument min-config on fnl/playtime/app/window.fnl:54") _G.assert((nil ~= max_config), "Missing argument max-config on fnl/playtime/app/window.fnl:54")
+ local function sync_configs_to_geometry_21(max_config, min_config) _G.assert((nil ~= min_config), "Missing argument min-config on fnl/playtime/app/window.fnl:54") _G.assert((nil ~= max_config), "Missing argument max-config on fnl/playtime/app/window.fnl:54")
  local max_pos local function _28_(...) local _29_ = ... if ((_G.type(_29_) == "table") and (nil ~= _29_.row) and (nil ~= _29_.col)) then local row = _29_.row local col = _29_.col
 
 
@@ -73,6 +73,7 @@
  return {row = row, col = col} else local _3fpos = _41_
 
  local function _48_(...) local data_5_auto = {["?pos"] = _3fpos} local resolve_6_auto local function _42_(name_7_auto) local _43_ = data_5_auto[name_7_auto] local function _44_() local t_8_auto = _43_ return ("table" == type(t_8_auto)) end if ((nil ~= _43_) and _44_()) then local t_8_auto = _43_ local _45_ = getmetatable(t_8_auto) if ((_G.type(_45_) == "table") and (nil ~= _45_.__tostring)) then local f_9_auto = _45_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _45_ return vim.inspect(t_8_auto) end elseif (nil ~= _43_) then local v_11_auto = _43_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _42_ return string.gsub("Unsupported minimise position: #{?pos}", "#{(.-)}", resolve_6_auto) end return error(_48_(...)) end end local function _51_() if (minimise_position == "ne") then return {row = 0, col = (vim.o.columns - 18)} elseif (minimise_position == "nw") then return {row = 0, col = 0} elseif (minimise_position == "sw") then return {row = (vim.o.lines - 3), col = 0} elseif (minimise_position == "se") then return {row = (vim.o.lines - 3), col = (vim.o.columns - 18)} elseif ((_G.type(minimise_position) == "table") and (nil ~= minimise_position.row) and (nil ~= minimise_position.col)) then local row = minimise_position.row local col = minimise_position.col return {row = row, col = col} else local function _50_() local f = minimise_position return type["function?"](f) end if ((nil ~= minimise_position) and _50_()) then local f = minimise_position return f() else return nil end end end min_pos = _40_(_51_())
+ max_config.height = math.min(height, (vim.o.lines - 4))
  max_config.row = max_pos.row
  max_config.col = max_pos.col
  min_config.row = min_pos.row
@@ -88,7 +89,7 @@
 
 
 
- local _ = sync_position_configs_21(win_maxi_config, win_mini_config)
+ local _ = sync_configs_to_geometry_21(win_maxi_config, win_mini_config)
  local buf = api.nvim_create_buf(false, true)
  local win = api.nvim_open_win(buf, true, win_maxi_config)
  local internal_name = string.format("%s-%s", filetype, Id.new())
@@ -125,7 +126,8 @@
 
 
  local function _62_()
- local _0 = sync_position_configs_21(win_maxi_config, win_mini_config)
+ local _0 = sync_configs_to_geometry_21(win_maxi_config, win_mini_config)
+
  if view["minimised?"] then
  return api.nvim_win_set_config(win, win_mini_config) else
  return api.nvim_win_set_config(win, win_maxi_config) end end api.nvim_create_autocmd("VimResized", {group = augroup, callback = _62_})
