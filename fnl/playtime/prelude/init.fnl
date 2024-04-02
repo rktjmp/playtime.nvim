@@ -166,9 +166,10 @@
 ;                                      (or (. table-extensions k)
 ;                                          (. *raw-table* k)))}))
 
-(local *string* (setmetatable {:fmt *raw-string*.format}
-                              {:__index *raw-string*}))
-
+(local *string*
+  (setmetatable {:fmt *raw-string*.format
+                 :col-width #(vim.api.nvim_strwidth $1)}
+                {:__index *raw-string*}))
 
 ;;
 ;; Misc functions

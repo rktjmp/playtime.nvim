@@ -56,7 +56,7 @@
       (-> (Component.build
             (fn [self count]
               (let [text (tostring count)
-                    col (case (vim.str_utfindex text)
+                    col (case (string.col-width text)
                           1 (+ col 5)
                           2 (+ col 4)
                           3 (+ col 3)

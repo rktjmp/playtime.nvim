@@ -10,11 +10,11 @@
       left
       (string.rep fill (math.floor
                          (/ (- width
-                               (vim.str_utfindex left-edge)
-                               (vim.str_utfindex left)
-                               (vim.str_utfindex right)
-                               (vim.str_utfindex right-edge))
-                            (vim.str_utfindex fill))))
+                               (string.col-width left-edge)
+                               (string.col-width left)
+                               (string.col-width right)
+                               (string.col-width right-edge))
+                            (string.col-width fill))))
       right
       right-edge))
 
@@ -110,7 +110,7 @@
     (-> (Component.build
           (fn [self count]
             (let [text (tostring count)
-                  col (case (vim.str_utfindex text)
+                  col (case (string.col-width text)
                         1 (+ col 5)
                         2 (+ col 4)
                         3 (+ col 3)

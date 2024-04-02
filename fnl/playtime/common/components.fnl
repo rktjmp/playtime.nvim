@@ -36,16 +36,16 @@
         (fn [comp result ?other-lines]
           (let [other-lines (or ?other-lines [])
                 max-len (accumulate [m 0 _ [_id text] (ipairs options)]
-                          (math.max m (vim.str_utfindex text)))
+                          (math.max m (string.col-width text)))
                 max-len (accumulate [m max-len _ text (ipairs other-lines)]
-                          (math.max m (vim.str_utfindex text)))
-                max-len (+ max-len (vim.str_utfindex " ☑   "))
+                          (math.max m (string.col-width text)))
+                max-len (+ max-len (string.col-width " ☑   "))
                 border-color "@playtime.ui.on"
                 edge "║"
                 top [[(.. "╓" (string.rep "─" max-len) "╖") border-color]]
                 empty [[(.. edge (string.rep " " max-len) edge) border-color]]
                 bottom [[(.. "╙" (string.rep "─" max-len) "╜") border-color]]
-                width (vim.str_utfindex (. top 1 1))
+                width (string.col-width (. top 1 1))
                 height (+ 1 ;; top
                           1 ;; empty
                           (length options)
@@ -61,7 +61,7 @@
                         (let [text (.. (if (= id result) "☑ " "☐ ") " " text)]
                           [[(.. edge " ") border-color]
                            [text (if (= id result) "@playtime.color.yellow" "@playtime.ui.off")]
-                           [(string.rep " " (- max-len (vim.str_utfindex text) 1))]
+                           [(string.rep " " (- max-len (string.col-width text) 1))]
                            [(.. edge " ") border-color]]))]
             (table.insert lines 1 empty)
             (table.insert lines 1 top)
@@ -69,7 +69,7 @@
             (each [_ line (ipairs other-lines)]
               (table.insert lines [[(.. edge " ") border-color]
                                    [line "@playtime.ui.on"]
-                                   [(string.rep " " (- max-len (vim.str_utfindex line) 1))]
+                                   [(string.rep " " (- max-len (string.col-width line) 1))]
                                    [(.. edge " ") border-color]]))
             (table.insert lines empty)
             (table.insert lines bottom)

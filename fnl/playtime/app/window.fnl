@@ -98,7 +98,7 @@
         user-guicursor-value vim.o.guicursor
         logo-component (-> (Component.build)
                            (Component.set-position {:row 0 :col 1 :z 500})
-                           (Component.set-size {:width (vim.str_utfindex "🅿 🅻 🅰 🆈 🆃i🅸 🅼 🅴 ") :height 1})
+                           (Component.set-size {:width (string.col-width "🅿 🅻 🅰 🆈 🆃i🅸 🅼 🅴 ") :height 1})
                            (Component.set-content [[["🄿 🄻 🄰 🅈 🅃 🄸 🄼 🄴 " "@playtime.ui.menu"]]]))
         view {: width : height
               : buf : win : ns
