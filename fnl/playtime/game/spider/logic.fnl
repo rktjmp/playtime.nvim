@@ -117,12 +117,6 @@
           (values next-state moves))
         (values nil (Error "No more draws"))))))
 
-(fn flip-bottom-cards! [state]
-  (for [i 1 10]
-    (let [col (. state :tableau i)]
-      (case (table.last col)
-        (where card (card-face-down? card)) (Deck.flip-card card)))))
-
 (fn check-pick-up [state pick-up-from]
   (case pick-up-from
     [:tableau col-n card-n]

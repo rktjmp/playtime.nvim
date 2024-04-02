@@ -26,7 +26,7 @@
         (Component.set-position {: row : col : z})
         (Component.set-size {: width : height})
         (Component.set-content
-          (let [middle (fcollect [i 1 (- height 2)]
+          (let [middle (fcollect [_ 1 (- height 2)]
                          [[(wide "│" "" " " "" "│") "@playtime.game.card.empty"]])]
             (table.join
               [[[(wide "╭" "" "─" "" "╮") "@playtime.game.card.empty"]]]
