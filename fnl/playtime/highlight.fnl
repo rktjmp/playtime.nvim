@@ -106,6 +106,12 @@
     (link "@playtime.game.card.spades.four_colors" :PlaytimeBlue)
     ;(link "@playtime.game.card.spades.four_colors" :PlaytimeBlueBright)
 
+
+    (link "@playtime.game.set.selected" :PlaytimeYellow)
+    (link "@playtime.game.set.red" :PlaytimeRed)
+    (link "@playtime.game.set.green" :PlaytimeGreen)
+    (link "@playtime.game.set.blue" :PlaytimeBlue)
+
     (link "@playtime.game.for_northwood.flowers" :PlaytimeMagenta)
     (link "@playtime.game.for_northwood.claws" :PlaytimeCyan)
     (link "@playtime.game.for_northwood.leaves" :PlaytimeYellow)
