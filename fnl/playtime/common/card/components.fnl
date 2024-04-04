@@ -106,17 +106,16 @@
     comp))
 
 (λ M.count [position card-style]
-  (let [{: row : col : z} position]
+  (let [{: row : col : z} position
+        {: height : width} card-style]
     (-> (Component.build
           (fn [self count]
             (let [text (tostring count)
                   col (case (string.col-width text)
-                        1 (+ col 5)
-                        2 (+ col 4)
-                        3 (+ col 3)
-                        4 (+ col 2)
+                        (where n (<= 1 n 5))
+                        (+ col (- width n 1))
                         _ (+ col 1))]
-              (self:set-position {:row (+ row 4) : col : z})
+              (self:set-position {:row (+ row (- height 1)) : col : z})
               (self:set-size {:width (length text) :height 1})
               (self:set-content [[[text "@playtime.ui.off"]]]))))
         (: :update 0))))
