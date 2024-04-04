@@ -35,8 +35,7 @@
     bindings))
 
 (λ bind-mouse [{: win : buf &as view} lhs desc callback]
-  (let [eval-er (string.format "\"\\%s\"" lhs)
-        cb (vim.schedule_wrap
+  (let [cb (vim.schedule_wrap
              #(case (vim.fn.getmousepos)
                 (where {:winid (= win) : line : column})
                 (let [row (- line 1)
