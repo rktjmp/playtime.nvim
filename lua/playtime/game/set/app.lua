@@ -91,6 +91,9 @@
  if (3 == #selected) then return app["switch-state"](app, RegularAppState.SubmitSet, {selected = selected}) else return nil end else return nil end end
 
 
+ RegularAppState.Default.OnEvent.input["<RightMouse>"] = function(app, _location, _pos)
+ app.state.context.selected = {} return nil end
+
  RegularAppState.Default.OnEvent.app.deal = function(app)
  local next_game, moves = Logic.Action.deal(app.game) local after
  local function _37_() app["switch-state"](app, RegularAppState.Default, {selected = {}}) app["update-game"](app, next_game, {"deal"}) app["queue-event"](app, "app", "noop")
@@ -159,7 +162,7 @@
 
 
 
- M["build-event-animation"] = function(app, moves, after, _3fopts) _G.assert((nil ~= after), "Missing argument after on fnl/playtime/game/set/app.fnl:162") _G.assert((nil ~= moves), "Missing argument moves on fnl/playtime/game/set/app.fnl:162") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:162")
+ M["build-event-animation"] = function(app, moves, after, _3fopts) _G.assert((nil ~= after), "Missing argument after on fnl/playtime/game/set/app.fnl:165") _G.assert((nil ~= moves), "Missing argument moves on fnl/playtime/game/set/app.fnl:165") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:165")
  return CardUtils["build-event-animation"](app, moves, after, _3fopts) end
 
  M["location->position"] = function(app, location)
@@ -180,7 +183,7 @@
 
  local function _61_() local data_5_auto = {location = location} local resolve_6_auto local function _55_(name_7_auto) local _56_ = data_5_auto[name_7_auto] local function _57_() local t_8_auto = _56_ return ("table" == type(t_8_auto)) end if ((nil ~= _56_) and _57_()) then local t_8_auto = _56_ local _58_ = getmetatable(t_8_auto) if ((_G.type(_58_) == "table") and (nil ~= _58_.__tostring)) then local f_9_auto = _58_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _58_ return vim.inspect(t_8_auto) end elseif (nil ~= _56_) then local v_11_auto = _56_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _55_ return string.gsub("Unable to convert location to position, unknown location #{location}", "#{(.-)}", resolve_6_auto) end return error(Error(_61_())) end end
 
- M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/set/app.fnl:183") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/set/app.fnl:183")
+ M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/set/app.fnl:186") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/set/app.fnl:186")
  local app = setmetatable(App.build("SET", "set", app_config, game_config), {__index = M})
 
  local game_set_glyph_width = app_config["__beta-game-set-font-glyph-width"] local card_style
@@ -200,13 +203,13 @@
  local function _67_() return app["queue-event"](app, "app", "deal") end vim.defer_fn(_67_, 300) return app:render() end
 
 
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/set/app.fnl:203") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:203") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, RegularAppState.Default, {selected = {}})
+ M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/set/app.fnl:206") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:206") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, RegularAppState.Default, {selected = {}})
 
 
 
  return app end
 
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:209")
+ M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:212")
  local card_style = app["card-style"] local card_card_components
  do local tbl_14_auto = {} for location, card in Logic["iter-cards"](app.game) do local k_15_auto, v_16_auto = nil, nil
  do local comp
