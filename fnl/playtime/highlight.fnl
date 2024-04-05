@@ -1,9 +1,6 @@
 (require-macros :playtime.prelude)
 (prelude)
 
-(local Logger (require :playtime.logger))
-(local Error (require :playtime.error))
-
 (local {:api {: nvim_set_hl : nvim_get_hl}} vim)
 
 (local M {})
@@ -11,31 +8,6 @@
 (fn to-hex [c]
   (let [{: tohex} (require :bit)]
     (string.format "#%s" (tohex c 6))))
-
-(fn split-color [c]
-  (let [bit (require :bit)
-        r (-> (bit.rshift c 16)
-              (bit.band 0xFF))
-        g (-> (bit.rshift c 8)
-              (bit.band 0xFF))
-        b (bit.band c 0xFF)]
-    [r g b]))
-
-(fn conj-color [[r g b]]
-  (to-hex (bit.bor (-> r (bit.band 0xFF) (bit.lshift 16))
-                   (-> g (bit.band 0xFF) (bit.lshift 8))
-                   (-> b (bit.band 0xFF)))))
-
-(fn saturate [c value]
-  (let [[r g b] (split-color c)
-        gray (+ (* 0.2989 r) (* 0.587 g) (* 0.114 b))]
-    (var new-r (+ (* (- gray) value) (* r (+ 1 value))))
-    (var new-g (+ (* (- gray) value) (* g (+ 1 value))))
-    (var new-b (+ (* (- gray) value) (* b (+ 1 value))))
-    (set new-r (math.min 255 (math.max 0 new-r)))
-    (set new-g (math.min 255 (math.max 0 new-g)))
-    (set new-b (math.min 255 (math.max 0 new-b)))
-    (conj-color [new-r new-g new-b])))
 
 (fn M.define-highlights []
   (fn fetch-fg [hl-name & rest]
