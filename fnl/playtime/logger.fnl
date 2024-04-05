@@ -1,6 +1,7 @@
 (require-macros :playtime.prelude)
 (prelude)
 
+(var enabled? false)
 (local M {})
 
 (fn view [x]
@@ -18,12 +19,15 @@
                                   _ (view t))
       v (tostring v)
       nil (.. "! missing detail value: " name " !")))
-  (if (?. _G :__playtime :debug)
+  (when enabled?
     (let [msg (if (type.string? msg)
                 (string.gsub msg "#{(.-)}" get-detail)
                 (view msg))]
       (fd:write (.. (os.date) " -- " msg "\n"))
       (fd:flush)))
   (values nil))
+
+(fn M.enable [] (set enabled? true))
+(fn M.disable [] (set enabled? false))
 
 M
