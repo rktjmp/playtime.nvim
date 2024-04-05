@@ -4,8 +4,6 @@
 (local Logger (require :playtime.logger))
 (local Error (require :playtime.error))
 
-(local Animate (require :playtime.animate))
-(local Component (require :playtime.component))
 (local CommonComponents (require :playtime.common.components))
 (local CardComponents (require :playtime.common.card.components))
 (local SetComponents (require :playtime.game.set.components))
@@ -13,8 +11,6 @@
 (local App (require :playtime.app))
 (local Window (require :playtime.app.window))
 
-(local {: api} vim)
-(local uv (or vim.loop vim.uv))
 (local M (setmetatable {} {:__index App}))
 (local Logic (require :playtime.game.set.logic))
 
@@ -26,23 +22,21 @@
 (set AppState.Animating (clone App.State.DefaultAnimatingState))
 
 (fn AppState.Default.activated [app ?context]
-  (case app.game.deal
-    [nil] nil
-    _ (Logger.info [:all-sets (Logic.Query.find-sets app.game)]))
-  (Logger.info ?context)
   (case ?context
     {:selected nil} (set app.state.context.selected [])))
 
-(fn AppState.Default.OnEvent.app.new-deal [app]
+(fn AppState.Default.OnEvent.app.new-game [app]
   (app:setup-new-game app.game-config nil)
   (vim.defer_fn #(app:queue-event :app :deal) 300))
 
-(fn AppState.Default.OnEvent.app.repeat-deal [app]
+(fn AppState.Default.OnEvent.app.restart-game [app]
   (app:setup-new-game app.game-config app.seed)
   (vim.defer_fn #(app:queue-event :app :deal) 300))
 
 (fn AppState.Default.OnEvent.input.<LeftMouse> [app [location] _pos]
   (case location
+    [:menu _idx nil &as menu-item]
+    (app:push-state App.State.DefaultInMenuState {: menu-item})
     [:draw _] (case-try
                 (Logic.Action.deal-more app.game) (next-game moves)
                 (let [after #(do
@@ -58,12 +52,8 @@
                 (case ?index
                   nil (table.insert selected n)
                   i (table.remove selected i))
-                (Logger.info [:selected selected])
                 (when (= 3 (length selected))
                   (app:switch-state AppState.SubmitSet {: selected})))))
-                  ; (Logger.info [:sets (Logic.Query.find-sets app.game)])
-                  ; (Logger.info (Logic.Query.set? app.game selected))
-                  ; (set app.state.context.selected [])))))
 
 (fn AppState.SubmitSet.activated [app _context]
   ;; for better feel, delay submitting the set for a few frames
@@ -74,7 +64,6 @@
   (AppState.Default.tick ...))
 
 (fn AppState.SubmitSet.OnEvent.app.submit [app]
-  (Logger.info ["submit-set" app.state.context])
   (let [{: selected} app.state.context]
     (case-try
       (Logic.Action.submit-set app.game selected) (next-game moves)
@@ -91,11 +80,9 @@
       (catch
         (nil e) (do
                   (app:notify e)
-                  (app:switch-state AppState.Default {:selected []})
-                  )))))
+                  (app:switch-state AppState.Default {:selected []}))))))
 
 (fn AppState.Default.OnEvent.app.deal [app]
-  (Logic.Action.generate-puzzle app.game)
   (let [(next-game moves) (Logic.Action.deal app.game)
         after #(do
                  (app:switch-state AppState.Default {:selected []})
@@ -110,6 +97,8 @@
 
 (fn AppState.Default.tick [app]
   (let [{: selected} app.state.context]
+    (app.components.set-count:update (/ (length app.game.discard) 3))
+    (app.components.draw-count:update (length app.game.draw))
     (each [location card (Logic.iter-cards app.game)]
       (let [comp (. app.card-id->components card.id)
             selected? (case location
@@ -122,33 +111,40 @@
   (CardUtils.build-event-animation app moves after ?opts))
 
 (fn M.location->position [app location]
-  (case location
-    ; [:draw n] {:row 0 :col -10 :z n}
-    ; [:discard n] {:row 0 :col 80 :z n}
-    [:draw n] {:row 2 :col 2 :z n}
-    [:discard n] {:row 7 :col 2 :z n}
-    [:deal n] (let [row (+ 1 (math.modf (/ (- n 1) 4)))
-                    col (+ 1 (% (- n 1) 4))]
-                {:row (+ 2 (* (- row 1) 5))
-                 :col (+ 15 (* (- col 1) 11))
-                 :z 1})
-    _ (error (Error "Unable to convert location to position, unknown location #{location}" 
-                    {: location}))))
+  (let [{:width card-width} app.card-style
+        deal-start-col (+ 4 card-width)
+        deal-start-row 2]
+    (case location
+      [:draw n] {:row deal-start-row
+                 :col (- deal-start-col (+ card-width 2))
+                 :z n}
+      [:discard n] {:row deal-start-row
+                    :col (+ (* (+ card-width 1) 5) 4)
+                    :z n}
+      [:deal n] (let [row (+ 1 (math.modf (/ (- n 1) 4)))
+                      col (+ 1 (% (- n 1) 4))]
+                  {:row (+ 2 (* (- row 1) 5))
+                   :col (+ deal-start-col (* (- col 1) (+ card-width 1)))
+                   :z 1})
+      _ (error (Error "Unable to convert location to position, unknown location #{location}" 
+                      {: location})))))
 
 (λ M.start [app-config game-config ?seed]
-  (let [app (-> (App.build "SET"
-                           :set
-                           app-config
-                           game-config)
+  (let [app (-> (App.build "SET" :set app-config game-config)
                 (setmetatable {:__index M}))
+        game-set-glyph-width :wide
+        card-style {:height 5
+                    :glyph-width game-set-glyph-width
+                    :width (if (= :wide game-set-glyph-width) 10 9)}
         view (Window.open :set
                           (App.build-default-window-dispatch-options app)
-                          {:width 72
-                           :height 30
+                          {:width (if (= game-set-glyph-width :wide) 71 65)
+                           :height 25
                            :window-position app-config.window-position
                            :minimise-position app-config.minimise-position})
         _ (table.merge app.z-layers {:cards 25 :label 100 :animation 200})]
     (set app.view view)
+    (set app.card-style card-style)
     (app:setup-new-game app.game-config ?seed)
     (vim.defer_fn #(app:queue-event :app :deal) 300)
     (app:render)))
@@ -160,19 +156,22 @@
   app)
 
 (λ M.build-components [app]
-  (let [card-card-components (collect [location card (Logic.iter-cards app.game)]
+  (let [card-style app.card-style
+        card-card-components (collect [location card (Logic.iter-cards app.game)]
                                (let [comp (SetComponents.card
                                             #(app:location->position $1)
                                             location
                                             card
-                                            {:width 10 :height 5})]
+                                            card-style)]
                                  (values card.id comp)))
         slots [(SetComponents.slot #(app:location->position $1)
-                                   [:deal 0]
-                                   {:width 10 :height 5})
+                                   [:draw 0]
+                                   card-style)
                (SetComponents.slot #(app:location->position $1)
                                    [:discard 0]
-                                   {:width 10 :height 5})]
+                                   card-style)]
+        draw-count (CardComponents.count (app:location->position [:draw 100]) card-style)
+        set-count (CardComponents.count (app:location->position [:discard 100]) card-style)
         menubar (CommonComponents.menubar [["SET" [:file]
                                             [["" nil]
                                              ["New Game" [:new-game]]
@@ -191,11 +190,14 @@
     (set app.card-id->components card-card-components)
     (table.merge app.components {: menubar
                                  : slots
+                                 : draw-count
+                                 : set-count
                                  :cards (table.values card-card-components)})))
 
 (fn M.render [app]
   (app.view:render [[app.components.menubar]
                     app.components.slots
+                    [app.components.draw-count app.components.set-count]
                     app.components.cards])
   app)
 
