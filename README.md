@@ -100,9 +100,9 @@ Supported options (struck through options are currently ... not supported):
 - `minimise-position` (`se`): Where to position the minimised window, may be
   `ne`, `nw`, `se`, `sw` or a table or function that returns `{row=row, col=col}`.
 - `__beta-game-set-font-glyph-width` (`nil`): Hint to playtime that the font
-  glyphs used by SET are wider than one character, may be `wide` or `nil`.
-- ~~`card-size` (`large`): adjust card size between 7x5 and 6x4.~~
-- ~~`animation-rate` (1.0): globally adjust the duration of animations.~~
+  glyphs used by SET are wider than one character, may be `wide` or `nil`. If
+  your cards look off center, try setting this to `wide`. *Note: this option
+  will change name at some point...*
 - ~~`unfocused` (`minimise`): what to do when the window loses focus.~~
 
 You may also adjust the colors, see the [FAQ](#FAQ).
