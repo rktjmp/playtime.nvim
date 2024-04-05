@@ -91,6 +91,9 @@
                 (when (= 3 (length selected))
                   (app:switch-state RegularAppState.SubmitSet {: selected})))))
 
+(fn RegularAppState.Default.OnEvent.input.<RightMouse> [app _location _pos]
+  (set app.state.context.selected []))
+
 (fn RegularAppState.Default.OnEvent.app.deal [app]
   (let [(next-game moves) (Logic.Action.deal app.game)
         after #(do
