@@ -162,14 +162,14 @@
 
 
  local from_col = state.tableau[a] local moves
- do local tbl_18_auto = {} local i_19_auto = 0 for i, _card in ipairs(from_col) do
- local val_20_auto = {"move", {"tableau", a, i}, {"tableau", b, i}} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end moves = tbl_18_auto end
+ do local tbl_19_auto = {} local i_20_auto = 0 for i, _card in ipairs(from_col) do
+ local val_21_auto = {"move", {"tableau", a, i}, {"tableau", b, i}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end moves = tbl_19_auto end
  return apply_events(clone(state), moves, {["unsafely?"] = true}) elseif (((_G.type(_25_) == "table") and (nil ~= _25_[1]) and (nil ~= _25_[2]) and (nil ~= _25_[3])) and ((_G.type(_26_) == "table") and (_26_[1] == "tableau") and (nil ~= _26_[2]) and (nil ~= _26_[3])) and (nil ~= _27_)) then local f_field = _25_[1] local f_col = _25_[2] local f_card_n = _25_[3] local t_col = _26_[2] local t_card_n = _26_[3] local held0 = _27_
 
 
 
- local moves do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, #held0 do
- local val_20_auto = {"move", {f_field, f_col, (f_card_n + (i - 1))}, {"tableau", t_col, (t_card_n + i)}} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end moves = tbl_18_auto end
+ local moves do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, #held0 do
+ local val_21_auto = {"move", {f_field, f_col, (f_card_n + (i - 1))}, {"tableau", t_col, (t_card_n + i)}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end moves = tbl_19_auto end
 
 
  local next_state = apply_events(inc_moves(clone(state)), moves, {["unsafely?"] = true})
@@ -187,13 +187,13 @@
  local function _45_(...) local _46_ = ... if (nil ~= _46_) then local held = _46_ local function _47_(...) local _48_, _49_ = ... if ((nil ~= _48_) and (nil ~= _49_)) then local next_state = _48_ local moves = _49_
 
 
- return next_state, moves else local __84_auto = _48_ return ... end end return _47_(put_down(state, pick_up_from, put_down_on, held)) else local __84_auto = _46_ return ... end end return _45_(check_pick_up(state, pick_up_from)) end
+ return next_state, moves else local __85_auto = _48_ return ... end end return _47_(put_down(state, pick_up_from, put_down_on, held)) else local __85_auto = _46_ return ... end end return _45_(check_pick_up(state, pick_up_from)) end
 
  M.Action["lock-dragon"] = function(state, dragon_color)
 
 
- local dragons do local tbl_18_auto = {} local i_19_auto = 0 for location, card in M["iter-cards"](state) do local val_20_auto
- if ((_G.type(card) == "table") and (card[1] == dragon_color)) then val_20_auto = {location, card} else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end dragons = tbl_18_auto end local check_already_locked_3f
+ local dragons do local tbl_19_auto = {} local i_20_auto = 0 for location, card in M["iter-cards"](state) do local val_21_auto
+ if ((_G.type(card) == "table") and (card[1] == dragon_color)) then val_21_auto = {location, card} else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end dragons = tbl_19_auto end local check_already_locked_3f
  local function _54_() return state.locked[dragon_color] end check_already_locked_3f = _54_ local check_can_move_dragons_3f
  local function _55_() local movable_3f = true for _, _56_ in ipairs(dragons) do local _each_57_ = _56_ local location = _each_57_[1] local _card = _each_57_[2] if not movable_3f then break end
 
@@ -233,8 +233,8 @@
  M.Plan["next-move-to-flower"] = function(state)
  if (0 == #state.flower[1]) then
  local speculative_state = clone(state) local check_locations
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 3 do local val_20_auto = {"cell", i} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end check_locations = tbl_18_auto end local _
- do local tbl_17_auto = check_locations for i = 1, 8 do table.insert(tbl_17_auto, {"tableau", i}) end _ = tbl_17_auto end local from
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 3 do local val_21_auto = {"cell", i} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end check_locations = tbl_19_auto end local _
+ do local tbl_17_auto = check_locations for i = 1, 8 do local val_18_auto = {"tableau", i} table.insert(tbl_17_auto, val_18_auto) end _ = tbl_17_auto end local from
  do local location = nil for _0, _79_ in ipairs(check_locations) do
  local _each_80_ = _79_ local field = _each_80_[1] local col = _each_80_[2] if location then break end
 
@@ -245,15 +245,15 @@
  if from then
  local function _83_(...) local _84_ = ... if (nil ~= _84_) then local speculative_state0 = _84_
 
- return {from, to} else local __84_auto = _84_ return ... end end return _83_(M.Action.move(speculative_state, from, to)) else return nil end else return nil end end
+ return {from, to} else local __85_auto = _84_ return ... end end return _83_(M.Action.move(speculative_state, from, to)) else return nil end else return nil end end
 
  M.Plan["next-move-to-foundation"] = function(state)
 
 
 
  local speculative_state = clone(state) local check_locations
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 3 do local val_20_auto = {"cell", i} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end check_locations = tbl_18_auto end local _
- do local tbl_17_auto = check_locations for i = 1, 8 do table.insert(tbl_17_auto, {"tableau", i}) end _ = tbl_17_auto end local min_value
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 3 do local val_21_auto = {"cell", i} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end check_locations = tbl_19_auto end local _
+ do local tbl_17_auto = check_locations for i = 1, 8 do local val_18_auto = {"tableau", i} table.insert(tbl_17_auto, val_18_auto) end _ = tbl_17_auto end local min_value
  do local min_val = math.huge for _l, card in M["iter-cards"](speculative_state, {"cell", "tableau"}) do
 
  local function _89_() local suit = card[1] local val = card[2] return eq_any_3f(suit, {"coins", "myriads", "strings"}) end if (((_G.type(card) == "table") and (nil ~= card[1]) and (nil ~= card[2])) and _89_()) then local suit = card[1] local val = card[2]
@@ -261,20 +261,20 @@
  min_val = math.min(val, min_val) else local _0 = card
  min_val = min_val end end min_value = min_val end local not_dragon_3f
  local function _91_(suit) return eq_any_3f(suit, {"coins", "myriads", "strings"}) end not_dragon_3f = _91_ local source_locations
- do local tbl_18_auto = {} local i_19_auto = 0 for _0, _92_ in ipairs(check_locations) do local _each_93_ = _92_ local field = _each_93_[1] local col = _each_93_[2] local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for _0, _92_ in ipairs(check_locations) do local _each_93_ = _92_ local field = _each_93_[1] local col = _each_93_[2] local val_21_auto
  do local card_n = #speculative_state[field][col]
  local _94_ = speculative_state[field][col][card_n] if ((_G.type(_94_) == "table") and (nil ~= _94_[1]) and (nil ~= _94_[2])) then local suit = _94_[1] local val = _94_[2]
  if (not_dragon_3f(suit) and (min_value == val)) then
- val_20_auto = {field, col, card_n} else val_20_auto = nil end else val_20_auto = nil end end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end source_locations = tbl_18_auto end local potential_moves
+ val_21_auto = {field, col, card_n} else val_21_auto = nil end else val_21_auto = nil end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end source_locations = tbl_19_auto end local potential_moves
  do local moves = {} for _0, from in ipairs(source_locations) do
- local tbl_17_auto = moves for i = 1, 4 do
- local function _99_() local _98_ = speculative_state.foundation[i] if ((_G.type(_98_) == "table") and (_98_[1] == nil)) then
- return {from, {"foundation", i, 0}} elseif (nil ~= _98_) then local cards = _98_
- return {from, {"foundation", i, #cards}} else return nil end end table.insert(tbl_17_auto, _99_()) end moves = tbl_17_auto end potential_moves = moves end
- local actions = nil for _0, _101_ in ipairs(potential_moves) do local _each_102_ = _101_ local from = _each_102_[1] local to = _each_102_[2] if actions then break end
- local function _103_(...) local _104_ = ... if (nil ~= _104_) then local speculative_state0 = _104_
+ local tbl_17_auto = moves for i = 1, 4 do local val_18_auto
+ do local _98_ = speculative_state.foundation[i] if ((_G.type(_98_) == "table") and (_98_[1] == nil)) then
+ val_18_auto = {from, {"foundation", i, 0}} elseif (nil ~= _98_) then local cards = _98_
+ val_18_auto = {from, {"foundation", i, #cards}} else val_18_auto = nil end end table.insert(tbl_17_auto, val_18_auto) end moves = tbl_17_auto end potential_moves = moves end
+ local actions = nil for _0, _100_ in ipairs(potential_moves) do local _each_101_ = _100_ local from = _each_101_[1] local to = _each_101_[2] if actions then break end
+ local function _102_(...) local _103_ = ... if (nil ~= _103_) then local speculative_state0 = _103_
 
- return {from, to} else local __84_auto = _104_ return ... end end actions = _103_(M.Action.move(speculative_state, from, to)) end return actions end
+ return {from, to} else local __85_auto = _103_ return ... end end actions = _102_(M.Action.move(speculative_state, from, to)) end return actions end
 
  M.Query["liftable?"] = function(state, location)
  return not (nil == check_pick_up(state, location)) end

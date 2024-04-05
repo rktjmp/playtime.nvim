@@ -36,16 +36,16 @@
  local function _6_(comp, result, _3fother_lines)
  local other_lines = (_3fother_lines or {}) local max_len
  do local m = 0 for _, _7_ in ipairs(options) do local _each_8_ = _7_ local _id = _each_8_[1] local text = _each_8_[2]
- m = math.max(m, vim.str_utfindex(text)) end max_len = m end local max_len0
+ m = math.max(m, string["col-width"](text)) end max_len = m end local max_len0
  do local m = max_len for _, text in ipairs(other_lines) do
- m = math.max(m, vim.str_utfindex(text)) end max_len0 = m end
- local max_len1 = (max_len0 + vim.str_utfindex(" \226\152\145   ")) local border_color = "@playtime.ui.on" local edge = "\226\149\145"
+ m = math.max(m, string["col-width"](text)) end max_len0 = m end
+ local max_len1 = (max_len0 + string["col-width"](" \226\152\145   ")) local border_color = "@playtime.ui.on" local edge = "\226\149\145"
 
 
  local top = {{("\226\149\147" .. string.rep("\226\148\128", max_len1) .. "\226\149\150"), border_color}}
  local empty = {{(edge .. string.rep(" ", max_len1) .. edge), border_color}}
  local bottom = {{("\226\149\153" .. string.rep("\226\148\128", max_len1) .. "\226\149\156"), border_color}}
- local width = vim.str_utfindex(top[1][1]) local height
+ local width = string["col-width"](top[1][1]) local height
 
 
 
@@ -57,17 +57,17 @@
 
 
  local col = (math.floor((view_width / 2)) - math.floor((width / 2))) local lines
- do local tbl_18_auto = {} local i_19_auto = 0 for _, _10_ in ipairs(options) do local _each_11_ = _10_ local id = _each_11_[1] local text = _each_11_[2] local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for _, _10_ in ipairs(options) do local _each_11_ = _10_ local id = _each_11_[1] local text = _each_11_[2] local val_21_auto
  do local text0 local function _12_() if (id == result) then return "\226\152\145 " else return "\226\152\144 " end end text0 = (_12_() .. " " .. text)
 
- local function _13_() if (id == result) then return "@playtime.color.yellow" else return "@playtime.ui.off" end end val_20_auto = {{(edge .. " "), border_color}, {text0, _13_()}, {string.rep(" ", (max_len1 - vim.str_utfindex(text0) - 1))}, {(edge .. " "), border_color}} end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end lines = tbl_18_auto end
+ local function _13_() if (id == result) then return "@playtime.color.yellow" else return "@playtime.ui.off" end end val_21_auto = {{(edge .. " "), border_color}, {text0, _13_()}, {string.rep(" ", (max_len1 - string["col-width"](text0) - 1))}, {(edge .. " "), border_color}} end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end lines = tbl_19_auto end
 
 
  table.insert(lines, 1, empty)
  table.insert(lines, 1, top)
  table.insert(lines, empty)
  for _, line in ipairs(other_lines) do
- table.insert(lines, {{(edge .. " "), border_color}, {line, "@playtime.ui.on"}, {string.rep(" ", (max_len1 - vim.str_utfindex(line) - 1))}, {(edge .. " "), border_color}}) end
+ table.insert(lines, {{(edge .. " "), border_color}, {line, "@playtime.ui.on"}, {string.rep(" ", (max_len1 - string["col-width"](line) - 1))}, {(edge .. " "), border_color}}) end
 
 
 
@@ -109,9 +109,9 @@
 
 
  local lines
- do local tbl_18_auto = {} local i_19_auto = 0 for _, line in ipairs(raw_lines1) do local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for _, line in ipairs(raw_lines1) do local val_21_auto
  do local parts = {} for lw, letters, tw in string.gmatch(line, "(%s*)(%S+)(%s*)") do
- table.insert(parts, {lw}) table.insert(parts, {letters, "@playtime.color.red"}) table.insert(parts, {tw}) parts = parts end val_20_auto = parts end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end lines = tbl_18_auto end
+ table.insert(parts, {lw}) table.insert(parts, {letters, "@playtime.color.red"}) table.insert(parts, {tw}) parts = parts end val_21_auto = parts end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end lines = tbl_19_auto end
 
 
 
@@ -151,8 +151,8 @@
  local top_text = pad_text(text) local widest_child
  do local w = #top_text for _, _25_ in ipairs((_3fchildren or {})) do local _each_26_ = _25_ local text0 = _each_26_[1]
  w = math.max(w, #pad_text(text0)) end widest_child = w end local children
- do local tbl_18_auto = {} local i_19_auto = 0 for child_index, _27_ in ipairs((_3fchildren or {})) do local _each_28_ = _27_ local text0 = _each_28_[1] local _event0 = _each_28_[2]
- local val_20_auto = make_menubar_menu_entry(text0, {"menu", top_index, child_index}, {row = child_index, col = (col - 1)}, widest_child) if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end children = tbl_18_auto end
+ do local tbl_19_auto = {} local i_20_auto = 0 for child_index, _27_ in ipairs((_3fchildren or {})) do local _each_28_ = _27_ local text0 = _each_28_[1] local _event0 = _each_28_[2]
+ local val_21_auto = make_menubar_menu_entry(text0, {"menu", top_index, child_index}, {row = child_index, col = (col - 1)}, widest_child) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end children = tbl_19_auto end
 
 
 

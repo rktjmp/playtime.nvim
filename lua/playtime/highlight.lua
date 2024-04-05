@@ -1,9 +1,6 @@
 
  local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
 
- local Logger = require("playtime.logger")
- local Error = require("playtime.error")
-
  local _local_2_ = vim local _local_3_ = _local_2_["api"] local nvim_set_hl = _local_3_["nvim_set_hl"] local nvim_get_hl = _local_3_["nvim_get_hl"]
 
  local M = {}
@@ -12,36 +9,11 @@
  local _let_4_ = require("bit") local tohex = _let_4_["tohex"]
  return string.format("#%s", tohex(c, 6)) end
 
- local function split_color(c)
- local bit = require("bit")
- local r = bit.band(bit.rshift(c, 16), 255)
-
- local g = bit.band(bit.rshift(c, 8), 255)
-
- local b = bit.band(c, 255)
- return {r, g, b} end
-
- local function conj_color(_5_) local _arg_6_ = _5_ local r = _arg_6_[1] local g = _arg_6_[2] local b = _arg_6_[3]
- return to_hex(bit.bor(bit.lshift(bit.band(r, 255), 16), bit.lshift(bit.band(g, 255), 8), bit.band(b, 255))) end
-
-
-
- local function saturate(c, value)
- local _let_7_ = split_color(c) local r = _let_7_[1] local g = _let_7_[2] local b = _let_7_[3]
- local gray = ((0.2989 * r) + (0.587 * g) + (0.114 * b))
- local new_r = ((( - gray) * value) + (r * (1 + value)))
- local new_g = ((( - gray) * value) + (g * (1 + value)))
- local new_b = ((( - gray) * value) + (b * (1 + value)))
- new_r = math.min(255, math.max(0, new_r))
- new_g = math.min(255, math.max(0, new_g))
- new_b = math.min(255, math.max(0, new_b))
- return conj_color({new_r, new_g, new_b}) end
-
  M["define-highlights"] = function()
  local function fetch_fg(hl_name, ...) local rest = {...}
 
 
- local function _8_(...) local _9_ = ... if ((_G.type(_9_) == "table") and (_9_.fg == nil)) then local function _10_(...) local _11_ = ... if ((_G.type(_11_) == "table") and (_11_.fg == nil)) then
+ local function _5_(...) local _6_ = ... if ((_G.type(_6_) == "table") and (_6_.fg == nil)) then local function _7_(...) local _8_ = ... if ((_G.type(_8_) == "table") and (_8_.fg == nil)) then
 
 
 
@@ -50,9 +22,9 @@
 
  return fetch_fg(next, table.unpack(rest0)) elseif ((_G.type(rest) == "table") and (rest[1] == nil)) then
 
- return {fg = "#FF00DD"} else return nil end elseif ((_G.type(_11_) == "table") and (nil ~= _11_.fg)) then local fg = _11_.fg
+ return {fg = "#FF00DD"} else return nil end elseif ((_G.type(_8_) == "table") and (nil ~= _8_.fg)) then local fg = _8_.fg
 
- return {fg = to_hex(fg)} else return nil end end return _10_(nvim_get_hl(0, {name = hl_name, link = true})) elseif ((_G.type(_9_) == "table") and (nil ~= _9_.fg)) then local fg = _9_.fg return {fg = to_hex(fg)} else return nil end end return _8_(nvim_get_hl(0, {name = hl_name, link = false})) end
+ return {fg = to_hex(fg)} else return nil end end return _7_(nvim_get_hl(0, {name = hl_name, link = true})) elseif ((_G.type(_6_) == "table") and (nil ~= _6_.fg)) then local fg = _6_.fg return {fg = to_hex(fg)} else return nil end end return _5_(nvim_get_hl(0, {name = hl_name, link = false})) end
  local function define_hl_if_missing(ns, hl_name, hl_data)
 
 
@@ -75,7 +47,7 @@
 
 
 
- for _, _16_ in ipairs(core_hls) do local _each_17_ = _16_ local name = _each_17_[1] local data = _each_17_[2] hl(name, data) end
+ for _, _13_ in ipairs(core_hls) do local _each_14_ = _13_ local name = _each_14_[1] local data = _each_14_[2] hl(name, data) end
 
  link("@playtime.ui.on", "PlaytimeNormal")
  link("@playtime.ui.off", "PlaytimeMuted")
@@ -105,6 +77,12 @@
  link("@playtime.game.card.clubs.four_colors", "PlaytimeGreen")
  link("@playtime.game.card.spades.four_colors", "PlaytimeBlue")
 
+
+
+ link("@playtime.game.set.selected", "PlaytimeYellow")
+ link("@playtime.game.set.red", "PlaytimeRed")
+ link("@playtime.game.set.green", "PlaytimeGreen")
+ link("@playtime.game.set.blue", "PlaytimeBlue")
 
  link("@playtime.game.for_northwood.flowers", "PlaytimeMagenta")
  link("@playtime.game.for_northwood.claws", "PlaytimeCyan")

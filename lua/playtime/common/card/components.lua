@@ -6,7 +6,7 @@
  local M = {}
 
  local function fill_width(width, left_edge, left, fill, right, right_edge) _G.assert((nil ~= right_edge), "Missing argument right-edge on fnl/playtime/common/card/components.fnl:8") _G.assert((nil ~= right), "Missing argument right on fnl/playtime/common/card/components.fnl:8") _G.assert((nil ~= fill), "Missing argument fill on fnl/playtime/common/card/components.fnl:8") _G.assert((nil ~= left), "Missing argument left on fnl/playtime/common/card/components.fnl:8") _G.assert((nil ~= left_edge), "Missing argument left-edge on fnl/playtime/common/card/components.fnl:8") _G.assert((nil ~= width), "Missing argument width on fnl/playtime/common/card/components.fnl:8")
- return (left_edge .. left .. string.rep(fill, math.floor(((width - vim.str_utfindex(left_edge) - vim.str_utfindex(left) - vim.str_utfindex(right) - vim.str_utfindex(right_edge)) / vim.str_utfindex(fill)))) .. right .. right_edge) end
+ return (left_edge .. left .. string.rep(fill, math.floor(((width - string["col-width"](left_edge) - string["col-width"](left) - string["col-width"](right) - string["col-width"](right_edge)) / string["col-width"](fill)))) .. right .. right_edge) end
 
 
 
@@ -26,8 +26,8 @@
 
 
 
- local function _7_() local middle do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, (height - 2) do
- local val_20_auto = {{wide("\226\148\130", "", " ", "", "\226\148\130"), "@playtime.game.card.empty"}} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end middle = tbl_18_auto end
+ local function _7_() local middle do local tbl_19_auto = {} local i_20_auto = 0 for _ = 1, (height - 2) do
+ local val_21_auto = {{wide("\226\148\130", "", " ", "", "\226\148\130"), "@playtime.game.card.empty"}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end middle = tbl_19_auto end
  return table.join({{{wide("\226\149\173", "", "\226\148\128", "", "\226\149\174"), "@playtime.game.card.empty"}}}, middle, {{{wide("\226\149\176", "", "\226\148\128", "", "\226\149\175"), "@playtime.game.card.empty"}}}) end return Component["set-content"](Component["set-size"](Component["set-position"](Component["set-tag"](Component.build(), location), {row = row, col = col, z = z}), {width = width, height = height}), _7_()) end
 
 
@@ -83,8 +83,8 @@
 
 
 
- local _30_ do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, (n - 2) do
- local val_20_auto = {{wide("\226\148\130", "+", " ", "+", "\226\148\130"), face_down_color}} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end _30_ = tbl_18_auto end face_down_content = table.insert(table.insert(_30_, 1, top0), bottom0) else face_down_content = nil end local comp
+ local _30_ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, (n - 2) do
+ local val_21_auto = {{wide("\226\148\130", "+", " ", "+", "\226\148\130"), face_down_color}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end _30_ = tbl_19_auto end face_down_content = table.insert(table.insert(_30_, 1, top0), bottom0) else face_down_content = nil end local comp
 
 
 
@@ -107,15 +107,14 @@
 
  M.count = function(position, card_style) _G.assert((nil ~= card_style), "Missing argument card-style on fnl/playtime/common/card/components.fnl:108") _G.assert((nil ~= position), "Missing argument position on fnl/playtime/common/card/components.fnl:108")
  local _let_38_ = position local row = _let_38_["row"] local col = _let_38_["col"] local z = _let_38_["z"]
+ local _let_39_ = card_style local height = _let_39_["height"] local width = _let_39_["width"]
 
- local function _39_(self, count)
+ local function _40_(self, count)
  local text = tostring(count) local col0
- do local _40_ = vim.str_utfindex(text) if (_40_ == 1) then
- col0 = (col + 5) elseif (_40_ == 2) then
- col0 = (col + 4) elseif (_40_ == 3) then
- col0 = (col + 3) elseif (_40_ == 4) then
- col0 = (col + 2) else local _ = _40_
- col0 = (col + 1) end end self["set-position"](self, {row = (row + 4), col = col0, z = z}) self["set-size"](self, {width = #text, height = 1}) return self["set-content"](self, {{{text, "@playtime.ui.off"}}}) end return Component.build(_39_):update(0) end
+ do local _41_ = string["col-width"](text) local function _42_() local n = _41_ return ((1 <= n) and (n <= 5)) end if ((nil ~= _41_) and _42_()) then local n = _41_
+
+ col0 = (col + (width - n - 1)) else local _ = _41_
+ col0 = (col + 1) end end self["set-position"](self, {row = (row + (height - 1)), col = col0, z = z}) self["set-size"](self, {width = #text, height = 1}) return self["set-content"](self, {{{text, "@playtime.ui.off"}}}) end return Component.build(_40_):update(0) end
 
 
 

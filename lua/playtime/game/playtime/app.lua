@@ -79,8 +79,8 @@
  local title = build_game_title(app.view.width, M["location->position"](nil, {"list", n}), meta)
  local n0 = (n + 1)
  local rulesets = (meta.rulesets or {{menu = nil, config = {}}}) local variants
- do local tbl_18_auto = {} local i_19_auto = 0 for i, _9_ in ipairs(rulesets) do local _each_10_ = _9_ local _menu = _each_10_["menu"] local config = _each_10_["config"]
- local val_20_auto = build_game_button(app.view.width, M["location->position"](nil, {"list", (n0 + i)}), meta, _menu, config) if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end variants = tbl_18_auto end
+ do local tbl_19_auto = {} local i_20_auto = 0 for i, _9_ in ipairs(rulesets) do local _each_10_ = _9_ local _menu = _each_10_["menu"] local config = _each_10_["config"]
+ local val_21_auto = build_game_button(app.view.width, M["location->position"](nil, {"list", (n0 + i)}), meta, _menu, config) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end variants = tbl_19_auto end
 
 
  t, n = table.join(t, {title}, variants), (n0 + 2 + #variants) end list = t, n end

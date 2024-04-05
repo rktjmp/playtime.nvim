@@ -30,8 +30,8 @@
  return error("Usage: `:Playtime <game-name> <game-seed> <game-options>` or `:Playtime` for menu") end end
 
  local function complete(arg_lead, cmd_line, cursor_pos)
- local tbl_18_auto = {} local i_19_auto = 0 for _, name in ipairs(list_games()) do local val_20_auto
+ local tbl_19_auto = {} local i_20_auto = 0 for _, name in ipairs(list_games()) do local val_21_auto
  if (1 == string.find(name, arg_lead, 1, true)) then
- val_20_auto = name else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
+ val_21_auto = name else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
 
  return vim.api.nvim_create_user_command("Playtime", run, {nargs = "*", complete = complete})

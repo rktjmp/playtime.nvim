@@ -64,7 +64,7 @@
  d, h = table.insert(d, c), h end elseif (nil ~= _8_) then local n = _8_
  d, h = table.insert(d, c), h else d, h = nil end end deck0, head = d, h end
  local state = new_game_state()
- do local tbl_17_auto = deck0 for _, c in ipairs(head) do table.insert(tbl_17_auto, c) end end
+ do local tbl_17_auto = deck0 for _, c in ipairs(head) do local val_18_auto = c table.insert(tbl_17_auto, val_18_auto) end end
  state["stock"][1] = deck0
  return state end
 
@@ -127,7 +127,7 @@
  local function _49_(...) local _50_ = ... if (nil ~= _50_) then local held = _50_ local function _51_(...) local _52_, _53_ = ... if ((nil ~= _52_) and (nil ~= _53_)) then local next_state = _52_ local moves = _53_
 
 
- return next_state, moves else local __84_auto = _52_ return ... end end return _51_(put_down(state, pick_up_from, put_down_on, held)) else local __84_auto = _50_ return ... end end return _49_(check_pick_up(state, pick_up_from)) end
+ return next_state, moves else local __85_auto = _52_ return ... end end return _51_(put_down(state, pick_up_from, put_down_on, held)) else local __85_auto = _50_ return ... end end return _49_(check_pick_up(state, pick_up_from)) end
 
  M.Query["liftable?"] = function(state, location)
  return not (nil == check_pick_up(state, location)) end

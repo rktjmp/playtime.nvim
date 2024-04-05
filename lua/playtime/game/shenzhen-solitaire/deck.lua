@@ -13,11 +13,11 @@
  local pips = {1, 2, 3, 4, 5, 6, 7, 8, 9}
  local cards = {}
  for _, suit in ipairs(suits) do
- local tbl_17_auto = cards for _0, pip in ipairs(pips) do table.insert(tbl_17_auto, new_card(suit, pip)) end end
-
+ local tbl_17_auto = cards for _0, pip in ipairs(pips) do
+ local val_18_auto = new_card(suit, pip) table.insert(tbl_17_auto, val_18_auto) end end
  for _, dragon in ipairs(dragons) do
- local tbl_17_auto = cards for i = 1, 4 do table.insert(tbl_17_auto, new_card(dragon, i)) end end
-
+ local tbl_17_auto = cards for i = 1, 4 do
+ local val_18_auto = new_card(dragon, i) table.insert(tbl_17_auto, val_18_auto) end end
  return table.insert(cards, new_card("flower", 1)) end
 
  return M

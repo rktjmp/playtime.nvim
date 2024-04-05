@@ -34,7 +34,7 @@
  local function _3_(...) local _4_ = ... if (nil ~= _4_) then local from = _4_ local function _5_(...) local _6_, _7_ = ... if ((nil ~= _6_) and (nil ~= _7_)) then local next_game = _6_ local events = _7_
 
 
- local after local function _8_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"remove-complete-sequence", from}) end after = _8_ local timeline = app["build-event-animation"](app, events, after, {["stagger-ms"] = 120}) return app["switch-state"](app, AppState.Animating, timeline) else local __84_auto = _6_ return ... end end return _5_(Logic.Action["remove-complete-sequence"](app.game, from)) else local __84_auto = _4_ return ... end end _3_(Logic.Plan["next-complete-sequence"](app.game))
+ local after local function _8_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"remove-complete-sequence", from}) end after = _8_ local timeline = app["build-event-animation"](app, events, after, {["stagger-ms"] = 120}) return app["switch-state"](app, AppState.Animating, timeline) else local __85_auto = _6_ return ... end end return _5_(Logic.Action["remove-complete-sequence"](app.game, from)) else local __85_auto = _4_ return ... end end _3_(Logic.Plan["next-complete-sequence"](app.game))
 
 
 

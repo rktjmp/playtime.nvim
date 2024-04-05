@@ -103,8 +103,8 @@
  animations = timeline else animations = nil end
  app.state.context.running = {}
  do
- local tbl_17_auto = app.state.context.running for _, animation0 in ipairs(animations) do table.insert(tbl_17_auto, animation0) end end app["request-tick"](app)
-
+ local tbl_17_auto = app.state.context.running for _, animation0 in ipairs(animations) do
+ local val_18_auto = animation0 table.insert(tbl_17_auto, val_18_auto) end end app["request-tick"](app)
 
  return app end
 
@@ -116,14 +116,14 @@
 
 
  local context = app.state.context local animations0
- do local tbl_18_auto = {} local i_19_auto = 0 for i, animation in ipairs(animations) do local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for i, animation in ipairs(animations) do local val_21_auto
  do local _let_26_ = animation local finish_at = _let_26_["finish-at"] local start_at = _let_26_["start-at"] local tick = _let_26_["tick"]
  if (start_at <= now) then animation:tick(now)
 
 
  if (now < finish_at) then
- val_20_auto = animation else val_20_auto = nil end else
- val_20_auto = animation end end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end animations0 = tbl_18_auto end
+ val_21_auto = animation else val_21_auto = nil end else
+ val_21_auto = animation end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end animations0 = tbl_19_auto end
  context.running = animations0 return app["request-tick"](app) else return nil end end
 
 

@@ -66,9 +66,9 @@
  local _9_ = new_hand[i] if (_9_ == nil) then
  t, to = t, to elseif (nil ~= _9_) then local any = _9_
  local _10_ do table.insert(t, {i, to}) _10_ = t end t, to = _10_, (to + 1) else t, to = nil end end packed = t, to end
- local tbl_18_auto = {} local i_19_auto = 0 for _, _12_ in ipairs(packed) do local _each_13_ = _12_ local a = _each_13_[1] local b = _each_13_[2] local val_20_auto
+ local tbl_19_auto = {} local i_20_auto = 0 for _, _12_ in ipairs(packed) do local _each_13_ = _12_ local a = _each_13_[1] local b = _each_13_[2] local val_21_auto
  if not (a == b) then
- val_20_auto = {"move", {"hand", a}, {"hand", b}} else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
+ val_21_auto = {"move", {"hand", a}, {"hand", b}} else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
 
  M.Action.deal = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/the-emissary/logic.fnl:73")
  local top = #state.draw local events
@@ -97,7 +97,7 @@
  state0, moves = clone(state), {} end
  local state1, more_moves = apply_events(state0, {{"move", {"draw", "top"}, {"debate", "top"}}, {"face-up", {"debate", "top"}}}) local moves0
 
- do local tbl_17_auto = moves for _, m in ipairs(more_moves) do table.insert(tbl_17_auto, m) end moves0 = tbl_17_auto end
+ do local tbl_17_auto = moves for _, m in ipairs(more_moves) do local val_18_auto = m table.insert(tbl_17_auto, val_18_auto) end moves0 = tbl_17_auto end
  return state1, moves0 end end
 
  M.Action["play-hand"] = function(state, hand_n) _G.assert((nil ~= hand_n), "Missing argument hand-n on fnl/playtime/game/the-emissary/logic.fnl:103") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/the-emissary/logic.fnl:103")
@@ -127,8 +127,8 @@
  moves0 = table.insert(table.insert(moves, {"move", {"debate", 2}, {"discard", "top"}}), {"move", {"debate", 1}, {"discard", "top"}}) end local moves1
 
 
- do local tbl_17_auto = moves0 for i = (hand_n + 1), #state.hand do table.insert(tbl_17_auto, {"move", {"hand", i}, {"hand", (i - 1)}}) end moves1 = tbl_17_auto end
-
+ do local tbl_17_auto = moves0 for i = (hand_n + 1), #state.hand do
+ local val_18_auto = {"move", {"hand", i}, {"hand", (i - 1)}} table.insert(tbl_17_auto, val_18_auto) end moves1 = tbl_17_auto end
  return apply_events(clone(state), moves1, {["unsafely?"] = true}) end end
 
  M.Action["finish-kingdom"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/the-emissary/logic.fnl:134")
@@ -165,14 +165,14 @@
 
  local function _30_(...) local _31_ = ... if (_31_ == true) then
 
- local moves do local tbl_18_auto = {} local i_19_auto = 0 for i, c in ipairs(state.hand) do local val_20_auto
+ local moves do local tbl_19_auto = {} local i_20_auto = 0 for i, c in ipairs(state.hand) do local val_21_auto
  if (card_suit(c) == kingdom_suit(state)) then
- val_20_auto = {"move", {"hand", i}, {"discard", "top"}} else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end moves = tbl_18_auto end
+ val_21_auto = {"move", {"hand", i}, {"discard", "top"}} else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end moves = tbl_19_auto end
  local next_state, discard_events = apply_events(clone(state), moves)
  local moves0 = moves_to_pack_hand(state.hand, next_state.hand)
  local next_state0, hand_events = apply_events(next_state, moves0)
  local next_state1, exhausted = apply_events(next_state0, {{"face-down", {"advisor", "hearts", advisor_n}}})
- return next_state1, table.join(discard_events, hand_events, exhausted) else local __84_auto = _31_ return ... end end return _30_(M.Query.diplomacy(state, advisor_n)) end
+ return next_state1, table.join(discard_events, hand_events, exhausted) else local __85_auto = _31_ return ... end end return _30_(M.Query.diplomacy(state, advisor_n)) end
 
  M.Action.military = function(state, advisor_n) _G.assert((nil ~= advisor_n), "Missing argument advisor-n on fnl/playtime/game/the-emissary/logic.fnl:177") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/the-emissary/logic.fnl:177")
 
@@ -188,7 +188,7 @@
  local next_state, draw_events = apply_events(clone(state), moves)
  local next_state0, exhausted = apply_events(next_state, {{"face-down", {"advisor", "clubs", advisor_n}}})
  sort_hand_21(next_state0.hand)
- return next_state0, table.join(draw_events, exhausted) else local __84_auto = _36_ return ... end end return _35_(M.Query.military(state, advisor_n)) end
+ return next_state0, table.join(draw_events, exhausted) else local __85_auto = _36_ return ... end end return _35_(M.Query.military(state, advisor_n)) end
 
  M.Action.politics = function(state, advisor_n, kingdom_n) _G.assert((nil ~= kingdom_n), "Missing argument kingdom-n on fnl/playtime/game/the-emissary/logic.fnl:193") _G.assert((nil ~= advisor_n), "Missing argument advisor-n on fnl/playtime/game/the-emissary/logic.fnl:193") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/the-emissary/logic.fnl:193")
 
@@ -230,7 +230,7 @@
  local moves0 = moves_to_pack_hand(state.hand, next_state.hand)
  local next_state0, hand_events = apply_events(next_state, moves0)
  local next_state1, exhausted = apply_events(next_state0, {{"face-down", {"advisor", "diamonds", advisor_n}}})
- return next_state1, table.join(discard_events, hand_events, exhausted) else return nil end else local __84_auto = _94_ return ... end end return _93_(M.Query.commerce(state, advisor_n)) end
+ return next_state1, table.join(discard_events, hand_events, exhausted) else return nil end else local __85_auto = _94_ return ... end end return _93_(M.Query.commerce(state, advisor_n)) end
 
  local function check_advisor(state, suit, advisor_n)
  local _97_ = state.advisor[suit][advisor_n] if (nil ~= _97_) then local card = _97_
@@ -279,8 +279,8 @@
 
  M.Query["game-result"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/the-emissary/logic.fnl:280")
 
- local supporting do local tbl_18_auto = {} local i_19_auto = 0 for _, k in ipairs(state.kingdom) do local val_20_auto
- if ((_G.type(k) == "table") and (k[1] == nil)) then val_20_auto = true else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end supporting = tbl_18_auto end
+ local supporting do local tbl_19_auto = {} local i_20_auto = 0 for _, k in ipairs(state.kingdom) do local val_21_auto
+ if ((_G.type(k) == "table") and (k[1] == nil)) then val_21_auto = true else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end supporting = tbl_19_auto end
 
  local unused = {} local _
  for suit, t in pairs(state.advisor) do

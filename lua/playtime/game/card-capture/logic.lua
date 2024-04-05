@@ -68,8 +68,8 @@
  return state end
 
  local function fetch_by_index(seq, indexes) _G.assert((nil ~= indexes), "Missing argument indexes on fnl/playtime/game/card-capture/logic.fnl:70") _G.assert((nil ~= seq), "Missing argument seq on fnl/playtime/game/card-capture/logic.fnl:70")
- local tbl_18_auto = {} local i_19_auto = 0 for _, i in ipairs(indexes) do
- local val_20_auto = seq[i] if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
+ local tbl_19_auto = {} local i_20_auto = 0 for _, i in ipairs(indexes) do
+ local val_21_auto = seq[i] if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
 
  local function sum_hand(hand) _G.assert((nil ~= hand), "Missing argument hand on fnl/playtime/game/card-capture/logic.fnl:74")
  local hand_values, joker_count = nil, nil do local vs, js = {}, 0 for _, c in ipairs(hand) do
@@ -90,7 +90,7 @@
  die = (not ("joker" == card_suit(c)) and (10 < card_value(c))) end discard_poisoned_3f = die end
 
  local draw_empty_3f = (0 == #state.enemy.draw) local hand_empty_3f
- local _10_ do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 4 do local val_20_auto = state.enemy.hand[i] if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end _10_ = tbl_18_auto end hand_empty_3f = (0 == #_10_) local winner
+ local _10_ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 4 do local val_21_auto = state.enemy.hand[i] if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end _10_ = tbl_19_auto end hand_empty_3f = (0 == #_10_) local winner
  if discard_poisoned_3f then winner = "enemy" elseif (draw_empty_3f and hand_empty_3f) then winner = "player" else winner = nil end
 
  return table.set(state, "winner", winner) end
@@ -102,8 +102,8 @@
  local function _13_(...) local _14_, _15_ = ... if ((nil ~= _14_) and (nil ~= _15_)) then local next_state = _14_ local moves = _15_ local function _16_(...) local _17_, _18_ = ... if ((nil ~= _17_) and (nil ~= _18_)) then local next_state0 = _17_ local more_moves = _18_
 
 
- local moves0 do local tbl_17_auto = moves for _, m in ipairs(more_moves) do table.insert(tbl_17_auto, m) end moves0 = tbl_17_auto end
- return next_state0, moves0 else local __84_auto = _17_ return ... end end return _16_(M.Action["player-draw"](next_state)) else local __84_auto = _14_ return ... end end return _13_(M.Action["enemy-draw"](state)) end
+ local moves0 do local tbl_17_auto = moves for _, m in ipairs(more_moves) do local val_18_auto = m table.insert(tbl_17_auto, val_18_auto) end moves0 = tbl_17_auto end
+ return next_state0, moves0 else local __85_auto = _17_ return ... end end return _16_(M.Action["player-draw"](next_state)) else local __85_auto = _14_ return ... end end return _13_(M.Action["enemy-draw"](state)) end
 
 
  local function describe_pack_left_indexes(seq)
@@ -126,8 +126,8 @@
  do local t = {} for _, _25_ in ipairs(hand_moves) do local _each_26_ = _25_ local from = _each_26_[1] local to = _each_26_[2]
  t = table.insert(t, {"move", {"enemy", "hand", from}, {"enemy", "hand", to}}) end moves = t end
  local len_draw = #next_state.enemy.draw local draw_moves
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, math.min(len_draw, math.max(0, (4 - #hand))) do
- local val_20_auto = {(len_draw - (i - 1)), (#hand + i)} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end draw_moves = tbl_18_auto end local _
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, math.min(len_draw, math.max(0, (4 - #hand))) do
+ local val_21_auto = {(len_draw - (i - 1)), (#hand + i)} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end draw_moves = tbl_19_auto end local _
  do local t = moves for _0, _28_ in ipairs(draw_moves) do local _each_29_ = _28_ local from = _each_29_[1] local to = _each_29_[2]
  t = table.join(t, {{"move", {"enemy", "draw", from}, {"enemy", "hand", to}}, {"face-up", {"enemy", "hand", to}}}) end _ = t end
 
@@ -137,7 +137,7 @@
  M.Action["player-draw"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/card-capture/logic.fnl:137")
 
  local state0 = clone(state) local missing_indexes
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 4 do local val_20_auto if not state0.player.hand[i] then val_20_auto = i else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end missing_indexes = tbl_18_auto end
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 4 do local val_21_auto if not state0.player.hand[i] then val_21_auto = i else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end missing_indexes = tbl_19_auto end
  local n_draw = #state0.player.draw local fill
 
  do local t = {} for i = 1, math.min(#state0.player.draw, #missing_indexes) do
@@ -148,7 +148,7 @@
 
  local state1, moves = apply_events(state0, fill, {["unsafely?"] = true}) local missing_indexes0
 
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 4 do local val_20_auto if not state1.player.hand[i] then val_20_auto = i else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end missing_indexes0 = tbl_18_auto end local state2, moves0 = nil, nil
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 4 do local val_21_auto if not state1.player.hand[i] then val_21_auto = i else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end missing_indexes0 = tbl_19_auto end local state2, moves0 = nil, nil
 
  if (0 < #missing_indexes0) then
  local shift do local t = {} for i = #state1.player.discard, 1, -1 do

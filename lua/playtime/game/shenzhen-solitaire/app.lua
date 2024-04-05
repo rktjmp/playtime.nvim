@@ -85,7 +85,7 @@
 
 
 
- local after local function _15_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"move", from, to}) end after = _15_ local timeline = app["build-event-animation"](app, events, after, {["stagger-ms"] = 200}) return app["switch-state"](app, AppState.Animating, timeline) else local __84_auto = _13_ return ... end end return _12_(Logic.Action.move(app.game, from, to)) else local __84_auto = _11_ return ... end end return _10_((Logic.Plan["next-move-to-flower"](app.game) or Logic.Plan["next-move-to-foundation"](app.game))) end
+ local after local function _15_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"move", from, to}) end after = _15_ local timeline = app["build-event-animation"](app, events, after, {["stagger-ms"] = 200}) return app["switch-state"](app, AppState.Animating, timeline) else local __85_auto = _13_ return ... end end return _12_(Logic.Action.move(app.game, from, to)) else local __85_auto = _11_ return ... end end return _10_((Logic.Plan["next-move-to-flower"](app.game) or Logic.Plan["next-move-to-foundation"](app.game))) end
 
 
 
@@ -122,7 +122,7 @@
 
 
 
- do local tbl_18_auto = {} local i_19_auto = 0 for _, a in ipairs({{{"button", "lock", "red"}, "\226\138\178 \197\160", app["location->position"](app, {"button", "lock", "red"}), "@playtime.game.shenzhen.dragon.red", "@playtime.ui.off"}, {{"button", "lock", "green"}, "\226\138\178 \195\145", app["location->position"](app, {"button", "lock", "green"}), "@playtime.game.shenzhen.dragon.green", "@playtime.ui.off"}, {{"button", "lock", "white"}, "\226\138\178 \195\149", app["location->position"](app, {"button", "lock", "white"}), "@playtime.game.shenzhen.dragon.white", "@playtime.ui.off"}}) do
+ do local tbl_19_auto = {} local i_20_auto = 0 for _, a in ipairs({{{"button", "lock", "red"}, "\226\138\178 \197\160", app["location->position"](app, {"button", "lock", "red"}), "@playtime.game.shenzhen.dragon.red", "@playtime.ui.off"}, {{"button", "lock", "green"}, "\226\138\178 \195\145", app["location->position"](app, {"button", "lock", "green"}), "@playtime.game.shenzhen.dragon.green", "@playtime.ui.off"}, {{"button", "lock", "white"}, "\226\138\178 \195\149", app["location->position"](app, {"button", "lock", "white"}), "@playtime.game.shenzhen.dragon.white", "@playtime.ui.off"}}) do
 
 
 
@@ -137,7 +137,7 @@
 
 
 
- local val_20_auto = make_lock_button_component(table.unpack(a)) if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end buttons = tbl_18_auto end
+ local val_21_auto = make_lock_button_component(table.unpack(a)) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end buttons = tbl_19_auto end
  table.merge(app.components, {buttons = buttons})
  return app end
 

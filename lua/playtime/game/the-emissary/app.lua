@@ -456,22 +456,22 @@
  local function _112_(_241) return (_241 + 4) end table["update-in"](_111_, {"row"}, _112_)
  local function _113_(_241) return (_241 + 2) end table["update-in"](_111_, {"col"}, _113_)
  local function _114_(_241) return (_241 + 5) end table["update-in"](_111_, {"z"}, _114_) return _111_ end pos = _110_
- local tbl_18_auto = {} local i_19_auto = 0 for n = 1, 8 do
- local val_20_auto = build_label((" " .. tostring(n) .. " "), pos(n)) if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end win_needed_labels = tbl_18_auto end
+ local tbl_19_auto = {} local i_20_auto = 0 for n = 1, 8 do
+ local val_21_auto = build_label((" " .. tostring(n) .. " "), pos(n)) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end win_needed_labels = tbl_19_auto end
  local advisors = {hearts = "dip.", clubs = "mil.", spades = "pol.", diamonds = "com."} local advisor_titles
- do local tbl_18_auto = {} local i_19_auto = 0 for suit, short_name in pairs(advisors) do
- local val_20_auto = build_label(short_name, app["location->position"](app, {"advisor", suit, "label"})) if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end advisor_titles = tbl_18_auto end local empty_fields
+ do local tbl_19_auto = {} local i_20_auto = 0 for suit, short_name in pairs(advisors) do
+ local val_21_auto = build_label(short_name, app["location->position"](app, {"advisor", suit, "label"})) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end advisor_titles = tbl_19_auto end local empty_fields
  do local base = {} for _, _117_ in ipairs({{"kingdom", 8}, {"draw", 1}, {"discard", 1}, {"score", 1}}) do local _each_118_ = _117_ local field = _each_118_[1] local count = _each_118_[2]
 
 
 
- local tbl_17_auto = base for i = 1, count do
- local function _119_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end table.insert(tbl_17_auto, CardComponents.slot(_119_, {field, i, 0}, app["card-style"])) end base = tbl_17_auto end empty_fields = base end local empty_fields0
+ local tbl_17_auto = base for i = 1, count do local val_18_auto
+ local function _119_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_18_auto = CardComponents.slot(_119_, {field, i, 0}, app["card-style"]) table.insert(tbl_17_auto, val_18_auto) end base = tbl_17_auto end empty_fields = base end local empty_fields0
 
 
 
- do local tbl_17_auto = empty_fields for _, t in ipairs(advisors) do
- local function _120_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end table.insert(tbl_17_auto, CardComponents.slot(_120_, {"advisor", t, 0}, app["card-style"])) end empty_fields0 = tbl_17_auto end
+ do local tbl_17_auto = empty_fields for _, t in ipairs(advisors) do local val_18_auto
+ local function _120_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_18_auto = CardComponents.slot(_120_, {"advisor", t, 0}, app["card-style"]) table.insert(tbl_17_auto, val_18_auto) end empty_fields0 = tbl_17_auto end
 
 
 

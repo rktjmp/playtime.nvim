@@ -28,7 +28,7 @@
 
 
  M.write = function(path, data) _G.assert((nil ~= data), "Missing argument data on fnl/playtime/serializer.fnl:30") _G.assert((nil ~= path), "Missing argument path on fnl/playtime/serializer.fnl:30")
- local function _8_(...) local _9_ = ... if (nil ~= _9_) then local dir = _9_ local function _10_(...) local _11_ = ... if (_11_ == 1) then local function _12_(...) local _13_ = ... if (nil ~= _13_) then local fd = _13_ local function _14_(...) local _15_ = ... if (nil ~= _15_) then local ok = _15_ local function _16_(...) local _17_ = ... if (nil ~= _17_) then local ok0 = _17_ return true else local __84_auto = _17_ return ... end end return _16_(fd:close()) else local __84_auto = _15_ return ... end end return _14_(fd:write(M.encode(data))) else local __84_auto = _13_ return ... end end return _12_(io.open(path, "w")) else local __84_auto = _11_ return ... end end return _10_(vim.fn.mkdir(dir, "p")) else local __84_auto = _9_ return ... end end return _8_(vim.fs.dirname(path)) end
+ local function _8_(...) local _9_ = ... if (nil ~= _9_) then local dir = _9_ local function _10_(...) local _11_ = ... if (_11_ == 1) then local function _12_(...) local _13_ = ... if (nil ~= _13_) then local fd = _13_ local function _14_(...) local _15_ = ... if (nil ~= _15_) then local ok = _15_ local function _16_(...) local _17_ = ... if (nil ~= _17_) then local ok0 = _17_ return true else local __85_auto = _17_ return ... end end return _16_(fd:close()) else local __85_auto = _15_ return ... end end return _14_(fd:write(M.encode(data))) else local __85_auto = _13_ return ... end end return _12_(io.open(path, "w")) else local __85_auto = _11_ return ... end end return _10_(vim.fn.mkdir(dir, "p")) else local __85_auto = _9_ return ... end end return _8_(vim.fs.dirname(path)) end
 
 
 
@@ -41,6 +41,6 @@
 
 
 
- return M.decode(json) else local __84_auto = _28_ return ... end end return _27_(fd:close()) else local __84_auto = _26_ return ... end end return _25_(fd:read("*a")) else local __84_auto = _24_ return ... end end return _23_(io.open(path)) end
+ return M.decode(json) else local __85_auto = _28_ return ... end end return _27_(fd:close()) else local __85_auto = _26_ return ... end end return _25_(fd:read("*a")) else local __85_auto = _24_ return ... end end return _23_(io.open(path)) end
 
  return M

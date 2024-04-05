@@ -77,14 +77,14 @@
 
  local function build_move_plan(cur_state, from, to) _G.assert((nil ~= to), "Missing argument to on fnl/playtime/game/freecell/logic.fnl:78") _G.assert((nil ~= from), "Missing argument from on fnl/playtime/game/freecell/logic.fnl:78") _G.assert((nil ~= cur_state), "Missing argument cur-state on fnl/playtime/game/freecell/logic.fnl:78")
  local function find_empty_cells(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/freecell/logic.fnl:79")
- local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 4 do local val_20_auto
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 4 do local val_21_auto
  if table["empty?"](location_contents(state, {"cell", i})) then
- val_20_auto = {"cell", i, 1} else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
+ val_21_auto = {"cell", i, 1} else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
 
  local function find_empty_columns(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/freecell/logic.fnl:84")
- local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 8 do local val_20_auto
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 8 do local val_21_auto
  if table["empty?"](location_contents(state, {"tableau", i})) then
- val_20_auto = {"tableau", i, 1} else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
+ val_21_auto = {"tableau", i, 1} else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
 
  local function stack_unstack_move(cur_state0, _20_, _22_) local _arg_21_ = _20_ local from_f = _arg_21_[1] local from_c = _arg_21_[2] local from_n = _arg_21_[3] local from0 = _arg_21_ local _arg_23_ = _22_ local to_f = _arg_23_[1] local to_c = _arg_23_[2] local to_n = _arg_23_[3] local to0 = _arg_23_ _G.assert((nil ~= to0), "Missing argument to on fnl/playtime/game/freecell/logic.fnl:89") _G.assert((nil ~= to_n), "Missing argument to-n on fnl/playtime/game/freecell/logic.fnl:89") _G.assert((nil ~= to_c), "Missing argument to-c on fnl/playtime/game/freecell/logic.fnl:89") _G.assert((nil ~= to_f), "Missing argument to-f on fnl/playtime/game/freecell/logic.fnl:89") _G.assert((nil ~= from0), "Missing argument from on fnl/playtime/game/freecell/logic.fnl:89") _G.assert((nil ~= from_n), "Missing argument from-n on fnl/playtime/game/freecell/logic.fnl:89") _G.assert((nil ~= from_c), "Missing argument from-c on fnl/playtime/game/freecell/logic.fnl:89") _G.assert((nil ~= from_f), "Missing argument from-f on fnl/playtime/game/freecell/logic.fnl:89") _G.assert((nil ~= cur_state0), "Missing argument cur-state on fnl/playtime/game/freecell/logic.fnl:89")
 
@@ -96,10 +96,10 @@
 
  local num_cards_to_hold = (total_cards_to_move - 1) local holding_locs
  do local t = {}
- do local tbl_17_auto = t for _, l in ipairs(find_empty_cells(next_state)) do table.insert(tbl_17_auto, l) end end
- do local tbl_17_auto = t for _, l in ipairs(find_empty_columns(next_state)) do table.insert(tbl_17_auto, l) end end
- local tbl_18_auto = {} local i_19_auto = 0 for _, l in ipairs(t) do local val_20_auto
- if not same_location_field_column_3f(to0, l) then val_20_auto = l else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end holding_locs = tbl_18_auto end
+ do local tbl_17_auto = t for _, l in ipairs(find_empty_cells(next_state)) do local val_18_auto = l table.insert(tbl_17_auto, val_18_auto) end end
+ do local tbl_17_auto = t for _, l in ipairs(find_empty_columns(next_state)) do local val_18_auto = l table.insert(tbl_17_auto, val_18_auto) end end
+ local tbl_19_auto = {} local i_20_auto = 0 for _, l in ipairs(t) do local val_21_auto
+ if not same_location_field_column_3f(to0, l) then val_21_auto = l else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end holding_locs = tbl_19_auto end
  if (num_cards_to_hold <= #holding_locs) then
  local unstack, restack = nil, nil do local unstack0, restack0 = {}, {} for i = 1, num_cards_to_hold do
 
@@ -117,7 +117,7 @@
  table.insert(restack0, 1, restack_move)
  unstack0, restack0 = unstack0, restack0 end unstack, restack = unstack0, restack0 end
  table.insert(unstack, {"move", from0, to0})
- local tbl_17_auto = unstack for _, re in ipairs(restack) do table.insert(tbl_17_auto, re) end return tbl_17_auto else
+ local tbl_17_auto = unstack for _, re in ipairs(restack) do local val_18_auto = re table.insert(tbl_17_auto, val_18_auto) end return tbl_17_auto else
  local function _33_() local data_5_auto = {["total-cards-to-move"] = total_cards_to_move} local resolve_6_auto local function _27_(name_7_auto) local _28_ = data_5_auto[name_7_auto] local function _29_() local t_8_auto = _28_ return ("table" == type(t_8_auto)) end if ((nil ~= _28_) and _29_()) then local t_8_auto = _28_ local _30_ = getmetatable(t_8_auto) if ((_G.type(_30_) == "table") and (nil ~= _30_.__tostring)) then local f_9_auto = _30_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _30_ return vim.inspect(t_8_auto) end elseif (nil ~= _28_) then local v_11_auto = _28_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _27_ return string.gsub("Unable to plan move for #{total-cards-to-move} cards, not enough holding spaces", "#{(.-)}", resolve_6_auto) end return nil, _33_() end end
 
  local next_state = clone(cur_state)
@@ -128,17 +128,17 @@
 
  local _let_37_ = from local from_f = _let_37_[1] local from_c = _let_37_[2] local from_n = _let_37_[3]
  local _let_38_ = to local to_f = _let_38_[1] local to_c = _let_38_[2] local to_n = _let_38_[3] local sub_stack_to
- local function _39_() local tbl_18_auto = {} local i_19_auto = 0 for _, l in ipairs(find_empty_columns(next_state)) do local val_20_auto
- if not same_location_field_column_3f(to, l) then val_20_auto = l else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end sub_stack_to = table.first(_39_())
+ local function _39_() local tbl_19_auto = {} local i_20_auto = 0 for _, l in ipairs(find_empty_columns(next_state)) do local val_21_auto
+ if not same_location_field_column_3f(to, l) then val_21_auto = l else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end sub_stack_to = table.first(_39_())
 
  if sub_stack_to then
  local holding_locs do local t = {}
- do local tbl_17_auto = t for _, l in ipairs(find_empty_cells(next_state)) do table.insert(tbl_17_auto, l) end end
- do local tbl_17_auto = t for _, l in ipairs(find_empty_columns(next_state)) do table.insert(tbl_17_auto, l) end end
- local tbl_18_auto = {} local i_19_auto = 0 for _, _42_ in ipairs(t) do local _each_43_ = _42_ local f = _each_43_[1] local c = _each_43_[2] local l = _each_43_ local val_20_auto
+ do local tbl_17_auto = t for _, l in ipairs(find_empty_cells(next_state)) do local val_18_auto = l table.insert(tbl_17_auto, val_18_auto) end end
+ do local tbl_17_auto = t for _, l in ipairs(find_empty_columns(next_state)) do local val_18_auto = l table.insert(tbl_17_auto, val_18_auto) end end
+ local tbl_19_auto = {} local i_20_auto = 0 for _, _42_ in ipairs(t) do local _each_43_ = _42_ local f = _each_43_[1] local c = _each_43_[2] local l = _each_43_ local val_21_auto
  if (not same_location_field_column_3f(to, l) and not same_location_field_column_3f(sub_stack_to, l)) then
 
- val_20_auto = l else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end holding_locs = tbl_18_auto end
+ val_21_auto = l else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end holding_locs = tbl_19_auto end
  local from_t = next_state[from_f][from_c]
  local sub_stack_from = {from_f, from_c, (#from_t - #holding_locs)}
  local _46_, _47_ = build_move_plan(next_state, sub_stack_from, sub_stack_to) if (nil ~= _46_) then local moves = _46_
@@ -151,8 +151,8 @@
  local sub_stack_from0 = sub_stack_to
  local sub_stack_to0 = {to_f, to_c, (1 + #next_state1[to_f][to_c])}
  local unwind_moves = stack_unstack_move(next_state1, sub_stack_from0, sub_stack_to0)
- do local tbl_17_auto = moves for _, move in ipairs(next_moves) do table.insert(tbl_17_auto, move) end end
- local tbl_17_auto = moves for _, move in ipairs(unwind_moves) do table.insert(tbl_17_auto, move) end return tbl_17_auto elseif (_48_ == nil) then
+ do local tbl_17_auto = moves for _, move in ipairs(next_moves) do local val_18_auto = move table.insert(tbl_17_auto, val_18_auto) end end
+ local tbl_17_auto = moves for _, move in ipairs(unwind_moves) do local val_18_auto = move table.insert(tbl_17_auto, val_18_auto) end return tbl_17_auto elseif (_48_ == nil) then
  local function _55_() local data_5_auto = {from = from, to = to} local resolve_6_auto local function _49_(name_7_auto) local _50_ = data_5_auto[name_7_auto] local function _51_() local t_8_auto = _50_ return ("table" == type(t_8_auto)) end if ((nil ~= _50_) and _51_()) then local t_8_auto = _50_ local _52_ = getmetatable(t_8_auto) if ((_G.type(_52_) == "table") and (nil ~= _52_.__tostring)) then local f_9_auto = _52_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _52_ return vim.inspect(t_8_auto) end elseif (nil ~= _50_) then local v_11_auto = _50_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _49_ return string.gsub("Cannot plan #{from} -> #{to}, not enough spaces", "#{(.-)}", resolve_6_auto) end return nil, _55_() else return nil end elseif ((_46_ == nil) and (nil ~= _47_)) then local err0 = _47_
 
  local function _63_() local data_5_auto = {from = from, to = to} local resolve_6_auto local function _57_(name_7_auto) local _58_ = data_5_auto[name_7_auto] local function _59_() local t_8_auto = _58_ return ("table" == type(t_8_auto)) end if ((nil ~= _58_) and _59_()) then local t_8_auto = _58_ local _60_ = getmetatable(t_8_auto) if ((_G.type(_60_) == "table") and (nil ~= _60_.__tostring)) then local f_9_auto = _60_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _60_ return vim.inspect(t_8_auto) end elseif (nil ~= _58_) then local v_11_auto = _58_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _57_ return string.gsub("Cannot plan #{from} -> #{to}, not enough spaces", "#{(.-)}", resolve_6_auto) end return nil, _63_() else return nil end else
@@ -239,8 +239,8 @@
 
 
  local from_col = state.tableau[a] local moves
- do local tbl_18_auto = {} local i_19_auto = 0 for i, _card in ipairs(from_col) do
- local val_20_auto = {"move", {"tableau", a, i}, {"tableau", b, i}} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end moves = tbl_18_auto end
+ do local tbl_19_auto = {} local i_20_auto = 0 for i, _card in ipairs(from_col) do
+ local val_21_auto = {"move", {"tableau", a, i}, {"tableau", b, i}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end moves = tbl_19_auto end
  return apply_events(clone(state), moves, {["unsafely?"] = true}) elseif (true and ((_G.type(_118_) == "table") and (_118_[1] == "tableau") and (nil ~= _118_[2]) and (nil ~= _118_[3])) and true) then local _ = _117_ local t_col = _118_[2] local t_card_n = _118_[3] local _0 = _119_
 
 
@@ -263,7 +263,7 @@
  local function _197_(...) local _198_ = ... if (nil ~= _198_) then local held = _198_ local function _199_(...) local _200_, _201_ = ... if ((nil ~= _200_) and (nil ~= _201_)) then local next_state = _200_ local moves = _201_
 
 
- return next_state, moves else local __84_auto = _200_ return ... end end return _199_(put_down(state, pick_up_from, put_down_on, held)) else local __84_auto = _198_ return ... end end return _197_(check_pick_up(state, pick_up_from)) end
+ return next_state, moves else local __85_auto = _200_ return ... end end return _199_(put_down(state, pick_up_from, put_down_on, held)) else local __85_auto = _198_ return ... end end return _197_(check_pick_up(state, pick_up_from)) end
 
  local function freecell_plan_next_move_to_foundation(state)
 
@@ -273,59 +273,59 @@
 
 
  local speculative_state = clone(state) local check_locations
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 4 do local val_20_auto = {"cell", i} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end check_locations = tbl_18_auto end local _
- do local tbl_17_auto = check_locations for i = 1, 8 do table.insert(tbl_17_auto, {"tableau", i}) end _ = tbl_17_auto end local min_values
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 4 do local val_21_auto = {"cell", i} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end check_locations = tbl_19_auto end local _
+ do local tbl_17_auto = check_locations for i = 1, 8 do local val_18_auto = {"tableau", i} table.insert(tbl_17_auto, val_18_auto) end _ = tbl_17_auto end local min_values
  do local min_vals = {red = math.huge, black = math.huge} for _l, card in M["iter-cards"](speculative_state, {"cell", "tableau"}) do
 
  local color = card_color(card)
  local val = card_value(card)
  min_vals = table.set(min_vals, color, math.min(val, min_vals[color])) end min_values = min_vals end local source_locations
- do local tbl_18_auto = {} local i_19_auto = 0 for _0, _205_ in ipairs(check_locations) do local _each_206_ = _205_ local field = _each_206_[1] local col = _each_206_[2] local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for _0, _205_ in ipairs(check_locations) do local _each_206_ = _205_ local field = _each_206_[1] local col = _each_206_[2] local val_21_auto
  do local card_n = #speculative_state[field][col]
  local _207_ = speculative_state[field][col][card_n] if (nil ~= _207_) then local card = _207_
  local alt_color if ("red" == card_color(card)) then alt_color = "black" else alt_color = "red" end
  local val = card_value(card)
  if ((card_value(card) <= min_values[alt_color]) or (2 == val)) then
 
- val_20_auto = {field, col, card_n} else val_20_auto = nil end else val_20_auto = nil end end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end source_locations = tbl_18_auto end
+ val_21_auto = {field, col, card_n} else val_21_auto = nil end else val_21_auto = nil end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end source_locations = tbl_19_auto end
  local moves = {} for _0, from in ipairs(source_locations) do
- local tbl_17_auto = moves for i = 1, 4 do
- local function _213_() local _212_ = speculative_state.foundation[i] if ((_G.type(_212_) == "table") and (_212_[1] == nil)) then
- return {from, {"foundation", i, 0}} elseif (nil ~= _212_) then local cards = _212_
- return {from, {"foundation", i, #cards}} else return nil end end table.insert(tbl_17_auto, _213_()) end moves = tbl_17_auto end return moves end
+ local tbl_17_auto = moves for i = 1, 4 do local val_18_auto
+ do local _212_ = speculative_state.foundation[i] if ((_G.type(_212_) == "table") and (_212_[1] == nil)) then
+ val_18_auto = {from, {"foundation", i, 0}} elseif (nil ~= _212_) then local cards = _212_
+ val_18_auto = {from, {"foundation", i, #cards}} else val_18_auto = nil end end table.insert(tbl_17_auto, val_18_auto) end moves = tbl_17_auto end return moves end
 
  local function bakers_plan_next_move_to_foundation(state)
 
 
  local speculative_state = clone(state) local check_locations
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 4 do local val_20_auto = {"cell", i} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end check_locations = tbl_18_auto end local _
- do local tbl_17_auto = check_locations for i = 1, 8 do table.insert(tbl_17_auto, {"tableau", i}) end _ = tbl_17_auto end local min_values
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 4 do local val_21_auto = {"cell", i} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end check_locations = tbl_19_auto end local _
+ do local tbl_17_auto = check_locations for i = 1, 8 do local val_18_auto = {"tableau", i} table.insert(tbl_17_auto, val_18_auto) end _ = tbl_17_auto end local min_values
  do local min_vals = {spades = math.huge, hearts = math.huge, diamonds = math.huge, clubs = math.huge} for _l, card in M["iter-cards"](speculative_state, {"cell", "tableau"}) do
 
 
  local suit = card_suit(card)
  local val = card_value(card)
  min_vals = table.set(min_vals, suit, math.min(val, min_vals[suit])) end min_values = min_vals end local source_locations
- do local tbl_18_auto = {} local i_19_auto = 0 for _0, _216_ in ipairs(check_locations) do local _each_217_ = _216_ local field = _each_217_[1] local col = _each_217_[2] local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for _0, _215_ in ipairs(check_locations) do local _each_216_ = _215_ local field = _each_216_[1] local col = _each_216_[2] local val_21_auto
  do local card_n = #speculative_state[field][col]
- local _218_ = speculative_state[field][col][card_n] if (nil ~= _218_) then local card = _218_
+ local _217_ = speculative_state[field][col][card_n] if (nil ~= _217_) then local card = _217_
  local suit = card_suit(card)
  if (card_value(card) == min_values[suit]) then
- val_20_auto = {field, col, card_n} else val_20_auto = nil end else val_20_auto = nil end end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end source_locations = tbl_18_auto end
+ val_21_auto = {field, col, card_n} else val_21_auto = nil end else val_21_auto = nil end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end source_locations = tbl_19_auto end
  local moves = {} for _0, from in ipairs(source_locations) do
- local tbl_17_auto = moves for i = 1, 4 do
- local function _223_() local _222_ = speculative_state.foundation[i] if ((_G.type(_222_) == "table") and (_222_[1] == nil)) then
- return {from, {"foundation", i, 0}} elseif (nil ~= _222_) then local cards = _222_
- return {from, {"foundation", i, #cards}} else return nil end end table.insert(tbl_17_auto, _223_()) end moves = tbl_17_auto end return moves end
+ local tbl_17_auto = moves for i = 1, 4 do local val_18_auto
+ do local _221_ = speculative_state.foundation[i] if ((_G.type(_221_) == "table") and (_221_[1] == nil)) then
+ val_18_auto = {from, {"foundation", i, 0}} elseif (nil ~= _221_) then local cards = _221_
+ val_18_auto = {from, {"foundation", i, #cards}} else val_18_auto = nil end end table.insert(tbl_17_auto, val_18_auto) end moves = tbl_17_auto end return moves end
 
  M.Plan["next-move-to-foundation"] = function(state)
- local potential_moves do local _225_ = state.rules if (_225_ == "freecell") then
- potential_moves = freecell_plan_next_move_to_foundation(state) elseif (_225_ == "bakers") then
+ local potential_moves do local _223_ = state.rules if (_223_ == "freecell") then
+ potential_moves = freecell_plan_next_move_to_foundation(state) elseif (_223_ == "bakers") then
  potential_moves = bakers_plan_next_move_to_foundation(state) else potential_moves = nil end end
- local actions = nil for _, _227_ in ipairs(potential_moves) do local _each_228_ = _227_ local pick_up_from = _each_228_[1] local put_down_on = _each_228_[2] if actions then break end
- local function _229_(...) local _230_ = ... if (nil ~= _230_) then local speculative_state = _230_
+ local actions = nil for _, _225_ in ipairs(potential_moves) do local _each_226_ = _225_ local pick_up_from = _each_226_[1] local put_down_on = _each_226_[2] if actions then break end
+ local function _227_(...) local _228_ = ... if (nil ~= _228_) then local speculative_state = _228_
 
- return {pick_up_from, put_down_on} else local __84_auto = _230_ return ... end end actions = _229_(M.Action.move(clone(state), pick_up_from, put_down_on)) end return actions end
+ return {pick_up_from, put_down_on} else local __85_auto = _228_ return ... end end actions = _227_(M.Action.move(clone(state), pick_up_from, put_down_on)) end return actions end
 
  M.Query["liftable?"] = function(state, location)
  return not (nil == check_pick_up(state, location)) end

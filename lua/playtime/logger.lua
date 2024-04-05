@@ -1,5 +1,6 @@
 
- local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
+ local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"] local enabled_3f = false
+
 
  local M = {}
 
@@ -18,12 +19,15 @@
  return view(t) end elseif (nil ~= _5_) then local v = _5_
  return tostring(v) elseif (_5_ == nil) then
  return ("! missing detail value: " .. name .. " !") else return nil end end
- local _12_ do local t_11_ = _G if (nil ~= t_11_) then t_11_ = t_11_.__playtime else end if (nil ~= t_11_) then t_11_ = t_11_.debug else end _12_ = t_11_ end if _12_ then
+ if enabled_3f then
  local msg0 if type["string?"](msg) then
  msg0 = string.gsub(msg, "#{(.-)}", get_detail) else
  msg0 = view(msg) end fd:write((os.date() .. " -- " .. msg0 .. "\n")) fd:flush() else end
 
 
  return nil end
+
+ M.enable = function() enabled_3f = true return nil end
+ M.disable = function() enabled_3f = false return nil end
 
  return M

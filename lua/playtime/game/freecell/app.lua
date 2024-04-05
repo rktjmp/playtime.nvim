@@ -58,13 +58,13 @@
  if same_location_field_column_3f(last_to, to) then
  t = table.insert(t, to) else
  t = t end end tos = t end local ff_moves
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, #froms do local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, #froms do local val_21_auto
  do local from = froms[i]
  local _let_14_ = from local f = _let_14_[1] local c = _let_14_[2] local n = _let_14_[3]
  local card = app.game[f][c][n]
- val_20_auto = {"move", froms[i], tos[i]} end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end ff_moves = tbl_18_auto end
- local tbl_18_auto = {} local i_19_auto = 0 for i = #ff_moves, 1, -1 do
- local val_20_auto = ff_moves[i] if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end events0 = tbl_18_auto end end
+ val_21_auto = {"move", froms[i], tos[i]} end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end ff_moves = tbl_19_auto end
+ local tbl_19_auto = {} local i_20_auto = 0 for i = #ff_moves, 1, -1 do
+ local val_21_auto = ff_moves[i] if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end events0 = tbl_19_auto end end
  return PatienceApp["build-event-animation"](app, events0, after, _3fopts) end
 
  M["location->position"] = function(app, location)
@@ -93,7 +93,7 @@
  local function _26_(...) local _27_ = ... if ((_G.type(_27_) == "table") and (nil ~= _27_[1]) and (nil ~= _27_[2])) then local from = _27_[1] local to = _27_[2] local function _28_(...) local _29_, _30_ = ... if ((nil ~= _29_) and (nil ~= _30_)) then local next_game = _29_ local events = _30_
 
 
- local after local function _31_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"move", from, to}) end after = _31_ local timeline = app["build-event-animation"](app, events, after) return app["switch-state"](app, AppState.Animating, timeline) else local __84_auto = _29_ return ... end end return _28_(Logic.Action.move(app.game, from, to)) else local __84_auto = _27_ return ... end end return _26_(Logic.Plan["next-move-to-foundation"](app.game)) end
+ local after local function _31_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"move", from, to}) end after = _31_ local timeline = app["build-event-animation"](app, events, after) return app["switch-state"](app, AppState.Animating, timeline) else local __85_auto = _29_ return ... end end return _28_(Logic.Action.move(app.game, from, to)) else local __85_auto = _27_ return ... end end return _26_(Logic.Plan["next-move-to-foundation"](app.game)) end
 
 
 

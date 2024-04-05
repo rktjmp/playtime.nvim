@@ -163,7 +163,7 @@
  if LogicImpl.Query["droppable?"](app.game, location) then
  local function _38_(...) local _39_, _40_ = ... if ((nil ~= _39_) and (nil ~= _40_)) then local next_game = _39_ local moves = _40_
 
- local after local function _41_() app["update-game"](app, next_game, {"move", from, to}) app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "noop") return app["queue-event"](app, "app", "maybe-auto-move") end after = _41_ local timeline = app["build-event-animation"](app, moves, after) return app["switch-state"](app, AppState.Animating, timeline) else local __84_auto = _39_ return ... end end return _38_(LogicImpl.Action.move(app.game, from, to)) else return nil end else return nil end end
+ local after local function _41_() app["update-game"](app, next_game, {"move", from, to}) app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "noop") return app["queue-event"](app, "app", "maybe-auto-move") end after = _41_ local timeline = app["build-event-animation"](app, moves, after) return app["switch-state"](app, AppState.Animating, timeline) else local __85_auto = _39_ return ... end end return _38_(LogicImpl.Action.move(app.game, from, to)) else return nil end else return nil end end
 
 
 

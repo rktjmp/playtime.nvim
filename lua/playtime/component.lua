@@ -56,8 +56,8 @@
  lines = content elseif (_9_ == "function") then
  lines = content(c) elseif (nil ~= _9_) then local other = _9_
  local function _16_() local data_5_auto = {other = other} local resolve_6_auto local function _10_(name_7_auto) local _11_ = data_5_auto[name_7_auto] local function _12_() local t_8_auto = _11_ return ("table" == type(t_8_auto)) end if ((nil ~= _11_) and _12_()) then local t_8_auto = _11_ local _13_ = getmetatable(t_8_auto) if ((_G.type(_13_) == "table") and (nil ~= _13_.__tostring)) then local f_9_auto = _13_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _13_ return vim.inspect(t_8_auto) end elseif (nil ~= _11_) then local v_11_auto = _11_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _10_ return string.gsub("Unsupported content type #{other}", "#{(.-)}", resolve_6_auto) end lines = error(_16_()) else lines = nil end end local lines0
- do local tbl_18_auto = {} local i_19_auto = 0 for i, line in ipairs(lines) do local val_20_auto local function _18_(...)
- local t_19_ = c if (nil ~= t_19_) then t_19_ = t_19_.content else end if (nil ~= t_19_) then t_19_ = t_19_[i] else end if (nil ~= t_19_) then t_19_ = t_19_["extmark-id"] else end return t_19_ end val_20_auto = {["extmark-id"] = (_18_() or Id.new()), content = line} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end lines0 = tbl_18_auto end
+ do local tbl_19_auto = {} local i_20_auto = 0 for i, line in ipairs(lines) do local val_21_auto local function _18_(...)
+ local t_19_ = c if (nil ~= t_19_) then t_19_ = t_19_.content else end if (nil ~= t_19_) then t_19_ = t_19_[i] else end if (nil ~= t_19_) then t_19_ = t_19_["extmark-id"] else end return t_19_ end val_21_auto = {["extmark-id"] = (_18_() or Id.new()), content = line} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end lines0 = tbl_19_auto end
 
  c["content"] = lines0
 
@@ -89,12 +89,12 @@
  table.insert(c["deferred-updates"], call)
  if (0 < #c["animation-queue"]) then
  local now = uv.now() local animations
- do local tbl_18_auto = {} local i_19_auto = 0 for i, animation in ipairs(c["animation-queue"]) do local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for i, animation in ipairs(c["animation-queue"]) do local val_21_auto
  do local _let_26_ = animation local finish_at = _let_26_["finish-at"] local start_at = _let_26_["start-at"]
  if (start_at <= now) then animation:tick(now) else end
 
  if (now < finish_at) then
- val_20_auto = animation else val_20_auto = nil end end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end animations = tbl_18_auto end
+ val_21_auto = animation else val_21_auto = nil end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end animations = tbl_19_auto end
  c["animation-queue"] = animations else end
  if (0 == #c["animation-queue"]) then
  for _, deferred_update in ipairs(c["deferred-updates"]) do

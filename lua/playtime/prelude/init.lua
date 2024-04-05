@@ -75,7 +75,7 @@
  assert(type["table?"](t), "table.join first argument must be a table")
  local _19_ = select("#", ...) if (_19_ == 0) then
  return t elseif (_19_ == 1) then
- local tbl_17_auto = t for _, v in ipairs(select(1, ...)) do table.insert(tbl_17_auto, v) end return tbl_17_auto elseif (nil ~= _19_) then local n = _19_
+ local tbl_17_auto = t for _, v in ipairs(select(1, ...)) do local val_18_auto = v table.insert(tbl_17_auto, val_18_auto) end return tbl_17_auto elseif (nil ~= _19_) then local n = _19_
  local function _21_(...) local _20_ = select(1, ...) return _20_ end return join(join(t, _21_(...)), select(2, ...)) else return nil end end
 
  local function stable_insertion_sort(t, _3fcmp)
@@ -127,8 +127,8 @@
  local table local function _29_(t) return (nil == next(t)) end
  local function _30_(t) return t[1] end
  local function _31_(t) return t[#t] end
- local function _32_(t) local tbl_18_auto = {} local i_19_auto = 0 for k, _ in pairs(t) do local val_20_auto = k if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
- local function _34_(t) local tbl_18_auto = {} local i_19_auto = 0 for _, v in pairs(t) do local val_20_auto = v if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
+ local function _32_(t) local tbl_19_auto = {} local i_20_auto = 0 for k, _ in pairs(t) do local val_21_auto = k if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
+ local function _34_(t) local tbl_19_auto = {} local i_20_auto = 0 for _, v in pairs(t) do local val_21_auto = v if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
  local function _36_(t) local tbl_14_auto = {} for k, v in pairs(t) do local k_15_auto, v_16_auto = v, k if ((k_15_auto ~= nil) and (v_16_auto ~= nil)) then tbl_14_auto[k_15_auto] = v_16_auto else end end return tbl_14_auto end
 
 
@@ -166,8 +166,9 @@
 
 
 
- local _2astring_2a = setmetatable({fmt = _2araw_string_2a.format}, {__index = _2araw_string_2a})
+ local _2astring_2a
 
+ local function _44_(_241) return vim.api.nvim_strwidth(_241) end _2astring_2a = setmetatable({fmt = _2araw_string_2a.format, ["col-width"] = _44_}, {__index = _2araw_string_2a})
 
 
 
@@ -177,12 +178,12 @@
  local function clone(data)
 
 
- local _44_ = type(data) if (_44_ == "table") then
+ local _45_ = type(data) if (_45_ == "table") then
  local mt = getmetatable(data)
  if ((_G.type(mt) == "table") and (nil ~= mt.__clone)) then local custom = mt.__clone
  return setmetatable(custom(data), mt) else local _ = mt
 
- local _45_ do local tbl_14_auto = {} for key, val in pairs(data) do local k_15_auto, v_16_auto = key, clone(val) if ((k_15_auto ~= nil) and (v_16_auto ~= nil)) then tbl_14_auto[k_15_auto] = v_16_auto else end end _45_ = tbl_14_auto end return setmetatable(_45_, mt) end else local _ = _44_
+ local _46_ do local tbl_14_auto = {} for key, val in pairs(data) do local k_15_auto, v_16_auto = key, clone(val) if ((k_15_auto ~= nil) and (v_16_auto ~= nil)) then tbl_14_auto[k_15_auto] = v_16_auto else end end _46_ = tbl_14_auto end return setmetatable(_46_, mt) end else local _ = _45_
 
  return data end end
 

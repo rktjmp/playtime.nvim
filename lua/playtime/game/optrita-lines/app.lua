@@ -181,10 +181,10 @@
  if ((_G.type(e) == "table") and (e[1] == "move") and true and ((_G.type(e[3]) == "table") and (e[3][1] == "trick"))) then local _0 = e[2] winner_3f = true else winner_3f = nil end end _73_ = winner_3f end if _73_ then return app["switch-state"](app, AppState.PickCard) else
 
  local choices if ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "top") and (nil ~= location[3])) then local col = location[3]
- local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 6 do local val_20_auto = {"grid", i, col} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end choices = tbl_18_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "bottom") and (nil ~= location[3])) then local col = location[3]
- local tbl_18_auto = {} local i_19_auto = 0 for i = 6, 1, -1 do local val_20_auto = {"grid", i, col} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end choices = tbl_18_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "left") and (nil ~= location[3])) then local row = location[3]
- local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 6 do local val_20_auto = {"grid", row, i} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end choices = tbl_18_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "right") and (nil ~= location[3])) then local row = location[3]
- local tbl_18_auto = {} local i_19_auto = 0 for i = 6, 1, -1 do local val_20_auto = {"grid", row, i} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end choices = tbl_18_auto else choices = nil end return app["switch-state"](app, AppState.ResolveTrick, {hand = hand_n, ["card-pos"] = pos, choices = choices}) end end after = _72_ local timeline = app["build-event-animation"](app, events0, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_69_ == nil) and (nil ~= _70_)) then local e = _70_ app:notify(e) return app["switch-state"](app, AppState.PickCard) else return nil end end return _68_(Logic.Action["play-trick"](app.game, hand_n, location)) else local _ = location return app["switch-state"](app, AppState.PickCard) end end
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 6 do local val_21_auto = {"grid", i, col} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end choices = tbl_19_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "bottom") and (nil ~= location[3])) then local col = location[3]
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 6, 1, -1 do local val_21_auto = {"grid", i, col} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end choices = tbl_19_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "left") and (nil ~= location[3])) then local row = location[3]
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 6 do local val_21_auto = {"grid", row, i} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end choices = tbl_19_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "right") and (nil ~= location[3])) then local row = location[3]
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 6, 1, -1 do local val_21_auto = {"grid", row, i} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end choices = tbl_19_auto else choices = nil end return app["switch-state"](app, AppState.ResolveTrick, {hand = hand_n, ["card-pos"] = pos, choices = choices}) end end after = _72_ local timeline = app["build-event-animation"](app, events0, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_69_ == nil) and (nil ~= _70_)) then local e = _70_ app:notify(e) return app["switch-state"](app, AppState.PickCard) else return nil end end return _68_(Logic.Action["play-trick"](app.game, hand_n, location)) else local _ = location return app["switch-state"](app, AppState.PickCard) end end
 
 
 
@@ -450,8 +450,8 @@
 
 
  do local t = {} for i = 1, 6 do
- local tbl_17_auto = t for _, side in ipairs({"top", "bottom", "left", "right"}) do table.insert(tbl_17_auto, (function(tgt, m, ...) return tgt[m](tgt, ...) end)(play_drop(side, app["location->position"](app, {"play", side, i}), {"play", side, i}), "set-visible", true)) end t = tbl_17_auto end droppers = t end local droppers_by_tag
-
+ local tbl_17_auto = t for _, side in ipairs({"top", "bottom", "left", "right"}) do
+ local val_18_auto = (function(tgt, m, ...) return tgt[m](tgt, ...) end)(play_drop(side, app["location->position"](app, {"play", side, i}), {"play", side, i}), "set-visible", true) table.insert(tbl_17_auto, val_18_auto) end t = tbl_17_auto end droppers = t end local droppers_by_tag
 
 
 
@@ -519,13 +519,13 @@
 
 
 
- local _145_ do local tbl_18_auto = {} local i_19_auto = 0 for _, _146_ in ipairs(app["game-history"]) do local _each_147_ = _146_ local _state = _each_147_[1] local action = _each_147_[2]
- local val_20_auto = action if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end _145_ = tbl_18_auto end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, replay = _145_}) end
+ local _145_ do local tbl_19_auto = {} local i_20_auto = 0 for _, _146_ in ipairs(app["game-history"]) do local _each_147_ = _146_ local _state = _each_147_[1] local action = _each_147_[2]
+ local val_21_auto = action if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end _145_ = tbl_19_auto end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, replay = _145_}) end
 
  M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/optrita-lines/app.fnl:525") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:525")
  local function _149_(...) local _150_ = ... if (nil ~= _150_) then local data = _150_
 
- local _let_151_ = data local config = _let_151_["config"] local seed = _let_151_["seed"] local latest = _let_151_["latest"] local replay = _let_151_["replay"] app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest}) else local __84_auto = _150_ return ... end end return _149_(App.load(app, filename)) end
+ local _let_151_ = data local config = _let_151_["config"] local seed = _let_151_["seed"] local latest = _let_151_["latest"] local replay = _let_151_["replay"] app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest}) else local __85_auto = _150_ return ... end end return _149_(App.load(app, filename)) end
 
 
 

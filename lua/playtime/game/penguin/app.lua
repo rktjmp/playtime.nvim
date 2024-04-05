@@ -36,7 +36,7 @@
  local function _10_(...) local _11_ = ... if ((_G.type(_11_) == "table") and (nil ~= _11_[1]) and (nil ~= _11_[2])) then local from = _11_[1] local to = _11_[2] local function _12_(...) local _13_, _14_ = ... if ((nil ~= _13_) and (nil ~= _14_)) then local next_game = _13_ local events = _14_
 
 
- local after local function _15_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"move", from, to}) end after = _15_ local timeline = app["build-event-animation"](app, events, after, {["stagger-ms"] = 200}) return app["switch-state"](app, AppState.Animating, timeline) else local __84_auto = _13_ return ... end end return _12_(Logic.Action.move(app.game, from, to)) else local __84_auto = _11_ return ... end end return _10_(Logic.Plan["next-move-to-foundation"](app.game)) end
+ local after local function _15_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"move", from, to}) end after = _15_ local timeline = app["build-event-animation"](app, events, after, {["stagger-ms"] = 200}) return app["switch-state"](app, AppState.Animating, timeline) else local __85_auto = _13_ return ... end end return _12_(Logic.Action.move(app.game, from, to)) else local __85_auto = _11_ return ... end end return _10_(Logic.Plan["next-move-to-foundation"](app.game)) end
 
 
 

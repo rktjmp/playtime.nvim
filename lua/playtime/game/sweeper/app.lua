@@ -77,7 +77,7 @@
 
 
 
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __84_auto = _19_ return ... end end return _18_(Logic.Action["reveal-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
+ if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __85_auto = _19_ return ... end end return _18_(Logic.Action["reveal-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
 
 
 
@@ -94,7 +94,7 @@
 
 
 
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __84_auto = _29_ return ... end end return _28_(Logic.Action["mark-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
+ if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __85_auto = _29_ return ... end end return _28_(Logic.Action["mark-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
 
 
 
@@ -161,7 +161,7 @@
 
 
 
- do local tbl_18_auto = {} local i_19_auto = 0 for _, _51_ in Logic["iter-cells"](game) do local _each_52_ = _51_ local id = _each_52_["id"] local val_20_auto = t[id] if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end components = tbl_18_auto end
+ do local tbl_19_auto = {} local i_20_auto = 0 for _, _51_ in Logic["iter-cells"](game) do local _each_52_ = _51_ local id = _each_52_["id"] local val_21_auto = t[id] if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end components = tbl_19_auto end
  return components, t end
 
  local grid, cell_id__3ecell_component = build_grid_component(app.game, {row = 5, col = 3})
@@ -203,8 +203,8 @@
 
  lines = {" \226\160\182\226\160\146\226\160\182 ", "\226\160\160\226\163\164\226\163\164\226\163\164\226\160\132"} else lines = nil end local content
 
- do local tbl_18_auto = {} local i_19_auto = 0 for _, l in ipairs(lines) do
- local val_20_auto = {{l, "@playtime.color.yellow"}} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end content = tbl_18_auto end return self["set-content"](self, content) end smile = Component["set-position"](Component["set-tag"](Component["set-size"](Component.build(_56_), {width = 5, height = 2}), {"face"}), {row = 2, col = (math.floor((app.view.width / 2)) - 3), z = 100}):update("smile")
+ do local tbl_19_auto = {} local i_20_auto = 0 for _, l in ipairs(lines) do
+ local val_21_auto = {{l, "@playtime.color.yellow"}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end content = tbl_19_auto end return self["set-content"](self, content) end smile = Component["set-position"](Component["set-tag"](Component["set-size"](Component.build(_56_), {width = 5, height = 2}), {"face"}), {row = 2, col = (math.floor((app.view.width / 2)) - 3), z = 100}):update("smile")
 
 
 

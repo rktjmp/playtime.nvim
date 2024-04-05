@@ -51,9 +51,9 @@
  return cards end
 
  M.Standard52.build = function()
- local tbl_18_auto = {} local i_19_auto = 0 for _, card in ipairs(M.Standard54.build()) do local val_20_auto
+ local tbl_19_auto = {} local i_20_auto = 0 for _, card in ipairs(M.Standard54.build()) do local val_21_auto
  if ((_G.type(card) == "table") and (card[1] == "joker")) then
- val_20_auto = nil else local _0 = card
- val_20_auto = card end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
+ val_21_auto = nil else local _0 = card
+ val_21_auto = card end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
 
  return M

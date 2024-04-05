@@ -22,10 +22,10 @@
 
  local function build_path(play_loc)
  if ((_G.type(play_loc) == "table") and (play_loc[1] == "play") and (play_loc[2] == "top") and (nil ~= play_loc[3])) then local col = play_loc[3]
- local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 6 do local val_20_auto = {"grid", i, col} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto elseif ((_G.type(play_loc) == "table") and (play_loc[1] == "play") and (play_loc[2] == "bottom") and (nil ~= play_loc[3])) then local col = play_loc[3]
- local tbl_18_auto = {} local i_19_auto = 0 for i = 6, 1, -1 do local val_20_auto = {"grid", i, col} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto elseif ((_G.type(play_loc) == "table") and (play_loc[1] == "play") and (play_loc[2] == "left") and (nil ~= play_loc[3])) then local row = play_loc[3]
- local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 6 do local val_20_auto = {"grid", row, i} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto elseif ((_G.type(play_loc) == "table") and (play_loc[1] == "play") and (play_loc[2] == "right") and (nil ~= play_loc[3])) then local row = play_loc[3]
- local tbl_18_auto = {} local i_19_auto = 0 for i = 6, 1, -1 do local val_20_auto = {"grid", row, i} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto else return nil end end
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 6 do local val_21_auto = {"grid", i, col} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto elseif ((_G.type(play_loc) == "table") and (play_loc[1] == "play") and (play_loc[2] == "bottom") and (nil ~= play_loc[3])) then local col = play_loc[3]
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 6, 1, -1 do local val_21_auto = {"grid", i, col} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto elseif ((_G.type(play_loc) == "table") and (play_loc[1] == "play") and (play_loc[2] == "left") and (nil ~= play_loc[3])) then local row = play_loc[3]
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 6 do local val_21_auto = {"grid", row, i} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto elseif ((_G.type(play_loc) == "table") and (play_loc[1] == "play") and (play_loc[2] == "right") and (nil ~= play_loc[3])) then local row = play_loc[3]
+ local tbl_19_auto = {} local i_20_auto = 0 for i = 6, 1, -1 do local val_21_auto = {"grid", row, i} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto else return nil end end
 
  M.build = function(config, _3fseed) _G.assert((nil ~= config), "Missing argument config on fnl/playtime/game/optrita-lines/logic.fnl:30")
  math.randomseed((_3fseed or os.time()))
@@ -88,13 +88,13 @@
  return apply_events(state0, events) end
 
  local function clear_rows_21(state0)
- local paths do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 6 do local val_20_auto = build_path({"play", "left", i}) if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end paths = tbl_18_auto end local all_ups
- do local tbl_18_auto = {} local i_19_auto = 0 for _, path in ipairs(paths) do local val_20_auto
+ local paths do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 6 do local val_21_auto = build_path({"play", "left", i}) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end paths = tbl_19_auto end local all_ups
+ do local tbl_19_auto = {} local i_20_auto = 0 for _, path in ipairs(paths) do local val_21_auto
  local _18_ do local up_3f = true for _0, p in ipairs(path) do if not up_3f then break end
  local _19_ = table["get-in"](state0, p) if (nil ~= _19_) then local card = _19_
  up_3f = card_face_up_3f(card) elseif (_19_ == nil) then up_3f = true else up_3f = nil end end _18_ = up_3f end if _18_ then
 
- val_20_auto = path else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end all_ups = tbl_18_auto end
+ val_21_auto = path else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end all_ups = tbl_19_auto end
  local locs = table.join({}, table.unpack(all_ups)) local events
  do local t = {} for _, loc in ipairs(locs) do
  local _23_ = table["get-in"](state0, loc) if (nil ~= _23_) then local card = _23_
@@ -104,13 +104,13 @@
  return apply_events(state0, events) end
 
  local function clear_cols_21(state0)
- local paths do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 6 do local val_20_auto = build_path({"play", "top", i}) if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end paths = tbl_18_auto end local all_ups
- do local tbl_18_auto = {} local i_19_auto = 0 for _, path in ipairs(paths) do local val_20_auto
+ local paths do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 6 do local val_21_auto = build_path({"play", "top", i}) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end paths = tbl_19_auto end local all_ups
+ do local tbl_19_auto = {} local i_20_auto = 0 for _, path in ipairs(paths) do local val_21_auto
  local _26_ do local up_3f = true for _0, p in ipairs(path) do if not up_3f then break end
  local _27_ = table["get-in"](state0, p) if (nil ~= _27_) then local card = _27_
  up_3f = card_face_up_3f(card) elseif (_27_ == nil) then up_3f = true else up_3f = nil end end _26_ = up_3f end if _26_ then
 
- val_20_auto = path else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end all_ups = tbl_18_auto end
+ val_21_auto = path else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end all_ups = tbl_19_auto end
  local locs = table.join({}, table.unpack(all_ups)) local events
  do local t = {} for _, loc in ipairs(locs) do
  local _31_ = table["get-in"](state0, loc) if (nil ~= _31_) then local card = _31_
@@ -171,8 +171,8 @@
 
  M.Action["pick-trump"] = function(state, hand_n) _G.assert((nil ~= hand_n), "Missing argument hand-n on fnl/playtime/game/optrita-lines/logic.fnl:172") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/optrita-lines/logic.fnl:172")
  local events = {{"move", {"hand", hand_n}, {"trump", "top"}}} local events0
- do local tbl_17_auto = events for i = (hand_n + 1), #state.hand do table.insert(tbl_17_auto, {"move", {"hand", i}, {"hand", (i - 1)}}) end events0 = tbl_17_auto end
-
+ do local tbl_17_auto = events for i = (hand_n + 1), #state.hand do
+ local val_18_auto = {"move", {"hand", i}, {"hand", (i - 1)}} table.insert(tbl_17_auto, val_18_auto) end events0 = tbl_17_auto end
  return apply_events(clone(state), events0) end
 
  M.Action["play-trick"] = function(state, hand_n, play_loc) _G.assert((nil ~= play_loc), "Missing argument play-loc on fnl/playtime/game/optrita-lines/logic.fnl:178") _G.assert((nil ~= hand_n), "Missing argument hand-n on fnl/playtime/game/optrita-lines/logic.fnl:178") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/optrita-lines/logic.fnl:178")
@@ -182,8 +182,8 @@
 
  local function play_path(path)
  local trump_suit = card_suit(state.trump[1]) local trick_player_n
- local _41_ do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 6 do local val_20_auto = state.trick.player[i][1] if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end _41_ = tbl_18_auto end trick_player_n = (1 + #_41_) local trick_grid_n
- local _43_ do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 6 do local val_20_auto = state.trick.grid[i][1] if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end _43_ = tbl_18_auto end trick_grid_n = (1 + #_43_)
+ local _41_ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 6 do local val_21_auto = state.trick.player[i][1] if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end _41_ = tbl_19_auto end trick_player_n = (1 + #_41_) local trick_grid_n
+ local _43_ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 6 do local val_21_auto = state.trick.grid[i][1] if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end _43_ = tbl_19_auto end trick_grid_n = (1 + #_43_)
  local player_card = state.hand[hand_n]
  local player_suit = card_suit(player_card)
  local player_value = card_value(player_card) local events, won_3f = nil, nil
@@ -210,10 +210,10 @@
  if (nil == won_3f) then
 
 
- local trumps local _52_ do local tbl_18_auto = {} local i_19_auto = 0 for i, p in ipairs(path) do local val_20_auto
+ local trumps local _52_ do local tbl_19_auto = {} local i_20_auto = 0 for i, p in ipairs(path) do local val_21_auto
  do local grid_card = table["get-in"](state, p)
  if (trump_suit == card_suit(grid_card)) then
- val_20_auto = {p, card_value(grid_card)} else val_20_auto = nil end end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end _52_ = tbl_18_auto end
+ val_21_auto = {p, card_value(grid_card)} else val_21_auto = nil end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end _52_ = tbl_19_auto end
  local function _59_(_55_, _57_) local _arg_56_ = _55_ local _ = _arg_56_[1] local a = _arg_56_[2] local _arg_58_ = _57_ local _0 = _arg_58_[1] local b = _arg_58_[2] return (a < b) end trumps = table.sort(_52_, _59_) local _3ftrump_moves
  if ((_G.type(trumps) == "table") and ((_G.type(trumps[1]) == "table") and (nil ~= trumps[1][1]) and true)) then local p = trumps[1][1] local _card = trumps[1][2]
  _3ftrump_moves = {{"move", {"hand", hand_n}, {"trick", "grid", trick_grid_n, "top"}}, {"move", p, {"trick", "grid", trick_grid_n, "top"}}} else _3ftrump_moves = nil end
@@ -227,8 +227,8 @@
  return events0, nil else
 
 
- do local tbl_17_auto = events0 for i = (hand_n + 1), #state.hand do table.insert(tbl_17_auto, {"move", {"hand", i}, {"hand", (i - 1)}}) end end
-
+ do local tbl_17_auto = events0 for i = (hand_n + 1), #state.hand do
+ local val_18_auto = {"move", {"hand", i}, {"hand", (i - 1)}} table.insert(tbl_17_auto, val_18_auto) end end
  return events0, won_3f0 end end
 
  local function do_play(path)
@@ -258,8 +258,8 @@
  if table["empty?"](t) then n = i else n = nil end end trick_n = n end
  local events = {{"move", {"hand", hand_n}, {"trick", "player", trick_n, "top"}}, {"move", play_loc, {"trick", "player", trick_n, "top"}}} local _
 
- do local tbl_17_auto = events for i = (hand_n + 1), #state.hand do table.insert(tbl_17_auto, {"move", {"hand", i}, {"hand", (i - 1)}}) end _ = tbl_17_auto end
-
+ do local tbl_17_auto = events for i = (hand_n + 1), #state.hand do
+ local val_18_auto = {"move", {"hand", i}, {"hand", (i - 1)}} table.insert(tbl_17_auto, val_18_auto) end _ = tbl_17_auto end
  return apply_events(clone(state), events) end
 
  M.Query["game-ended?"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/optrita-lines/logic.fnl:265")

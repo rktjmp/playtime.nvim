@@ -24,7 +24,7 @@
  local function new_game_state(hand_size)
 
 
- local _4_ do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, hand_size do local val_20_auto = {} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end _4_ = tbl_18_auto end return {draw = {{}}, foundation = {{}, {}, {}, {}}, hand = _4_, throne = {{}}, discard = {{}}, moves = 0} end
+ local _4_ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, hand_size do local val_21_auto = {} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end _4_ = tbl_19_auto end return {draw = {{}}, foundation = {{}, {}, {}, {}}, hand = _4_, throne = {{}}, discard = {{}}, moves = 0} end
 
 
 
@@ -54,9 +54,9 @@
  return apply_events(clone(state), moves) end
 
  M.Action.draw = function(state)
- local empty do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, #state.hand do local val_20_auto
+ local empty do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, #state.hand do local val_21_auto
  do local _9_ = state.hand[i] if ((_G.type(_9_) == "table") and (_9_[1] == nil)) then
- val_20_auto = i else val_20_auto = nil end end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end empty = tbl_18_auto end
+ val_21_auto = i else val_21_auto = nil end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end empty = tbl_19_auto end
  local draw_count = math.min(#state.draw[1], #empty) local moves
  do local t = {} for i = draw_count, 1, -1 do
  t = table.join(t, {{"face-up", {"draw", 1, "top"}}, {"move", {"draw", 1, "top"}, {"hand", empty[i], 1}}}) end moves = t end
@@ -127,15 +127,15 @@
 
 
 
- local suits do local tbl_17_auto = {"joker"} for i = 1, 4 do
- local function _52_() local _51_ = state.foundation[i][1] if (nil ~= _51_) then local c = _51_
- return card_suit(c) else return nil end end table.insert(tbl_17_auto, _52_()) end suits = tbl_17_auto end
+ local suits do local tbl_17_auto = {"joker"} for i = 1, 4 do local val_18_auto
+ do local _51_ = state.foundation[i][1] if (nil ~= _51_) then local c = _51_
+ val_18_auto = card_suit(c) else val_18_auto = nil end end table.insert(tbl_17_auto, val_18_auto) end suits = tbl_17_auto end
  if not eq_any_3f(card_suit(held_card), suits) then
  local moves = {{"move", pick_up_from, {"foundation", f_col, 1}}}
  return apply_events(inc_moves(clone(state)), moves, {["unsafely?"] = true}) else
 
 
- local function _60_() local data_5_auto = {} local resolve_6_auto local function _54_(name_7_auto) local _55_ = data_5_auto[name_7_auto] local function _56_() local t_8_auto = _55_ return ("table" == type(t_8_auto)) end if ((nil ~= _55_) and _56_()) then local t_8_auto = _55_ local _57_ = getmetatable(t_8_auto) if ((_G.type(_57_) == "table") and (nil ~= _57_.__tostring)) then local f_9_auto = _57_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _57_ return vim.inspect(t_8_auto) end elseif (nil ~= _55_) then local v_11_auto = _55_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _54_ return string.gsub("Can only start new foundations if suit not used", "#{(.-)}", resolve_6_auto) end return nil, _60_() end elseif (((_G.type(_39_) == "table") and true) and ((_G.type(_40_) == "table") and (_40_[1] == "foundation") and (nil ~= _40_[2]) and (nil ~= _40_[3])) and ((_G.type(_41_) == "table") and ((_G.type(_41_[1]) == "table") and (_41_[1][1] == "joker")))) then local _ = _39_[1] local f_col = _40_[2] local n = _40_[3]
+ local function _59_() local data_5_auto = {} local resolve_6_auto local function _53_(name_7_auto) local _54_ = data_5_auto[name_7_auto] local function _55_() local t_8_auto = _54_ return ("table" == type(t_8_auto)) end if ((nil ~= _54_) and _55_()) then local t_8_auto = _54_ local _56_ = getmetatable(t_8_auto) if ((_G.type(_56_) == "table") and (nil ~= _56_.__tostring)) then local f_9_auto = _56_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _56_ return vim.inspect(t_8_auto) end elseif (nil ~= _54_) then local v_11_auto = _54_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _53_ return string.gsub("Can only start new foundations if suit not used", "#{(.-)}", resolve_6_auto) end return nil, _59_() end elseif (((_G.type(_39_) == "table") and true) and ((_G.type(_40_) == "table") and (_40_[1] == "foundation") and (nil ~= _40_[2]) and (nil ~= _40_[3])) and ((_G.type(_41_) == "table") and ((_G.type(_41_[1]) == "table") and (_41_[1][1] == "joker")))) then local _ = _39_[1] local f_col = _40_[2] local n = _40_[3]
 
 
  return apply_events(inc_moves(clone(state)), {{"move", pick_up_from, {"foundation", f_col, (1 + n)}}}) elseif (((_G.type(_39_) == "table") and true) and ((_G.type(_40_) == "table") and (_40_[1] == "foundation") and (nil ~= _40_[2]) and (nil ~= _40_[3])) and ((_G.type(_41_) == "table") and (nil ~= _41_[1]))) then local _ = _39_[1] local f_col = _40_[2] local n = _40_[3] local held_card = _41_[1]
@@ -147,48 +147,48 @@
  local lead_card = state.foundation[f_col][1]
  local lead_suit = card_suit(lead_card)
  local throne_card = table.last(state.throne[1]) local when_jack
+ local function _61_()
+
+
+
+ return ((1 == card_rank(held_card)) or (card_suit(held_card) == card_suit(throne_card))) end when_jack = _61_ local when_queen
+
  local function _62_()
 
 
-
- return ((1 == card_rank(held_card)) or (card_suit(held_card) == card_suit(throne_card))) end when_jack = _62_ local when_queen
-
- local function _63_()
-
-
- local function _67_() local vals do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, 4 do local val_20_auto
- do local _64_ = table.last(state.foundation[i]) if (nil ~= _64_) then local c = _64_
- val_20_auto = card_value(c) else val_20_auto = nil end end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end vals = tbl_18_auto end
- return eq_any_3f(card_value(held_card), vals) end return (when_jack() or _67_()) end when_queen = _63_ local when_king
- local function _68_()
+ local function _66_() local vals do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 4 do local val_21_auto
+ do local _63_ = table.last(state.foundation[i]) if (nil ~= _63_) then local c = _63_
+ val_21_auto = card_value(c) else val_21_auto = nil end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end vals = tbl_19_auto end
+ return eq_any_3f(card_value(held_card), vals) end return (when_jack() or _66_()) end when_queen = _62_ local when_king
+ local function _67_()
 
 
 
- local function _71_() local on_card = table["get-in"](state, dropped_on)
+ local function _70_() local on_card = table["get-in"](state, dropped_on)
  local on_value = card_value(on_card)
  local one_up = (on_value + 1) local one_down
 
- do local _69_ = (on_value - 1) if (_69_ == -1) then one_down = 13 elseif (nil ~= _69_) then local n0 = _69_ one_down = n0 else one_down = nil end end
- return eq_any_3f(card_value(held_card), {one_up, one_down}) end return (when_jack() or when_queen() or _71_()) end when_king = _68_ local check_fn
- do local _72_ = card_rank(throne_card) if (_72_ == "king") then
- check_fn = when_king elseif (_72_ == "queen") then
- check_fn = when_queen elseif (_72_ == "jack") then
+ do local _68_ = (on_value - 1) if (_68_ == -1) then one_down = 13 elseif (nil ~= _68_) then local n0 = _68_ one_down = n0 else one_down = nil end end
+ return eq_any_3f(card_value(held_card), {one_up, one_down}) end return (when_jack() or when_queen() or _70_()) end when_king = _67_ local check_fn
+ do local _71_ = card_rank(throne_card) if (_71_ == "king") then
+ check_fn = when_king elseif (_71_ == "queen") then
+ check_fn = when_queen elseif (_71_ == "jack") then
  check_fn = when_jack else check_fn = nil end end
  if ((card_suit(held_card) == lead_suit) and check_fn()) then
  local moves = {{"move", pick_up_from, {"foundation", f_col, (n + 1)}}}
  return apply_events(inc_moves(clone(state)), moves, {["unsafely?"] = true}) else
 
 
- local _74_ = card_rank(throne_card) if (_74_ == "king") then
- return nil, "Must play same suit as throne, or any matching rank, or +1 -1 rank" elseif (_74_ == "queen") then
- return nil, "Must play same suit as throne, or any matching rank" elseif (_74_ == "jack") then
+ local _73_ = card_rank(throne_card) if (_73_ == "king") then
+ return nil, "Must play same suit as throne, or any matching rank, or +1 -1 rank" elseif (_73_ == "queen") then
+ return nil, "Must play same suit as throne, or any matching rank" elseif (_73_ == "jack") then
  return nil, "Must play same suit as throne" else return nil end end else return nil end end
 
  M.Action.move = function(state, pick_up_from, put_down_on)
- local function _78_(...) local _79_ = ... if (nil ~= _79_) then local held = _79_ local function _80_(...) local _81_, _82_ = ... if ((nil ~= _81_) and (nil ~= _82_)) then local next_state = _81_ local moves = _82_
+ local function _77_(...) local _78_ = ... if (nil ~= _78_) then local held = _78_ local function _79_(...) local _80_, _81_ = ... if ((nil ~= _80_) and (nil ~= _81_)) then local next_state = _80_ local moves = _81_
 
 
- return next_state, moves else local __84_auto = _81_ return ... end end return _80_(put_down(state, pick_up_from, put_down_on, held)) else local __84_auto = _79_ return ... end end return _78_(check_pick_up(state, pick_up_from)) end
+ return next_state, moves else local __85_auto = _80_ return ... end end return _79_(put_down(state, pick_up_from, put_down_on, held)) else local __85_auto = _78_ return ... end end return _77_(check_pick_up(state, pick_up_from)) end
 
  M.Query["liftable?"] = function(state, location)
  return not (nil == check_pick_up(state, location)) end
@@ -200,14 +200,14 @@
 
  M.Query["game-result"] = function(state)
  local count
- local function _86_() local sum = 0 for _, t in ipairs(state.hand) do
- sum = (sum + #t) end return sum end count = (#state.discard[1] + _86_())
+ local function _85_() local sum = 0 for _, t in ipairs(state.hand) do
+ sum = (sum + #t) end return sum end count = (#state.discard[1] + _85_())
  return count end
 
  M.Query["game-ended?"] = function(state)
  local count
- local function _87_() local sum = 0 for _, t in ipairs(state.hand) do
- sum = (sum + #t) end return sum end count = (#state.draw[1] + _87_())
+ local function _86_() local sum = 0 for _, t in ipairs(state.hand) do
+ sum = (sum + #t) end return sum end count = (#state.draw[1] + _86_())
  return (0 == count) end
 
  return M

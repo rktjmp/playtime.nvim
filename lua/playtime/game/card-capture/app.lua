@@ -17,8 +17,8 @@
  local M = setmetatable({}, {__index = App})
 
  local function enabled_indexes(list)
- local tbl_18_auto = {} local i_19_auto = 0 for i, v in ipairs(list) do local val_20_auto
- if v then val_20_auto = i else val_20_auto = nil end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end
+ local tbl_19_auto = {} local i_20_auto = 0 for i, v in ipairs(list) do local val_21_auto
+ if v then val_21_auto = i else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
 
  local Logic = require("playtime.game.card-capture.logic")
  local AppState = {}
@@ -78,7 +78,7 @@
 
 
 
- local timeline = build_event_animation(moves, after, {["duration-ms"] = 120}) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end else local __84_auto = _18_ return ... end end return _17_(f(app.game, table.unpack(args))) else local __84_auto = _16_ return ... end end return _15_(Logic.Action[f_name]) else local __84_auto = _14_ return ... end end return _13_(action0) else return nil end else return nil end end
+ local timeline = build_event_animation(moves, after, {["duration-ms"] = 120}) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end else local __85_auto = _18_ return ... end end return _17_(f(app.game, table.unpack(args))) else local __85_auto = _16_ return ... end end return _15_(Logic.Action[f_name]) else local __85_auto = _14_ return ... end end return _13_(action0) else return nil end else return nil end end
 
 
  AppState.DealPhase.activated = function(app)
@@ -337,8 +337,8 @@
  do local base = {} for _, _68_ in ipairs({{"hand", 4}, {"draw", 1}, {"discard", 1}}) do local _each_69_ = _68_ local field = _each_69_[1] local count = _each_69_[2]
 
  for _0, actor in ipairs({"player", "enemy"}) do
- local tbl_17_auto = base for i = 1, count do
- local function _70_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end table.insert(tbl_17_auto, CardComponents.slot(_70_, {actor, field, i, 0}, app["card-style"])) end end
+ local tbl_17_auto = base for i = 1, count do local val_18_auto
+ local function _70_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_18_auto = CardComponents.slot(_70_, {actor, field, i, 0}, app["card-style"]) table.insert(tbl_17_auto, val_18_auto) end end
 
 
 
@@ -404,8 +404,8 @@
 
 
  _76_ = error(Error("unable to save turn for #{s}", {s = _3fmod})) end end
- local _82_ do local tbl_18_auto = {} local i_19_auto = 0 for _, _83_ in ipairs(app["game-history"]) do local _each_84_ = _83_ local _state = _each_84_[1] local action = _each_84_[2]
- local val_20_auto = action if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end _82_ = tbl_18_auto end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, turn = _76_, replay = _82_}) end
+ local _82_ do local tbl_19_auto = {} local i_20_auto = 0 for _, _83_ in ipairs(app["game-history"]) do local _each_84_ = _83_ local _state = _each_84_[1] local action = _each_84_[2]
+ local val_21_auto = action if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end _82_ = tbl_19_auto end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, turn = _76_, replay = _82_}) end
 
  M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/card-capture/app.fnl:410") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:410")
  local function _86_(...) local _87_ = ... if (nil ~= _87_) then local data = _87_
@@ -415,7 +415,7 @@
  state = AppState.DiscardPhase elseif (turn == "capture") then
  state = AppState.CapturePhase elseif (turn == "ended") then
  state = AppState.GameEnded else local _ = turn
- state = error(Error("unknown turn: #{turn}", {turn = turn})) end app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest, state = state}) else local __84_auto = _87_ return ... end end return _86_(App.load(app, filename)) end
+ state = error(Error("unknown turn: #{turn}", {turn = turn})) end app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest, state = state}) else local __85_auto = _87_ return ... end end return _86_(App.load(app, filename)) end
 
 
 

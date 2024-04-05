@@ -60,8 +60,8 @@
 
  local function new_game_state(size, n_mines)
  local _let_35_ = size local width = _let_35_["width"] local height = _let_35_["height"] local grid
- do local tbl_18_auto = {} local i_19_auto = 0 for _, _0 in M["iter-cells"]({size = size, grid = {}}) do
- local val_20_auto = {id = Id.new(), mark = nil, count = 0, ["mine?"] = false, ["revealed?"] = false} if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end grid = tbl_18_auto end
+ do local tbl_19_auto = {} local i_20_auto = 0 for _, _0 in M["iter-cells"]({size = size, grid = {}}) do
+ local val_21_auto = {id = Id.new(), mark = nil, count = 0, ["mine?"] = false, ["revealed?"] = false} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end grid = tbl_19_auto end
 
 
 
@@ -84,17 +84,17 @@
 
  local function set_mines_21(state, not_at)
  local _let_42_ = state local _let_43_ = _let_42_["size"] local width = _let_43_["width"] local height = _let_43_["height"] local positions
- do local tbl_18_auto = {} local i_19_auto = 0 for _44_, _ in M["iter-cells"](state) do local _each_45_ = _44_ local x = _each_45_["x"] local y = _each_45_["y"] local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for _44_, _ in M["iter-cells"](state) do local _each_45_ = _44_ local x = _each_45_["x"] local y = _each_45_["y"] local val_21_auto
  if ((_G.type(not_at) == "table") and (not_at.x == x) and (not_at.y == y)) then
- val_20_auto = nil else local _0 = not_at
- val_20_auto = {x = x, y = y} end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end positions = tbl_18_auto end local random_indexes
- local function _48_() local tbl_18_auto = {} local i_19_auto = 0 for i, _ in ipairs(positions) do local val_20_auto = i if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end return tbl_18_auto end random_indexes = table.shuffle(_48_()) local inc_count
+ val_21_auto = nil else local _0 = not_at
+ val_21_auto = {x = x, y = y} end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end positions = tbl_19_auto end local random_indexes
+ local function _48_() local tbl_19_auto = {} local i_20_auto = 0 for i, _ in ipairs(positions) do local val_21_auto = i if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end random_indexes = table.shuffle(_48_()) local inc_count
  local function _50_(loc)
  if not (nil == loc) then
  local i = M["location->index"](state, loc)
  local cell = state.grid[i]
  cell.count = (cell.count + 1) return nil else return nil end end inc_count = _50_ local mines_at
- do local tbl_18_auto = {} local i_19_auto = 0 for i = 1, state["n-mines"] do local val_20_auto
+ do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, state["n-mines"] do local val_21_auto
  do local i0 = random_indexes[i]
  local center = positions[i0]
  local cell = location_content(state, center)
@@ -106,7 +106,7 @@
  inc_count(south_of(state, center))
  inc_count(south_west_of(state, center))
  inc_count(west_of(state, center))
- val_20_auto = inc_count(north_west_of(state, center)) end if (nil ~= val_20_auto) then i_19_auto = (i_19_auto + 1) do end (tbl_18_auto)[i_19_auto] = val_20_auto else end end mines_at = tbl_18_auto end
+ val_21_auto = inc_count(north_west_of(state, center)) end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end mines_at = tbl_19_auto end
  return state end
 
  local function maybe_update_won(state)
