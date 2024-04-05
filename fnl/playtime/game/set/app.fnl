@@ -14,38 +14,74 @@
 (local M (setmetatable {} {:__index App}))
 (local Logic (require :playtime.game.set.logic))
 
-(local AppState {})
+;; "Find 6 in preset deal"
+(local PuzzleAppState {})
 
-;; TODO: specify default context for a state? I guess could be set in activated?
-(set AppState.Default (App.State.build :Default {:delegate {:app App.State.DefaultAppState}}))
-(set AppState.SubmitSet (App.State.build :SubmitSet {:delegate {:app AppState.Default}}))
-(set AppState.Animating (clone App.State.DefaultAnimatingState))
+;;
+;; Regular SET game, find sets in a deal and progress through the deck.
+;;
 
-(fn AppState.Default.activated [app ?context]
+(local RegularAppState {})
+
+(set RegularAppState.Default (App.State.build :Default {:delegate {:app App.State.DefaultAppState}}))
+(set RegularAppState.SubmitSet (App.State.build :SubmitSet {:delegate {:app RegularAppState.Default}}))
+(set RegularAppState.GameEnded (App.State.build :GameEnded {:delegate {:app RegularAppState.Default}}))
+(set RegularAppState.Animating (clone App.State.DefaultAnimatingState))
+
+(fn RegularAppState.Default.activated [app ?context]
   (case ?context
     {:selected nil} (set app.state.context.selected [])))
 
-(fn AppState.Default.OnEvent.app.new-game [app]
+(fn RegularAppState.Default.OnEvent.app.new-game [app]
   (app:setup-new-game app.game-config nil)
   (vim.defer_fn #(app:queue-event :app :deal) 300))
 
-(fn AppState.Default.OnEvent.app.restart-game [app]
+(fn RegularAppState.Default.OnEvent.app.restart-game [app]
   (app:setup-new-game app.game-config app.seed)
   (vim.defer_fn #(app:queue-event :app :deal) 300))
 
-(fn AppState.Default.OnEvent.input.<LeftMouse> [app [location] _pos]
+(fn RegularAppState.Default.OnEvent.app.hint-random-set [app]
+  (case (Logic.Query.find-sets app.game)
+    [nil] (app:notify "No sets to hint!")
+    sets (let [[a-set] (table.shuffle sets)
+               logic-hint (Logic.Query.hint-for-set app.game a-set)
+               {: same : diff} (accumulate [h {:same [] :diff []}
+                                            k v (pairs logic-hint)]
+                                 (table.set h v (table.insert (. h v) k)))
+               single-hint (case (values same diff)
+                             ([nil] _) "everything different"
+                             (_ [nil]) "everything identical"
+                             (sames diffs) (string.fmt "identical %s and different %s"
+                                                       (table.concat sames ", ")
+                                                       (table.concat diffs ", ")))
+               [verb-1 verb-2 count noun] (case (length sets)
+                                            1 [:is :it 1 :set]
+                                            n [:are :One n :sets])
+               msg (<s> "There #{verb-1} #{count} possible #{noun}. #{verb-2} has #{single-hint}.")]
+           (app:notify msg))))
+
+(fn RegularAppState.Default.OnEvent.app.deal-more [app]
+  (case-try
+    (Logic.Action.deal-more app.game) (next-game moves)
+    (let [after #(do
+                   (app:update-game next-game [:deal-more])
+                   (if (Logic.Query.game-ended? app.game)
+                     (app:switch-state RegularAppState.GameEnded)
+                     (do
+                       (app:switch-state RegularAppState.Default)
+                       (app:queue-event :app :noop)
+                       (if (table.empty? (Logic.Query.find-sets app.game))
+                         (app:queue-event :app :deal-more)))))
+          timeline (app:build-event-animation moves after {:stagger-ms 50 :duration-ms 120})]
+      (app:switch-state RegularAppState.Animating timeline))
+    (catch
+      (nil e) (app:notify e))))
+
+(fn RegularAppState.Default.OnEvent.input.<LeftMouse> [app [location] _pos]
   (case location
     [:menu _idx nil &as menu-item]
     (app:push-state App.State.DefaultInMenuState {: menu-item})
-    [:draw _] (case-try
-                (Logic.Action.deal-more app.game) (next-game moves)
-                (let [after #(do
-                               (app:switch-state AppState.Default)
-                               (app:update-game next-game [:deal-more])
-                               (app:queue-event :app :noop))
-                      timeline (app:build-event-animation moves after {:stagger-ms 50 :duration-ms 120})]
-                  (app:switch-state AppState.Animating timeline))
-                (nil e) (app:notify e))
+    [:draw _] (app:queue-event :app :deal-more)
     [:deal n] (let [{: selected} app.state.context
                     ?index (accumulate [found nil i deal-n (ipairs selected) &until found]
                              (if (= n deal-n) i))]
@@ -53,49 +89,25 @@
                   nil (table.insert selected n)
                   i (table.remove selected i))
                 (when (= 3 (length selected))
-                  (app:switch-state AppState.SubmitSet {: selected})))))
+                  (app:switch-state RegularAppState.SubmitSet {: selected})))))
 
-(fn AppState.SubmitSet.activated [app _context]
-  ;; for better feel, delay submitting the set for a few frames
-  (vim.defer_fn #(app:queue-event :app :submit) 300))
-
-(fn AppState.SubmitSet.tick [...]
-  ;; TODO Hack reroute tick to default for select highlighting
-  (AppState.Default.tick ...))
-
-(fn AppState.SubmitSet.OnEvent.app.submit [app]
-  (let [{: selected} app.state.context]
-    (case-try
-      (Logic.Action.submit-set app.game selected) (next-game moves)
-      (let [after #(do
-                     (app:switch-state AppState.Default)
-                     (app:update-game next-game [:submit-set selected])
-                     ;; We need the "not animating, update components" tick to run
-                     ;; to lower the z-index for the just animated cards, otherwise
-                     ;; the automoves move *under* the tableau.
-                     ;; So force it to run once for noop, then run the automove TODO: icky hack..
-                     (app:queue-event :app :noop))
-            timeline (app:build-event-animation moves after {:stagger-ms 50 :duration-ms 120})]
-        (app:switch-state AppState.Animating timeline))
-      (catch
-        (nil e) (do
-                  (app:notify e)
-                  (app:switch-state AppState.Default {:selected []}))))))
-
-(fn AppState.Default.OnEvent.app.deal [app]
+(fn RegularAppState.Default.OnEvent.app.deal [app]
   (let [(next-game moves) (Logic.Action.deal app.game)
         after #(do
-                 (app:switch-state AppState.Default {:selected []})
+                 (app:switch-state RegularAppState.Default {:selected []})
                  (app:update-game next-game [:deal])
                  ;; We need the "not animating, update components" tick to run
                  ;; to lower the z-index for the just animated cards, otherwise
                  ;; the automoves move *under* the tableau.
                  ;; So force it to run once for noop, then run the automove TODO: icky hack..
-                 (app:queue-event :app :noop))
+                 (app:queue-event :app :noop)
+                 ;; Ensure there is a set
+                 (when (table.empty? (Logic.Query.find-sets app.game))
+                   (app:queue-event :app :deal-more)))
         timeline (app:build-event-animation moves after {:stagger-ms 50 :duration-ms 120})]
-    (app:switch-state AppState.Animating timeline)))
+    (app:switch-state RegularAppState.Animating timeline)))
 
-(fn AppState.Default.tick [app]
+(fn RegularAppState.Default.tick [app]
   (let [{: selected} app.state.context]
     (app.components.set-count:update (/ (length app.game.discard) 3))
     (app.components.draw-count:update (length app.game.draw))
@@ -106,6 +118,46 @@
                                     (= n deal-n))
                         _ false)]
         (comp:update location card selected?)))))
+
+(fn RegularAppState.SubmitSet.activated [app _context]
+  ;; for better feel, delay submitting the set for a few frames
+  (vim.defer_fn #(app:queue-event :app :submit) 180))
+
+(fn RegularAppState.SubmitSet.tick [...]
+  ;; TODO Hack reroute tick to default for select highlighting
+  (RegularAppState.Default.tick ...))
+
+(fn RegularAppState.SubmitSet.OnEvent.app.submit [app]
+  (let [{: selected} app.state.context]
+    (case-try
+      (Logic.Action.submit-set app.game selected) (next-game moves)
+      (let [after #(do
+                     (app:update-game next-game [:submit-set selected])
+                     (if (Logic.Query.game-ended? app.game)
+                       (app:switch-state RegularAppState.GameEnded)
+                       (do
+                         (app:switch-state RegularAppState.Default)
+                         (if (table.empty? (Logic.Query.find-sets app.game))
+                           (app:queue-event :app :deal-more)))))
+            timeline (app:build-event-animation moves after {:stagger-ms 50 :duration-ms 120})]
+        (app:switch-state RegularAppState.Animating timeline))
+      (catch
+        (nil e) (do
+                  (app:notify e)
+                  (app:switch-state RegularAppState.Default {:selected []}))))))
+
+(fn RegularAppState.GameEnded.activated [app]
+  (set app.ended-at (os.time))
+  (let [{: sets : remaining} (Logic.Query.game-result app.game)
+        other [(string.fmt "Sets found: %d" sets)
+               (string.fmt "Remaining cards: %d" remaining)
+               (string.fmt "Time: %ds" (- app.ended-at app.started-at))]]
+    (app.components.game-report:update :won other)))
+
+(fn RegularAppState.GameEnded.OnEvent.input.<LeftMouse> [app [location] pos]
+  (case location
+    [:menu idx nil &as menu-item]
+    (app:push-state App.State.DefaultInMenuState {: menu-item})))
 
 (λ M.build-event-animation [app moves after ?opts]
   (CardUtils.build-event-animation app moves after ?opts))
@@ -126,13 +178,12 @@
                   {:row (+ 2 (* (- row 1) 5))
                    :col (+ deal-start-col (* (- col 1) (+ card-width 1)))
                    :z 1})
-      _ (error (Error "Unable to convert location to position, unknown location #{location}" 
-                      {: location})))))
+      _ (error (Error (<s> "Unable to convert location to position, unknown location #{location}"))))))
 
 (λ M.start [app-config game-config ?seed]
   (let [app (-> (App.build "SET" :set app-config game-config)
                 (setmetatable {:__index M}))
-        game-set-glyph-width :wide
+        game-set-glyph-width nil ;:wide
         card-style {:height 5
                     :glyph-width game-set-glyph-width
                     :width (if (= :wide game-set-glyph-width) 10 9)}
@@ -142,7 +193,7 @@
                            :height 25
                            :window-position app-config.window-position
                            :minimise-position app-config.minimise-position})
-        _ (table.merge app.z-layers {:cards 25 :label 100 :animation 200})]
+        _ (table.merge app.z-layers {:cards 25 :report 120 :animation 200})]
     (set app.view view)
     (set app.card-style card-style)
     (app:setup-new-game app.game-config ?seed)
@@ -152,7 +203,7 @@
 (λ M.setup-new-game [app game-config ?seed]
   (app:new-game Logic.build game-config ?seed)
   (app:build-components)
-  (app:switch-state AppState.Default {:selected []})
+  (app:switch-state RegularAppState.Default {:selected []})
   app)
 
 (λ M.build-components [app]
@@ -164,13 +215,18 @@
                                             card
                                             card-style)]
                                  (values card.id comp)))
+        game-report (CommonComponents.game-report app.view.width
+                                                  app.view.height
+                                                  (app:z-index-for-layer :report)
+                                                  [[:won "You did it!"]])
         slots [(SetComponents.slot #(app:location->position $1)
                                    [:draw 0]
                                    card-style)
                (SetComponents.slot #(app:location->position $1)
                                    [:discard 0]
                                    card-style)]
-        draw-count (CardComponents.count (app:location->position [:draw 100]) card-style)
+        draw-count (-> (CardComponents.count (app:location->position [:draw 100]) card-style)
+                       (: :update 81))
         set-count (CardComponents.count (app:location->position [:discard 100]) card-style)
         menubar (CommonComponents.menubar [["SET" [:file]
                                             [["" nil]
@@ -178,6 +234,8 @@
                                              ["Restart Game" [:restart-game]]
                                              ["" nil]
                                              ["Undo" [:undo]]
+                                             ["" nil]
+                                             ["Hint" [:hint-random-set]]
                                              ; ["" nil]
                                              ; ["Save current game" [:save]]
                                              ; ["Load last save" [:load]]
@@ -192,13 +250,15 @@
                                  : slots
                                  : draw-count
                                  : set-count
+                                 : game-report
                                  :cards (table.values card-card-components)})))
 
 (fn M.render [app]
   (app.view:render [[app.components.menubar]
                     app.components.slots
                     [app.components.draw-count app.components.set-count]
-                    app.components.cards])
+                    app.components.cards
+                    [app.components.game-report]])
   app)
 
 (fn M.tick [app]

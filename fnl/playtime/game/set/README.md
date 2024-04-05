@@ -1,18 +1,25 @@
 SET
 ==
 
-A logic puzzle game designed by Marsha Falco in 1974.
+A logic puzzle game designed by Marsha Falco in 1974. Physical copies of SET
+can be purchased from [Play Monster](https://www.playmonster.com/product/set/).
 
-Physical copies of SET can be purchased from [Play
-Monster](https://www.playmonster.com/product/set/).
+The Playtime implementation of SET is single player without any AI opponent and
+is intended as a more medatative experience, compared to the proper physical
+card game where players race for points.
+
 
 Controls
 --
 
-Click 3 cards to select a set.
+Click cards to select or deselect them, select 3 cards to confirm a set.
 
 Click the draw deck to deal an additional 3 cards if you are unable to find a
-set.
+set. Playtime will automatically draw additional cards if there is no set in
+the currently dealt cards.
+
+The menu contains a hint option, which will tell you the number of sets in the
+current deal and a hint on the attributes of a randomly chosen set.
 
 How to play
 --

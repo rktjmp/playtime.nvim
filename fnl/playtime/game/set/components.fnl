@@ -19,7 +19,7 @@
 (fn make-line [width left mid right]
   (.. left (string.rep mid (- width 2)) right))
 
-(fn M.slot [location->position location {: glyph-width : width : height &as card-style}]
+(fn M.slot [location->position location {: width : height &as card-style}]
   ; (assert (and (= width 10) (= height 5)) "only supports w=10, h=5")
   (let [{: row : col : z} (location->position location)
         fill #(make-line width $1 $2 $3)

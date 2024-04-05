@@ -23,24 +23,21 @@
      (. vals.style style)
      (. vals.shape shape)]))
 
-(fn vector-report [vector]
-  (let [bads (icollect [i name (ipairs [:color :count :style :shape])]
-               (if (not (= 0 (. vector i)))
-                 name))]
-    (case bads
-      [nil] nil
-      bads (.. "Not a set, check " (table.concat bads ", ")))))
-
-(λ sum-cards [a b c]
-  (let [[av bv cv] (icollect [_ c (ipairs [a b c])] (card->vector c))]
-    (faccumulate [sum [0 0 0 0] i 1 4]
-      (table.set sum i (-> (+ (. av i) (. bv i) (. cv i))
-                           (% 3))))))
-
 (λ set? [a b c]
-  (case (sum-cards a b c)
-    [0 0 0 0] true
-    sum (values false (vector-report sum))))
+  (fn vector-report [vector]
+    (let [bads (icollect [i name (ipairs [:color :count :style :shape])]
+                 (when (not (= 0 (. vector i)))
+                   name))]
+      (case bads
+        [nil] nil
+        bads (.. "Not a set, check " (table.concat bads ", ")))))
+  (let [sum (let [[av bv cv] (icollect [_ c (ipairs [a b c])] (card->vector c))]
+              (faccumulate [sum [0 0 0 0] i 1 4]
+                (table.set sum i (-> (+ (. av i) (. bv i) (. cv i))
+                                     (% 3)))))]
+    (case sum
+      [0 0 0 0] true
+      sum (values false (vector-report sum)))))
 
 (λ find-sets [cards]
   (let [sets []
@@ -52,7 +49,7 @@
                 cb (. cards b)
                 cc (. cards c)]
             (if (set? ca cb cc)
-              (table.insert sets [a b c]))))))
+              (table.insert sets [ca cb cc]))))))
     sets))
 
 (λ M.build [config ?seed]
@@ -67,8 +64,15 @@
   (fn iter []
     (each [i card (ipairs state.draw)]
       (coroutine.yield [:draw i] card))
-    (for [i 1 (length state.deal)]
-      (coroutine.yield [:deal i] (. state.deal i)))
+    ;; The deal will be 12 cards minimum until the end of the game where we
+    ;; cant draw any more, at this point the list will begin to get holes in
+    ;; it.
+    (let [len-deal (case (length state.deal)
+                     (where n (< 12 n)) n
+                     _ 12)]
+      (for [i 1 len-deal]
+        (case (. state.deal i)
+          card (coroutine.yield [:deal i] card))))
     (each [i card (ipairs state.discard)]
       (coroutine.yield [:discard i] card)))
   (coroutine.wrap iter))
@@ -95,9 +99,11 @@
     (apply-events (clone state) moves)))
 
 (λ M.Action.deal-more [state]
-  (case (values (length state.deal) (length state.draw))
-    (_ 0) (values nil (Error "No additional cards to deal"))
-    (15 _) (values nil (Error "May not deal more than 15 cards"))
+  (case (values (length state.draw) (length state.deal))
+    (0 _) (values nil (Error "No additional cards to deal"))
+    ;; Lets be more relaxed and allow players to draw as much as they want, per
+    ;; a physical game.
+    ; (15 _) (values nil (Error "May not deal more than 15 cards"))
     _ (let [moves (faccumulate [moves [] _ 1 3]
                     (-> moves
                         (table.insert [:move [:draw :top] [:deal :top]])
@@ -133,13 +139,42 @@
     (false ?msg) (values nil (Error (or ?msg "not a set")))))
 
 (fn M.Query.find-sets [state]
-  (find-sets state.deal))
+  (let [dealt-cards (collect [loc c (M.iter-cards state)]
+                      (case loc
+                        [:deal] (values loc c)))
+        sets (find-sets (table.values dealt-cards))
+        dealt-indexes (icollect [_ a-set (ipairs sets)]
+                        (icollect [_ card (ipairs a-set)]
+                          (accumulate [i nil [_ n] c (pairs dealt-cards) &until i]
+                            (case (values c card)
+                              ({: id} {: id}) n))))]
+    dealt-indexes))
 
-(λ M.Query.set? [state deal-indexes]
-  (let [cards (icollect [_ i (ipairs deal-indexes)]
-                (. state.deal i))]
+(λ M.Query.set? [state dealt-indexes]
+  (let [cards (icollect [_ i (ipairs dealt-indexes)] (. state.deal i))]
     (case cards
       [a b c nil] (set? a b c)
       _ false)))
+
+(λ M.Query.hint-for-set [state dealt-indexes]
+  (assert (M.Query.set? state dealt-indexes) "unable to hint set, cards are not a set!")
+  (let [cards (icollect [_ i (ipairs dealt-indexes)] (. state.deal i))]
+    (collect [_ key (ipairs [:shape :color :style :count])]
+      (let [vals (icollect [_ card (ipairs cards)] (. card key))
+            result (case vals
+                     [a a a] :same
+                     _ :diff)]
+        (values key result)))))
+
+(λ M.Query.game-ended? [state]
+  (let [sets (M.Query.find-sets state)]
+    (and (table.empty? sets)
+         (table.empty? state.draw))))
+
+(λ M.Query.game-result [state]
+  {:sets (/ (length state.discard) 3)
+   :remaining (length (icollect [loc _ (M.iter-cards state)]
+                        (case loc
+                          [:deal] true)))})
 
 M
