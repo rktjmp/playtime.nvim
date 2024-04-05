@@ -27,6 +27,9 @@ Requirements
 Included games
 --
 
+Some of the included games have (much nicer) for-sale digital or physical
+versions. **If you like the game, buy it!**
+
 **Classic Solitaires**
 
 [FreeCell](fnl/playtime/game/freecell/README.md) & [Bakers
@@ -49,9 +52,6 @@ variants). [Calculation](fnl/playtime/game/calculation/README.md).
 
 [SET](fnl/playtime/game/set/README.md) (logic puzzle).
 [Sweeper](fnl/playtime/game/sweeper/README.md).
-
-Some of the included games have (much nicer) for-sale digital or physical
-versions. If you like the game, buy it!
 
 **Instructions**
 
