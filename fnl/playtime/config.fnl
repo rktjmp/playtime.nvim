@@ -14,13 +14,22 @@
                             (type.function? $1))
                        "must be `ne`, `nw`, `se`, `sw` or a table or function returning`{row=row, col=col}`"]
    :unfocused [#(eq-any? $1 [:minimise])
-               "must be `minimise`"]})
+               "must be `minimise`"]
+   :__beta-game-set-font-glyph-width [#(eq-any? $1 [:wide nil])
+                                      "must be `wide` or `nil`"]})
+
+; (local defaults
+;   {:fps 30
+;    :window {:position :center
+;             :on-unfocus {:minimise :se}}
+;    :game {:set {:font-glyph-width 2}}})
 
 (local defaults
   {:fps 30
    :window-position :center
    :minimise-position :se
-   :unfocused :minimise})
+   :unfocused :minimise
+   :__beta-game-set-font-glyph-width nil})
 
 (var user-config {})
 (var errors nil)
@@ -39,7 +48,9 @@
   (set errors nil)
   (case-try
     (M.valid? config) true
-    (set user-config (clone config))
+    (do
+      (set user-config (clone config))
+      true)
     (catch
       (false errs) (do
                      (set errors errs)

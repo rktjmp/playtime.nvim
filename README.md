@@ -41,12 +41,13 @@ variants). [Calculation](fnl/playtime/game/calculation/README.md).
 
 **Solo card games**
 
-[Card Capture](fnl/playtime/game/card-capture/README.md) (deck-builder).
-[Optrita: Lines](fnl/playtime/game/optrita-lines/README.md) (trick-taking).
 [The Emissary](fnl/playtime/game/the-emissary/README.md) (trick-taking).
+[Optrita: Lines](fnl/playtime/game/optrita-lines/README.md) (trick-taking).
+[Card Capture](fnl/playtime/game/card-capture/README.md) (deck-builder).
 
 **Other games**
 
+[SET](fnl/playtime/game/set/README.md) (logic puzzle).
 [Sweeper](fnl/playtime/game/sweeper/README.md).
 
 Some of the included games have (much nicer) for-sale digital or physical
@@ -98,6 +99,8 @@ Supported options (struck through options are currently ... not supported):
   `center`, `ne`, `nw` or a table or function that returns `{row=row, col=col}`.
 - `minimise-position` (`se`): Where to position the minimised window, may be
   `ne`, `nw`, `se`, `sw` or a table or function that returns `{row=row, col=col}`.
+- `__beta-game-set-font-glyph-width` (`nil`): Hint to playtime that the font
+  glyphs used by SET are wider than one character, may be `wide` or `nil`.
 - ~~`card-size` (`large`): adjust card size between 7x5 and 6x4.~~
 - ~~`animation-rate` (1.0): globally adjust the duration of animations.~~
 - ~~`unfocused` (`minimise`): what to do when the window loses focus.~~

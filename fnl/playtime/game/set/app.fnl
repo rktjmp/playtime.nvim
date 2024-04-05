@@ -183,7 +183,7 @@
 (λ M.start [app-config game-config ?seed]
   (let [app (-> (App.build "SET" :set app-config game-config)
                 (setmetatable {:__index M}))
-        game-set-glyph-width nil ;:wide
+        game-set-glyph-width app-config.__beta-game-set-font-glyph-width
         card-style {:height 5
                     :glyph-width game-set-glyph-width
                     :width (if (= :wide game-set-glyph-width) 10 9)}
