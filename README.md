@@ -39,7 +39,7 @@ variants). [Calculation](fnl/playtime/game/calculation/README.md).
 **Classic-style Solitaires**
 
 [Shenzhen Solitaire](fnl/playtime/game/shenzhen-solitaire/README.md).
-[Penguin](fnl/playtime/game/penguin/README.md). [Overthone](fnl/playtime/game/overthrone/README.md).
+[Penguin](fnl/playtime/game/penguin/README.md). [Overthrone](fnl/playtime/game/overthrone/README.md).
 [Forty Fortunes](fnl/playtime/game/forty-fortunes/README.md).
 
 **Solo card games**
