@@ -31,6 +31,8 @@
              (table.merge (clone default-config) (or ?game-config {})) game-config
              (case (pcall require modname)
                (true mod) (mod.start app-config game-config ?seed)
+               ;; TODO? During dev its nice to have this throw the actual error, but 
+               ;; to users its a bit ugly.
                (false err) (error err))
              (catch
                _ (error (<s> "Could not start game: #{game-name}"))))
