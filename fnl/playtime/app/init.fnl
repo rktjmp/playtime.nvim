@@ -72,6 +72,8 @@
 (λ M.new-game [app game-builder game-config ?seed]
   (let [seed (or ?seed (os.time))
         game (game-builder game-config seed)]
+    (set app.started-at (os.time))
+    (set app.ended-at nil)
     (set app.seed seed)
     (set app.game-config game-config)
     (set app.game-history [])
