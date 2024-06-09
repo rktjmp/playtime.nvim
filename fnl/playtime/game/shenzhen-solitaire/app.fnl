@@ -139,6 +139,14 @@
                                          "@playtime.ui.off"]])]
                   (make-lock-button-component (table.unpack a)))]
     (table.merge app.components {: buttons})
+    ;; PatienceApp#start will call (app:render) but or components field will
+    ;; contain a nil entry for buttons, causing the iterator to halt
+    ;; prematurely, so we must manually call renderer after setting the
+    ;; additional components.
+    ;; TODO: maybe make render more resilient to this, pass keys or perhaps
+    ;; construct the component tree in a contracted way so render can
+    ;; automatically work it all out.
+    (app:render)
     app))
 
 (fn M.render [app]
