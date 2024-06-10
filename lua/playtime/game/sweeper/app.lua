@@ -165,7 +165,10 @@
  return components, t end
 
  local grid, cell_id__3ecell_component = build_grid_component(app.game, {row = 5, col = 3})
- local menubar = CommonComponents.menubar({{"Sweeper", {"file"}, {{"", nil}, {"New Classic 8x8, 10", {"new-game", {8, 8, 10}}}, {"New Easy 9x9, 10", {"new-game", {9, 9, 10}}}, {"New Medium 16x16, 40", {"new-game", {16, 16, 40}}}, {"New Expert 30x16, 99", {"new-game", {30, 16, 99}}}, {"", nil}, {"Undo", {"undo"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")}) local remaining
+ local menubar = CommonComponents.menubar({{"Sweeper", {"file"}, {{"", nil}, {"New Classic 8x8, 10", {"new-game", {8, 8, 10}}}, {"New Easy 9x9, 10", {"new-game", {9, 9, 10}}}, {"New Medium 16x16, 40", {"new-game", {16, 16, 40}}}, {"New Expert 30x16, 99", {"new-game", {30, 16, 99}}}, {"", nil}, {"Restart game", {"restart-game"}}, {"", nil}, {"Undo", {"undo"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}, {string.format("Seed: %s", app.seed), nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")}) local remaining
+
+
+
 
 
 
@@ -225,7 +228,7 @@
  M.start = function(app_config, game_config, _3fseed)
  local app = setmetatable(App.build("Sweeper", "sweeper", app_config, game_config, _3fseed), {__index = M})
 
- local view_width = (8 + (4 * game_config.width))
+ local view_width = (7 + (4 * game_config.width))
  local view_height = (8 + (2 * game_config.height))
  local view = Window.open("sweeper", App["build-default-window-dispatch-options"](app), {width = view_width, height = view_height, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
 

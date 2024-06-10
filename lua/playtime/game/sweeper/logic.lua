@@ -82,18 +82,22 @@
  local state = new_game_state({width = width, height = height}, n_mines)
  return state end
 
- local function set_mines_21(state, not_at)
- local _let_42_ = state local _let_43_ = _let_42_["size"] local width = _let_43_["width"] local height = _let_43_["height"] local positions
- do local tbl_19_auto = {} local i_20_auto = 0 for _44_, _ in M["iter-cells"](state) do local _each_45_ = _44_ local x = _each_45_["x"] local y = _each_45_["y"] local val_21_auto
- if ((_G.type(not_at) == "table") and (not_at.x == x) and (not_at.y == y)) then
- val_21_auto = nil else local _0 = not_at
- val_21_auto = {x = x, y = y} end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end positions = tbl_19_auto end local random_indexes
- local function _48_() local tbl_19_auto = {} local i_20_auto = 0 for i, _ in ipairs(positions) do local val_21_auto = i if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end random_indexes = table.shuffle(_48_()) local inc_count
- local function _50_(loc)
+ local function set_mines_21(state, not_at_locations)
+ local _let_42_ = state local _let_43_ = _let_42_["size"] local width = _let_43_["width"] local height = _let_43_["height"] local allowed_at_location_3f
+ local function _46_(_44_) local _arg_45_ = _44_ local x = _arg_45_["x"] local y = _arg_45_["y"]
+ local _47_ do local t = false for _, loc in ipairs(not_at_locations) do if t then break end
+ if ((_G.type(loc) == "table") and (loc.x == x) and (loc.y == y)) then t = true else local _0 = loc t = false end end _47_ = t end return not _47_ end allowed_at_location_3f = _46_ local positions
+
+
+ do local tbl_19_auto = {} local i_20_auto = 0 for location, _ in M["iter-cells"](state) do local val_21_auto
+ if allowed_at_location_3f(location) then
+ val_21_auto = location else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end positions = tbl_19_auto end local random_indexes
+ local function _51_() local tbl_19_auto = {} local i_20_auto = 0 for i, _ in ipairs(positions) do local val_21_auto = i if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end random_indexes = table.shuffle(_51_()) local inc_count
+ local function _53_(loc)
  if not (nil == loc) then
  local i = M["location->index"](state, loc)
  local cell = state.grid[i]
- cell.count = (cell.count + 1) return nil else return nil end end inc_count = _50_ local mines_at
+ cell.count = (cell.count + 1) return nil else return nil end end inc_count = _53_ local mines_at
  do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, state["n-mines"] do local val_21_auto
  do local i0 = random_indexes[i]
  local center = positions[i0]
@@ -118,14 +122,18 @@
  state["won?"] = (not state["lost?"] and won_3f)
  return state end
 
- M.Action["reveal-location"] = function(state, location) _G.assert((nil ~= location), "Missing argument location on fnl/playtime/game/sweeper/logic.fnl:121") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:121")
+ M.Action["reveal-location"] = function(state, location) _G.assert((nil ~= location), "Missing argument location on fnl/playtime/game/sweeper/logic.fnl:125") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:125")
  local next_state = clone(state) local next_state0
 
  if next_state["saving-throw?"] then
+ local fns = {north_west_of, north_of, north_east_of, west_of, east_of, south_west_of, south_of, south_east_of} local safe_locations
 
+
+ do local tbl_17_auto = {location} for _, f in ipairs(fns) do
+ local val_18_auto = f(state, location) table.insert(tbl_17_auto, val_18_auto) end safe_locations = tbl_17_auto end
 
  next_state["saving-throw?"] = false
- next_state0 = set_mines_21(next_state, location) else
+ next_state0 = set_mines_21(next_state, safe_locations) else
  next_state0 = next_state end
  local cell = location_content(next_state0, location)
  if ((_G.type(cell) == "table") and (cell["revealed?"] == true)) then elseif ((_G.type(cell) == "table") and (cell.mark == "flag")) then elseif ((_G.type(cell) == "table") and (cell["mine?"] == true)) then next_state0["lost?"] = true
@@ -169,7 +177,7 @@
  maybe_update_won(next_state0)
  return next_state0 end
 
- M.Action["mark-location"] = function(state, location) _G.assert((nil ~= location), "Missing argument location on fnl/playtime/game/sweeper/logic.fnl:172") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:172")
+ M.Action["mark-location"] = function(state, location) _G.assert((nil ~= location), "Missing argument location on fnl/playtime/game/sweeper/logic.fnl:180") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:180")
  local next_state = clone(state)
  local cell = location_content(next_state, location)
  if ((_G.type(cell) == "table") and (cell.mark == nil) and (cell["revealed?"] == false)) then
@@ -183,10 +191,10 @@
  maybe_update_won(next_state)
  return next_state end
 
- M.Query["game-ended?"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:186")
+ M.Query["game-ended?"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:194")
  return (state["lost?"] or state["won?"]) end
 
- M.Query["game-result"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:189")
+ M.Query["game-result"] = function(state) _G.assert((nil ~= state), "Missing argument state on fnl/playtime/game/sweeper/logic.fnl:197")
  if state["lost?"] then return "lost" elseif state["won?"] then return "won" else return "unknown" end end
 
 
