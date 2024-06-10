@@ -226,7 +226,7 @@
 (fn M.start [app-config game-config ?seed]
   (let [app (-> (App.build "Sweeper" :sweeper app-config game-config ?seed)
                 (setmetatable {:__index M}))
-        view-width (+ 8 (* 4 game-config.width))
+        view-width (+ 7 (* 4 game-config.width))
         view-height (+ 8 (* 2 game-config.height))
         view (Window.open :sweeper
                           (App.build-default-window-dispatch-options app)
