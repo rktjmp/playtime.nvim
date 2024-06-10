@@ -138,7 +138,15 @@
 
 
  local val_21_auto = make_lock_button_component(table.unpack(a)) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end buttons = tbl_19_auto end
- table.merge(app.components, {buttons = buttons})
+ table.merge(app.components, {buttons = buttons}) app:render()
+
+
+
+
+
+
+
+
  return app end
 
  M.render = function(app) do end (app.view):render({app.components["empty-fields"], app.components.buttons, app.components.cards, app["standard-patience-components"](app)})

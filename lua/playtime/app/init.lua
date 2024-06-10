@@ -72,13 +72,15 @@
  M["new-game"] = function(app, game_builder, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/app/init.fnl:72") _G.assert((nil ~= game_builder), "Missing argument game-builder on fnl/playtime/app/init.fnl:72") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:72")
  local seed = (_3fseed or os.time())
  local game = game_builder(game_config, seed)
+ app["started-at"] = os.time()
+ app["ended-at"] = nil
  app.seed = seed
  app["game-config"] = game_config
  app["game-history"] = {}
  Logger.info("Built #{name} seed: #{seed}", {name = app.name, seed = seed}) return app["update-game"](app, game, {}) end
 
 
- M["update-game"] = function(app, next_game, replay) _G.assert((nil ~= replay), "Missing argument replay on fnl/playtime/app/init.fnl:81") _G.assert((nil ~= next_game), "Missing argument next-game on fnl/playtime/app/init.fnl:81") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:81")
+ M["update-game"] = function(app, next_game, replay) _G.assert((nil ~= replay), "Missing argument replay on fnl/playtime/app/init.fnl:83") _G.assert((nil ~= next_game), "Missing argument next-game on fnl/playtime/app/init.fnl:83") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:83")
 
  table.insert(app["game-history"], {app.game, replay})
  app.game = next_game
@@ -93,7 +95,7 @@
 
  return app end
 
- M["request-tick"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:96")
+ M["request-tick"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:98")
 
  if not app.throttle.tick["scheduled?"] then app.throttle.tick["scheduled?"] = true
 
@@ -106,12 +108,12 @@
  vim.defer_fn(run, time_to_next_tick_ms) else end
  return app end
 
- M["request-render"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:109") app.throttle.render["requested?"] = true
+ M["request-render"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:111") app.throttle.render["requested?"] = true
 
 
  return app end
 
- M["queue-event"] = function(app, namespace, event, ...) _G.assert((nil ~= event), "Missing argument event on fnl/playtime/app/init.fnl:114") _G.assert((nil ~= namespace), "Missing argument namespace on fnl/playtime/app/init.fnl:114") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:114")
+ M["queue-event"] = function(app, namespace, event, ...) _G.assert((nil ~= event), "Missing argument event on fnl/playtime/app/init.fnl:116") _G.assert((nil ~= namespace), "Missing argument namespace on fnl/playtime/app/init.fnl:116") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:116")
 
 
 
@@ -127,7 +129,7 @@
 
  return app end
 
- M["process-next-event"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:130")
+ M["process-next-event"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:132")
 
 
 
@@ -171,7 +173,7 @@
 
  return vim.notify(tostring(msg)) end
 
- M.save = function(app, filename, data) _G.assert((nil ~= data), "Missing argument data on fnl/playtime/app/init.fnl:174") _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/app/init.fnl:174") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:174")
+ M.save = function(app, filename, data) _G.assert((nil ~= data), "Missing argument data on fnl/playtime/app/init.fnl:176") _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/app/init.fnl:176") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:176")
 
  local dir = app["data-dir"]
  local path = vim.fs.normalize(string.format("%s/%s.json", dir, filename))
@@ -183,7 +185,7 @@
 
 
 
- M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/app/init.fnl:186") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:186")
+ M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/app/init.fnl:188") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:188")
 
 
 
@@ -197,7 +199,7 @@
 
 
 
- M["update-statistics"] = function(app, updater_fn) _G.assert((nil ~= updater_fn), "Missing argument updater-fn on fnl/playtime/app/init.fnl:200") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:200")
+ M["update-statistics"] = function(app, updater_fn) _G.assert((nil ~= updater_fn), "Missing argument updater-fn on fnl/playtime/app/init.fnl:202") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:202")
  local path = vim.fs.normalize(string.format("%s/%s.json", app["data-dir"], "stats"))
 
  local function _58_(...) local _59_, _60_ = ... if (nil ~= _59_) then local data = _59_ local function _61_(...) local _62_, _63_ = ... if (nil ~= _62_) then local new_data = _62_ local function _64_(...) local _65_, _66_ = ... if (_65_ == true) then
@@ -208,7 +210,7 @@
 
 
 
- M["fetch-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:211")
+ M["fetch-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/init.fnl:213")
  local path = vim.fs.normalize(string.format("%s/%s.json", app["data-dir"], "stats"))
 
  return (Serializer.read(path) or {}) end

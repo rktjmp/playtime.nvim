@@ -33,7 +33,7 @@
  state.flower[1] = tableau_cards
  return state end
 
- local valid_sequence_3f
+ local valid_tableau_sequence_3f
 
  local function _6_(next_card, _4_) local _arg_5_ = _4_ local last_card = _arg_5_[1]
 
@@ -41,19 +41,19 @@
  local last_value = card_value(last_card)
  local next_suit = card_suit(next_card)
  local next_value = card_value(next_card)
- return (not eq_any_3f(next_suit, {"flower", "dragon"}) and not (last_suit == next_suit) and (last_value == (next_value + 1))) end valid_sequence_3f = CardGameUtils["make-valid-sequence?-fn"](_6_)
+ return (not eq_any_3f(next_suit, {"flower", "green", "red", "white"}) and not (last_suit == next_suit) and (last_value == (next_value + 1))) end valid_tableau_sequence_3f = CardGameUtils["make-valid-sequence?-fn"](_6_)
 
 
 
  local winning_foundation_sequence_3f
  do
- local valid_sequence_3f0
+ local valid_sequence_3f
 
  local function _9_(next_card, _7_) local _arg_8_ = _7_ local last_card = _arg_8_[1]
- return ((card_suit(next_card) == card_suit(last_card)) and (card_value(next_card) == (1 + card_value(last_card)))) end valid_sequence_3f0 = CardGameUtils["make-valid-sequence?-fn"](_9_)
+ return ((card_suit(next_card) == card_suit(last_card)) and (card_value(next_card) == (1 + card_value(last_card)))) end valid_sequence_3f = CardGameUtils["make-valid-sequence?-fn"](_9_)
 
  local function _10_(sequence)
- return ((9 == #sequence) and valid_sequence_3f0(sequence)) end winning_foundation_sequence_3f = _10_ end
+ return ((9 == #sequence) and valid_sequence_3f(sequence)) end winning_foundation_sequence_3f = _10_ end
 
 
  local winning_flower_sequence_3f
@@ -64,13 +64,13 @@
 
  local winning_dragon_sequence_3f
  do
- local valid_sequence_3f0
+ local valid_sequence_3f
 
  local function _15_(next_card, _13_) local _arg_14_ = _13_ local last_card = _arg_14_[1]
- return (eq_any_3f(card_suit(next_card), {"red", "green", "white"}) and (card_suit(next_card) == card_suit(last_card))) end valid_sequence_3f0 = CardGameUtils["make-valid-sequence?-fn"](_15_)
+ return (eq_any_3f(card_suit(next_card), {"red", "green", "white"}) and (card_suit(next_card) == card_suit(last_card))) end valid_sequence_3f = CardGameUtils["make-valid-sequence?-fn"](_15_)
 
  local function _16_(sequence)
- return ((4 == #sequence) and valid_sequence_3f0(sequence)) end winning_dragon_sequence_3f = _16_ end
+ return ((4 == #sequence) and valid_sequence_3f(sequence)) end winning_dragon_sequence_3f = _16_ end
 
 
 
@@ -90,7 +90,7 @@
  if ((_G.type(pick_up_from) == "table") and (pick_up_from[1] == "tableau") and (nil ~= pick_up_from[2]) and (nil ~= pick_up_from[3])) then local col_n = pick_up_from[2] local card_n = pick_up_from[3]
 
  local remaining, held = table.split(state.tableau[col_n], card_n)
- if valid_sequence_3f(held) then
+ if valid_tableau_sequence_3f(held) then
  return held else
  if ((_G.type(held) == "table") and (held[1] == nil)) then
  return nil, Error("No cards to pick up from tableau column #{col-n}", {["col-n"] = col_n}) else local _ = held
@@ -176,7 +176,7 @@
 
 
  local _, new_run = table.split(next_state.tableau[t_col], t_card_n)
- if valid_sequence_3f(new_run) then
+ if valid_tableau_sequence_3f(new_run) then
  return next_state, moves else
  return nil, Error("Must build piles in alternating suit, descending rank") end else local _ = _25_
 
