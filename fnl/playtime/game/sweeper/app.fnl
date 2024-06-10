@@ -172,6 +172,8 @@
                                              ["New Medium 16x16, 40" [:new-game [16 16 40]]]
                                              ["New Expert 30x16, 99" [:new-game [30 16 99]]]
                                              ["" nil]
+                                             ["Restart game" [:restart-game]]
+                                             ["" nil]
                                              ["Undo" [:undo]]
                                              ["" nil]
                                              ["Quit" [:quit]]
