@@ -33,7 +33,7 @@
     (tset state.flower 1 tableau-cards)
     state))
 
-(local valid-sequence?
+(local valid-tableau-sequence?
   (CardGameUtils.make-valid-sequence?-fn
     (fn [next-card [last-card]]
       ;; You can only pick up sequences of coins, strings and myriads.
@@ -41,7 +41,7 @@
             last-value (card-value last-card)
             next-suit (card-suit next-card)
             next-value (card-value next-card)]
-        (and (not (eq-any? next-suit [:flower :dragon]))
+        (and (not (eq-any? next-suit [:flower :green :red :white]))
              (not (= last-suit next-suit))
              (= last-value (+ next-value 1)))))))
 
@@ -90,7 +90,7 @@
   (case pick-up-from
     [:tableau col-n card-n]
     (let [(remaining held) (table.split (. state :tableau col-n) card-n)]
-      (if (valid-sequence? held)
+      (if (valid-tableau-sequence? held)
         (values held)
         (case held
           [nil] (values nil (Error "No cards to pick up from tableau column #{col-n}" {: col-n}))
@@ -176,7 +176,7 @@
                          (inc-moves)
                          (apply-events moves {:unsafely? true}))
           (_ new-run) (table.split (. next-state :tableau t-col) t-card-n)]
-      (if (valid-sequence? new-run)
+      (if (valid-tableau-sequence? new-run)
         (values next-state moves)
         (values nil (Error "Must build piles in alternating suit, descending rank"))))
 
