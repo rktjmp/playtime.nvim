@@ -82,12 +82,16 @@
         state (new-game-state {: width : height} n-mines)]
     state))
 
-(fn set-mines! [state not-at]
+(fn set-mines! [state not-at-locations]
   (let [{:size {: width : height}} state
-        positions (icollect [{: x : y} _ (M.iter-cells state)]
-                    (case not-at
-                      (where {:x (= x) :y (= y)}) nil
-                      _ {: x : y}))
+        allowed-at-location? (fn [{: x : y}]
+                               (not (accumulate [t false _ loc (ipairs not-at-locations) &until t]
+                                      (case loc
+                                        (where {:x (= x) :y (= y)}) true
+                                        _ false))))
+        positions (icollect [location _ (M.iter-cells state)]
+                    (if (allowed-at-location? location)
+                      location))
         random-indexes (table.shuffle (icollect [i _ (ipairs positions)] i))
         inc-count (fn [loc]
                     (if (not (nil? loc))
@@ -122,10 +126,14 @@
   (let [next-state (clone state)
         ;; Wait until the first reveal to place mines, as the first click never loses.
         next-state (if next-state.saving-throw?
-                     (do
+                     (let [fns [north-west-of north-of north-east-of
+                                west-of east-of
+                                south-west-of south-of south-east-of]
+                           safe-locations (icollect [_ f (ipairs fns) &into [location]]
+                                            (f state location))]
                        ;; tset instead of set to avoid fennel bug
                        (tset next-state :saving-throw? false)
-                       (set-mines! next-state location))
+                       (set-mines! next-state safe-locations))
                      next-state)
         cell (location-content next-state location)]
     (case cell
