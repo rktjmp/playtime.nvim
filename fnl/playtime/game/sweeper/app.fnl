@@ -175,7 +175,8 @@
                                              ["Undo" [:undo]]
                                              ["" nil]
                                              ["Quit" [:quit]]
-                                             ["" nil]]]]
+                                             ["" nil]
+                                             [(string.format "Seed: %s" app.seed) nil]]]]
                                           {:width app.view.width
                                            :z (app:z-index-for-layer :menubar)})
         remaining (-> (Component.build
