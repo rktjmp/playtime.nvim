@@ -11,4 +11,4 @@
             {:cli :sweeper-expert
              :menu "Expert (30x16, 99)"
              :config {:width 30 :height 16 :n-mines 99}}]
- :desc "The windows classic"}
+ :desc "The Microsoft® Windows™ classic."}

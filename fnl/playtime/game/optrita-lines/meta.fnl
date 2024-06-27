@@ -2,7 +2,7 @@
  :mod :optrita-lines
  :authors ["Haymire"]
  :categories [:modern :card :trick-taking]
- :desc "A 1-player trick-taking game played against a grid"
+ :desc "A 1-player trick-taking game played against a grid."
  :rulesets [{:cli :optrita-lines
              :menu "Normal"
              :config {:score-limit {:player 31 :grid 11}}}

@@ -2,7 +2,7 @@
  :mod :overthrone
  :authors ["Mark Tuck"]
  :categories [:classic-like :card]
- :desc "A unique solitaire where the ruler effects the rules"
+ :desc "A unique solitaire where the ruler effects the rules."
  :rulesets [{:cli :overthrone
              :menu "Normal (5 cards)"
              :config {:hand-size 5}}
