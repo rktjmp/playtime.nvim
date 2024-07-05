@@ -14,9 +14,6 @@
 (local M (setmetatable {} {:__index App}))
 (local Logic (require :playtime.game.set.logic))
 
-;; "Find 6 in preset deal"
-(local PuzzleAppState {})
-
 ;;
 ;; Regular SET game, find sets in a deal and progress through the deck.
 ;;

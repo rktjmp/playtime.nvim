@@ -15,7 +15,6 @@
 (local {: api} vim)
 (local uv (or vim.loop vim.uv))
 (local M (setmetatable {} {:__index App}))
-(local priv {})
 (local Logic (require :playtime.game.the-emissary.logic))
 
 (local AppState {})
