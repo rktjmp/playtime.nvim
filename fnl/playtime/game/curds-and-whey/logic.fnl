@@ -121,7 +121,6 @@
                          (inc-moves)
                          (apply-events moves))
           (_ new-run) (table.split (. next-state :tableau t-col) t-card-n)]
-      (print (vim.inspect held))
       (case (values t-card-n (. held 1))
         (0 [_suit :king]) (values next-state moves)
         (0 _) (values nil (Error "May only place kings in empty slots"))
