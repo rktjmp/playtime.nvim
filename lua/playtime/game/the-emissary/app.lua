@@ -15,7 +15,6 @@
  local _local_2_ = vim local api = _local_2_["api"]
  local uv = (vim.loop or vim.uv)
  local M = setmetatable({}, {__index = App})
- local priv = {}
  local Logic = require("playtime.game.the-emissary.logic")
 
  local AppState = {}
@@ -381,7 +380,7 @@
  return error(Error("Unable to convert location to position, unknown location #{location}", {location = location})) end end
 
 
- M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:384") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/the-emissary/app.fnl:384")
+ M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:383") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/the-emissary/app.fnl:383")
  local app = setmetatable(App.build("The Emissary", "the-emissary", app_config, game_config), {__index = M})
 
 
@@ -399,14 +398,14 @@
 
 
 
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:402") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:402") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
+ M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:401") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:401") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
 
 
 
  local function _101_() return app["switch-state"](app, AppState.DealPhase) end vim.defer_fn(_101_, 300)
  return app end
 
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:409")
+ M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:408")
  local function build_emissary(position)
  return Component["set-position"](Component["set-size"](Component["set-content"](Component.build(), {{{"\240\159\174\178\240\159\174\179", "@playtime.ui.on"}}}), {width = 2, height = 1}), {row = 13, col = 41}) end
 
@@ -545,7 +544,7 @@
  update_card_counts(app) return app["request-render"](app) end
 
 
- M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:548")
+ M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:547")
  local function update(d)
  local data = table.merge({version = 1, wins = 0, games = {}}, d)
  data.wins = (data.wins + 1)
