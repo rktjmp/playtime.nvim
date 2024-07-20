@@ -1,42 +1,55 @@
 ;; Fix lua to be not lua. Sometimes.
 
-(local *raw-string* string)
-(local *raw-math* math)
-(local *raw-type* type)
-(local *raw-table* table)
-(local *raw-unpack* unpack)
+(local *raw-string* _G.string)
+(local *raw-math* _G.math)
+(local *raw-type* _G.type)
+(local *raw-table* _G.table)
+(local *raw-unpack* _G.unpack)
 
 ;;
 ;; Maths
 ;;
 
-(local math (setmetatable {:clamp (fn [v min max]
-                                    (-> (*raw-math*.max v min)
-                                        (*raw-math*.min max)))
-                           :odd? (fn [n] (= 1 (% n 2)))
-                           :even? (fn [n] (= 0 (% n 2)))}
-                          {:__index *raw-math*}))
+(local math
+  (setmetatable {:clamp (fn [v min max]
+                          (-> (*raw-math*.max v min)
+                              (*raw-math*.min max)))
+                 :odd? (fn [n] (= 1 (% n 2)))
+                 :even? (fn [n] (= 0 (% n 2)))}
+                {:__index *raw-math*}))
 
 ;;
 ;; Type
 ;;
 
-(local type (setmetatable {:table? (fn [v] (= :table (*raw-type* v)))
-                           :string? (fn [v] (= :string (*raw-type* v)))
-                           :number? (fn [v] (= :number (*raw-type* v)))
-                           :coroutine? (fn [v] (= :thread (*raw-type* v)))
-                           :userdata? (fn [v] (= :userdata (*raw-type* v)))
-                           :function? (fn [v] (= :function (*raw-type* v)))}
-                          {:__call (fn [_t v] (*raw-type* v))}))
+(local type
+  (setmetatable {:table? (fn [v] (= :table (*raw-type* v)))
+                 :string? (fn [v] (= :string (*raw-type* v)))
+                 :number? (fn [v] (= :number (*raw-type* v)))
+                 :coroutine? (fn [v] (= :thread (*raw-type* v)))
+                 :userdata? (fn [v] (= :userdata (*raw-type* v)))
+                 :function? (fn [v] (= :function (*raw-type* v)))}
+                {:__call (fn [_t v] (*raw-type* v))}))
 
 ;;
 ;; Table
 ;;
 
-;; regular insert, but returns t instead of nil
-(fn *insert [t ...] (doto t (*raw-table*.insert ...)))
-;; table.set but returns t for chaining
-(fn *set [t k v] (doto t (tset k v)))
+(fn eq-any? [x ys]
+  (accumulate [ok? false _ y (ipairs ys) &until ok?]
+    (= x y)))
+
+(fn eq-all? [x ys]
+  (accumulate [ok? true _ y (ipairs ys) &until (not ok?)]
+    (and ok? (= x y))))
+
+(fn *insert [t ...]
+  "Identical to table.insert but returns the table"
+  (doto t (*raw-table*.insert ...)))
+
+(fn *set [t k v]
+  "Set k to v in t, returns t"
+  (doto t (tset k v)))
 
 (fn split-at [t index]
   "Split seq at index, -index also supported"
@@ -46,12 +59,12 @@
         (values (*insert a v) b)
         (values a (*insert b v))))))
 
-(fn split-by [t f]
-  "Split t by f, where f returns true|false, given (f v i)"
-  (accumulate [(a b) (values [] []) i v (ipairs t)]
-    (if (f v i)
-      (values (*insert a v) b)
-      (values a (*insert b v)))))
+; (fn split-by [t f]
+;   "Split t by f, where f returns true|false, given (f v i)"
+;   (accumulate [(a b) (values [] []) i v (ipairs t)]
+;     (if (f v i)
+;       (values (*insert a v) b)
+;       (values a (*insert b v)))))
 
 (λ merge [table-into table-from ?resolver]
   (let [resolve (or ?resolver (fn [key val-a val-b] val-b))]
@@ -124,35 +137,40 @@
                    (insert-in (. t key) rest val)
                    t)))
 
-(local table (setmetatable {:empty? (fn [t] (= nil (next t)))
-                            :first (fn [t] (. t 1))
-                            :last (fn [t] (. t (length t)))
-                            :keys (fn [t] (icollect [k _ (pairs t)] k))
-                            :values (fn [t] (icollect [_ v (pairs t)] v))
-                            :invert (fn [t] (collect [k v (pairs t)] (values v k)))
-                            : update-in
-                            : set-in
-                            : insert-in
-                            : get-in
-                            :split split-at
-                            : split-at
-                            : merge
-                            ;; concat is already taken ...
-                            : join
-                            ;; back port pack unpack
-                            :pack (fn [...] (doto [...] (tset :n (select :# ...))))
-                            :unpack (fn [t] (unpack t 1 t.n))
-                            :insert *insert
-                            :set *set
-                            :sort stable-insertion-sort ;(fn [t ?comp] (doto t (*raw-table*.sort ?comp)))
-                            :group-by (fn [t f]
-                                        (accumulate [g {} k v (pairs t)]
-                                          (let [key (f v k)]
-                                            (case (. g key)
-                                              nil (*set g key [v])
-                                              sub-t (*set g key (*insert sub-t v))))))
-                            : shuffle}
-                           {:__index *raw-table*}))
+(local table
+  (do
+    (fn pack [...] (doto [...] (tset :n (select :# ...))))
+    (fn unpack [t ?from ?to] (*raw-unpack* t (or ?from 1) (or ?to t.n)))
+
+    (setmetatable {:empty? (fn [t] (= nil (next t)))
+                   :first (fn [t] (. t 1))
+                   :last (fn [t] (. t (length t)))
+                   :keys (fn [t] (icollect [k _ (pairs t)] k))
+                   :values (fn [t] (icollect [_ v (pairs t)] v))
+                   :invert (fn [t] (collect [k v (pairs t)] (values v k)))
+                   : update-in
+                   : set-in
+                   : insert-in
+                   : get-in
+                   :split split-at
+                   : split-at
+                   : merge
+                   ;; concat is already taken ...
+                   : join
+                   ;; back port pack unpack
+                   : pack
+                   : unpack
+                   :insert *insert
+                   :set *set
+                   :sort stable-insertion-sort ;(fn [t ?comp] (doto t (*raw-table*.sort ?comp)))
+                   :group-by (fn [t f]
+                               (accumulate [g {} k v (pairs t)]
+                                 (let [key (f v k)]
+                                   (case (. g key)
+                                     nil (*set g key [v])
+                                     sub-t (*set g key (*insert sub-t v))))))
+                   : shuffle}
+                  {:__index *raw-table*})))
 
 ; (local seq (setmetatable {: split-at
 ;                           : split-by
@@ -187,18 +205,11 @@
                      (setmetatable mt))))
     _ data))
 
-(fn eq-any? [x ys]
-  (accumulate [ok? false _ y (ipairs ys) &until ok?]
-    (= x y)))
-
-(fn eq-all? [x ys]
-  (accumulate [ok? true _ y (ipairs ys) &until (not ok?)]
-    (and ok? (= x y))))
-
 {: math
  :string *string*
  : type
  : table
  : clone
+ ; TODO: only use these via table?
  : eq-any?
  : eq-all?}
