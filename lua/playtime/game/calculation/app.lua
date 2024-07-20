@@ -29,18 +29,18 @@
  return {row = stock.row, col = stock.col, z = app["z-index-for-layer"](app, "cards", card)} else local _ = location
 
 
- local function _8_() local data_5_auto = {location = location} local resolve_6_auto local function _2_(name_7_auto) local _3_ = data_5_auto[name_7_auto] local function _4_() local t_8_auto = _3_ return ("table" == type(t_8_auto)) end if ((nil ~= _3_) and _4_()) then local t_8_auto = _3_ local _5_ = getmetatable(t_8_auto) if ((_G.type(_5_) == "table") and (nil ~= _5_.__tostring)) then local f_9_auto = _5_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _5_ return vim.inspect(t_8_auto) end elseif (nil ~= _3_) then local v_11_auto = _3_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _2_ return string.gsub("Unable to convert location to position, unknown location #{location}", "#{(.-)}", resolve_6_auto) end return error(_8_()) end end
+ local function _9_() local data_5_auto = {location = location} local resolve_6_auto local function _2_(name_7_auto) local _3_ = data_5_auto[name_7_auto] local and_4_ = (nil ~= _3_) if and_4_ then local t_8_auto = _3_ and_4_ = ("table" == type(t_8_auto)) end if and_4_ then local t_8_auto = _3_ local _6_ = getmetatable(t_8_auto) if ((_G.type(_6_) == "table") and (nil ~= _6_.__tostring)) then local f_9_auto = _6_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _6_ return vim.inspect(t_8_auto) end elseif (nil ~= _3_) then local v_11_auto = _3_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _2_ return string.gsub("Unable to convert location to position, unknown location #{location}", "#{(.-)}", resolve_6_auto) end return error(_9_()) end end
 
  local function update_widgets(app)
  app.components["stock-count"](#app.game.stock[1])
- local tbl_19_auto = {} local i_20_auto = 0 for i = 1, 4 do local val_21_auto
- do local _10_ = table.last(app.game.foundation[i]) if (nil ~= _10_) then local onto_card = _10_
+ local tbl_21_auto = {} local i_22_auto = 0 for i = 1, 4 do local val_23_auto
+ do local _11_ = table.last(app.game.foundation[i]) if (nil ~= _11_) then local onto_card = _11_
  local val if ((_G.type(onto_card) == "table") and true and (onto_card[2] == "king")) then local _ = onto_card[1] val = 13 elseif ((_G.type(onto_card) == "table") and true and (onto_card[2] == "queen")) then local _ = onto_card[1] val = 12 elseif ((_G.type(onto_card) == "table") and true and (onto_card[2] == "jack")) then local _ = onto_card[1] val = 11 elseif ((_G.type(onto_card) == "table") and true and (nil ~= onto_card[2])) then local _ = onto_card[1] local v = onto_card[2]
 
 
 
  val = v else val = nil end local want_value
- do local _12_ = ((i + val) % 13) if (_12_ == 0) then want_value = 1 elseif (nil ~= _12_) then local n = _12_
+ do local _13_ = ((i + val) % 13) if (_13_ == 0) then want_value = 1 elseif (nil ~= _13_) then local n = _13_
 
  want_value = n else want_value = nil end end local text
  if (want_value == 13) then text = "K" elseif (want_value == 12) then text = "Q" elseif (want_value == 11) then text = "J" elseif (nil ~= want_value) then local n = want_value
@@ -48,11 +48,11 @@
 
 
  text = n else text = nil end
- val_21_auto = app.components.guides[i](#app.game.foundation[i]) else val_21_auto = nil end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
+ val_23_auto = app.components.guides[i](#app.game.foundation[i]) else val_23_auto = nil end end if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end return tbl_21_auto end
 
  M0["build-components"] = function(app)
  local function build_card_count(position, z)
- local _let_17_ = position local row = _let_17_["row"] local col = _let_17_["col"]
+ local row = position["row"] local col = position["col"]
 
  local function _18_(self, count)
  local text = tostring(count) local col0
@@ -68,13 +68,13 @@
 
 
  local function build_guide_strip(n, guide)
- local content do local tbl_19_auto = {} local i_20_auto = 0 for _, b in ipairs(guide) do local val_21_auto
- local function _21_() if (b == 10) then return "X" elseif (nil ~= b) then local n0 = b return n0 else return nil end end val_21_auto = {{tostring(_21_()), "@playtime.ui.off"}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end content = tbl_19_auto end
+ local content do local tbl_21_auto = {} local i_22_auto = 0 for _, b in ipairs(guide) do local val_23_auto
+ local function _21_() if (b == 10) then return "X" elseif (nil ~= b) then local n0 = b return n0 else return nil end end val_23_auto = {{tostring(_21_()), "@playtime.ui.off"}} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end content = tbl_21_auto end
  local _let_23_ = app["location->position"](app, {"stock", 1, 0}) local row = _let_23_["row"] local col = _let_23_["col"]
 
  local function _24_(comp, up_to)
- local content0 do local tbl_19_auto = {} local i_20_auto = 0 for i, _25_ in ipairs(content) do local _each_26_ = _25_ local _each_27_ = _each_26_[1] local s = _each_27_[1] local h = _each_27_[2] local val_21_auto
- local function _28_() if ((1 + up_to) == i) then return "@playtime.ui.on" else return "@playtime.ui.off" end end val_21_auto = {{s, _28_()}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end content0 = tbl_19_auto end return comp["set-content"](comp, content0) end return Component["set-size"](Component["set-position"](Component["set-content"](Component.build(_24_), content), {row = (row + 6), col = (col + 0 + (2 * (n - 1))), z = app["z-index-for-layer"](app, "base")}), {width = 2, height = #guide}):update(1) end
+ local content0 do local tbl_21_auto = {} local i_22_auto = 0 for i, _25_ in ipairs(content) do local _each_26_ = _25_[1] local s = _each_26_[1] local h = _each_26_[2] local val_23_auto
+ local function _27_() if ((1 + up_to) == i) then return "@playtime.ui.on" else return "@playtime.ui.off" end end val_23_auto = {{s, _27_()}} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end content0 = tbl_21_auto end return comp["set-content"](comp, content0) end return Component["set-size"](Component["set-position"](Component["set-content"](Component.build(_24_), content), {row = (row + 6), col = (col + 0 + (2 * (n - 1))), z = app["z-index-for-layer"](app, "base")}), {width = 2, height = #guide}):update(1) end
 
 
 
@@ -90,8 +90,8 @@
 
 
 
- do local tbl_19_auto = {} local i_20_auto = 0 for i, g in ipairs(guides) do
- local val_21_auto = build_guide_strip(i, g) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end guides0 = tbl_19_auto end
+ do local tbl_21_auto = {} local i_22_auto = 0 for i, g in ipairs(guides) do
+ local val_23_auto = build_guide_strip(i, g) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end guides0 = tbl_21_auto end
  local stock_count = CardComponents.count(table.set(app["location->position"](app, {"stock", 1, 0}), "z", app["z-index-for-layer"](app, "cards", 52)), app["card-style"])
 
 
@@ -103,7 +103,7 @@
  update_widgets(app)
  return PatienceApp.tick(app) end
 
- M0.render = function(app) do end (app.view):render({app.components["empty-fields"], app.components.cards, app.components.guides, {app.components["stock-count"]}, app["standard-patience-components"](app)})
+ M0.render = function(app) app.view:render({app.components["empty-fields"], app.components.cards, app.components.guides, {app.components["stock-count"]}, app["standard-patience-components"](app)})
 
 
 

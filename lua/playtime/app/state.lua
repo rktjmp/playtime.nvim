@@ -103,8 +103,8 @@
  animations = timeline else animations = nil end
  app.state.context.running = {}
  do
- local tbl_17_auto = app.state.context.running for _, animation0 in ipairs(animations) do
- local val_18_auto = animation0 table.insert(tbl_17_auto, val_18_auto) end end app["request-tick"](app)
+ local tbl_19_auto = app.state.context.running for _, animation0 in ipairs(animations) do
+ local val_20_auto = animation0 table.insert(tbl_19_auto, val_20_auto) end end app["request-tick"](app)
 
  return app end
 
@@ -116,14 +116,14 @@
 
 
  local context = app.state.context local animations0
- do local tbl_19_auto = {} local i_20_auto = 0 for i, animation in ipairs(animations) do local val_21_auto
- do local _let_26_ = animation local finish_at = _let_26_["finish-at"] local start_at = _let_26_["start-at"] local tick = _let_26_["tick"]
+ do local tbl_21_auto = {} local i_22_auto = 0 for i, animation in ipairs(animations) do local val_23_auto
+ do local finish_at = animation["finish-at"] local start_at = animation["start-at"] local tick = animation["tick"]
  if (start_at <= now) then animation:tick(now)
 
 
  if (now < finish_at) then
- val_21_auto = animation else val_21_auto = nil end else
- val_21_auto = animation end end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end animations0 = tbl_19_auto end
+ val_23_auto = animation else val_23_auto = nil end else
+ val_23_auto = animation end end if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end animations0 = tbl_21_auto end
  context.running = animations0 return app["request-tick"](app) else return nil end end
 
 
@@ -135,8 +135,8 @@
 
  M.DefaultInMenuState = M.build("DefaultInMenuState", {delegate = {app = M.DefaultAppState}})
 
- M.DefaultInMenuState.activated = function(app, _31_) local _arg_32_ = _31_ local menu_item = _arg_32_["menu-item"]
- local _let_33_ = menu_item local _ = _let_33_[1] local idx = _let_33_[2]
+ M.DefaultInMenuState.activated = function(app, _30_) local menu_item = _30_["menu-item"]
+ local _ = menu_item[1] local idx = menu_item[2]
  for i, menu in ipairs(app.components.menubar.children) do menu:update((i == idx)) end return nil end
 
 
@@ -144,14 +144,14 @@
  for i, menu in ipairs(app.components.menubar.children) do menu:update(false) end return nil end
 
 
- M.DefaultInMenuState.OnEvent.input["<LeftDrag>"] = function(app, _34_, pos) local _arg_35_ = _34_ local location = _arg_35_[1]
+ M.DefaultInMenuState.OnEvent.input["<LeftDrag>"] = function(app, _31_, pos) local location = _31_[1]
  if ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local first = location[2]
 
 
  for i, menu in ipairs(app.components.menubar.children) do menu:update((i == first)) end return nil else return nil end end
 
 
- M.DefaultInMenuState.OnEvent.input["<LeftRelease>"] = function(app, _37_, pos) local _arg_38_ = _37_ local location = _arg_38_[1]
+ M.DefaultInMenuState.OnEvent.input["<LeftRelease>"] = function(app, _33_, pos) local location = _33_[1]
  if ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local first = location[2]
 
 
@@ -160,7 +160,7 @@
 
 
 
- local tag do local t_39_ = app.components.menubar.menu if (nil ~= t_39_) then t_39_ = t_39_[dropdown_index] else end if (nil ~= t_39_) then t_39_ = t_39_[3] else end if (nil ~= t_39_) then t_39_ = t_39_[item_index] else end if (nil ~= t_39_) then t_39_ = t_39_[2] else end tag = t_39_ end
+ local tag do local t_34_ = app.components.menubar.menu if (nil ~= t_34_) then t_34_ = t_34_[dropdown_index] else end if (nil ~= t_34_) then t_34_ = t_34_[3] else end if (nil ~= t_34_) then t_34_ = t_34_[item_index] else end if (nil ~= t_34_) then t_34_ = t_34_[2] else end tag = t_34_ end
  for i, menu in ipairs(app.components.menubar.children) do menu:update(false) end
 
  if ((_G.type(tag) == "table") and (nil ~= tag[1]) and true) then local event_name = tag[1] local _3fargs = tag[2] app["queue-event"](app, "app", event_name, _3fargs) else end return app["pop-state"](app) else local _ = location return app["pop-state"](app) end end

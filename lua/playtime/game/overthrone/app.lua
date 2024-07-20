@@ -16,7 +16,7 @@
  AppState.GameEnded.activated = function(app)
  app["ended-at"] = os.time()
  do local _let_2_ = app["game-ended-data"](app) local key = _let_2_[1] local other = _let_2_[2]
- if (("0" == key) or ("1-3" == key)) then app:save((os.time() .. "-win")) app["update-statistics"](app) else end do end (app.components["game-report"]):update(key, other) end
+ if (("0" == key) or ("1-3" == key)) then app:save((os.time() .. "-win")) app["update-statistics"](app) else end app.components["game-report"]:update(key, other) end
 
 
 
@@ -44,11 +44,11 @@
  return {row = draw.row, col = draw.col, z = card} elseif ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2]) and (nil ~= location[3])) then local n = location[2] local c = location[3]
  return {row = hand.row, col = (hand.col + ((n - 1) * 7)), z = c} elseif ((_G.type(location) == "table") and (location[1] == "discard") and (location[2] == 1) and (nil ~= location[3])) then local card = location[3]
  return {row = hand.row, col = (hand.col + card_col_step + ((hand_size - 1) * 7)), z = card} else local _ = location
- local function _14_() local data_5_auto = {location = location} local resolve_6_auto local function _8_(name_7_auto) local _9_ = data_5_auto[name_7_auto] local function _10_() local t_8_auto = _9_ return ("table" == type(t_8_auto)) end if ((nil ~= _9_) and _10_()) then local t_8_auto = _9_ local _11_ = getmetatable(t_8_auto) if ((_G.type(_11_) == "table") and (nil ~= _11_.__tostring)) then local f_9_auto = _11_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _11_ return vim.inspect(t_8_auto) end elseif (nil ~= _9_) then local v_11_auto = _9_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _8_ return string.gsub("Unable to convert location to position, unknown location #{location}", "#{(.-)}", resolve_6_auto) end return error(_14_()) end end
+ local function _15_() local data_5_auto = {location = location} local resolve_6_auto local function _8_(name_7_auto) local _9_ = data_5_auto[name_7_auto] local and_10_ = (nil ~= _9_) if and_10_ then local t_8_auto = _9_ and_10_ = ("table" == type(t_8_auto)) end if and_10_ then local t_8_auto = _9_ local _12_ = getmetatable(t_8_auto) if ((_G.type(_12_) == "table") and (nil ~= _12_.__tostring)) then local f_9_auto = _12_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _12_ return vim.inspect(t_8_auto) end elseif (nil ~= _9_) then local v_11_auto = _9_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _8_ return string.gsub("Unable to convert location to position, unknown location #{location}", "#{(.-)}", resolve_6_auto) end return error(_15_()) end end
 
  AppState.Default.OnEvent.app["maybe-auto-move"] = function(app) end
 
- local function update_card_counts(app) do end (app.components.counters.draw):update(#app.game.draw[1]) return (app.components.counters.discard):update(#app.game.discard[1]) end
+ local function update_card_counts(app) app.components.counters.draw:update(#app.game.draw[1]) return app.components.counters.discard:update(#app.game.discard[1]) end
 
 
 
@@ -84,7 +84,7 @@
  update_card_counts(app)
  return app end
 
- M0.render = function(app) do end (app.view):render({{app.components.throne}, app.components["empty-fields"], app.components.cards, {app.components.counters.draw, app.components.counters.discard}, app["standard-patience-components"](app)})
+ M0.render = function(app) app.view:render({{app.components.throne}, app.components["empty-fields"], app.components.cards, {app.components.counters.draw, app.components.counters.discard}, app["standard-patience-components"](app)})
 
 
 
@@ -109,7 +109,7 @@
 
  M0.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/overthrone/app.fnl:110") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/overthrone/app.fnl:110")
  local game_config0 = table.merge({["hand-size"] = 5}, game_config) local width
- do local _17_ = game_config0["hand-size"] if (_17_ == 5) then width = 57 elseif (_17_ == 6) then width = 64 else width = nil end end
+ do local _18_ = game_config0["hand-size"] if (_18_ == 5) then width = 57 elseif (_18_ == 6) then width = 64 else width = nil end end
 
 
  return PatienceApp.start({name = "Overthrone", filetype = "overthrone", view = {width = width, height = 27}, ["empty-fields"] = {{"foundation", 4}, {"throne", 1}, {"draw", 1}, {"discard", 1}, {"hand", game_config0["hand-size"]}}, ["card-style"] = {colors = 4}}, {AppImpl = M0, LogicImpl = Logic, StateImpl = AppState}, app_config, game_config0, _3fseed) end

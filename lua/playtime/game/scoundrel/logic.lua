@@ -10,12 +10,12 @@
 
 
 
- local _local_2_ = CardGameUtils local apply_events = _local_2_["apply-events"]
- local _local_3_ = CardGameUtils["make-card-util-fns"]({value = {14, king = 13, queen = 12, jack = 11}, color = {diamonds = "red", hearts = "red", clubs = "black", spades = "black"}}) local card_value = _local_3_["card-value"] local card_color = _local_3_["card-color"] local card_rank = _local_3_["card-rank"] local card_suit = _local_3_["card-suit"]
- local rank_value = _local_3_["rank-value"]
- local suit_color = _local_3_["suit-color"]
- local card_face_up_3f = _local_3_["card-face-up?"] local card_face_down_3f = _local_3_["card-face-down?"]
- local flip_face_up = _local_3_["flip-face-up"] local flip_face_down = _local_3_["flip-face-down"]
+ local apply_events = CardGameUtils["apply-events"]
+ local _local_2_ = CardGameUtils["make-card-util-fns"]({value = {14, king = 13, queen = 12, jack = 11}, color = {diamonds = "red", hearts = "red", clubs = "black", spades = "black"}}) local card_value = _local_2_["card-value"] local card_color = _local_2_["card-color"] local card_rank = _local_2_["card-rank"] local card_suit = _local_2_["card-suit"]
+ local rank_value = _local_2_["rank-value"]
+ local suit_color = _local_2_["suit-color"]
+ local card_face_up_3f = _local_2_["card-face-up?"] local card_face_down_3f = _local_2_["card-face-down?"]
+ local flip_face_up = _local_2_["flip-face-up"] local flip_face_down = _local_2_["flip-face-down"]
 
 
 
@@ -27,7 +27,7 @@
 
 
 
- M.build = function(_config, _3fseed) _G.assert((nil ~= _config), "Missing argument _config on fnl/playtime/game/scoundrel/logic.fnl:30")
+ M.build = function(_config, _3fseed)
  math.randomseed((_3fseed or os.time()))
  local deck = table.shuffle(Deck.Standard52.build()) local enemy, player = nil, nil
 
@@ -37,7 +37,7 @@
  e, p = table.insert(e, c), p end end enemy, player = e, p end
 
  local state = new_game_state()
- do end (state)["enemy"]["draw"] = enemy
+ state["enemy"]["draw"] = enemy
  state["player"]["draw"] = player
  return state end
 

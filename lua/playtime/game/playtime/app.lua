@@ -10,18 +10,18 @@
  local Window = require("playtime.app.window")
  local Meta = require("playtime.meta")
 
- local _local_2_ = vim local api = _local_2_["api"]
+ local api = vim["api"]
  local uv = (vim.loop or vim.uv)
  local M = setmetatable({}, {__index = App})
 
  local AppState = {}
  AppState.Default = App.State.build("Default", {delegate = {app = App.State.DefaultAppState}})
 
- AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _3_, _pos) local _arg_4_ = _3_ local location = _arg_4_[1]
+ AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _2_, _pos) local location = _2_[1]
  if ((_G.type(location) == "table") and (location[1] == "game") and (nil ~= location[2]) and true) then local mod = location[2] local _3fconfig = location[3]
 
- local function _5_() local Playtime = require("playtime")
- return Playtime.play(mod, nil, _3fconfig) end vim.schedule(_5_) return app["queue-event"](app, "app", "quit") elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
+ local function _3_() local Playtime = require("playtime")
+ return Playtime.play(mod, nil, _3fconfig) end vim.schedule(_3_) return app["queue-event"](app, "app", "quit") elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
 
 
 
@@ -79,8 +79,8 @@
  local title = build_game_title(app.view.width, M["location->position"](nil, {"list", n}), meta)
  local n0 = (n + 1)
  local rulesets = (meta.rulesets or {{menu = nil, config = {}}}) local variants
- do local tbl_19_auto = {} local i_20_auto = 0 for i, _9_ in ipairs(rulesets) do local _each_10_ = _9_ local _menu = _each_10_["menu"] local config = _each_10_["config"]
- local val_21_auto = build_game_button(app.view.width, M["location->position"](nil, {"list", (n0 + i)}), meta, _menu, config) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end variants = tbl_19_auto end
+ do local tbl_21_auto = {} local i_22_auto = 0 for i, _7_ in ipairs(rulesets) do local _menu = _7_["menu"] local config = _7_["config"]
+ local val_23_auto = build_game_button(app.view.width, M["location->position"](nil, {"list", (n0 + i)}), meta, _menu, config) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end variants = tbl_21_auto end
 
 
  t, n = table.join(t, {title}, variants), (n0 + 2 + #variants) end list = t, n end
@@ -97,7 +97,7 @@
 
 
 
- M.render = function(app) do end (app.view):render({app.components.list, {app.components.menubar}})
+ M.render = function(app) app.view:render({app.components.list, {app.components.menubar}})
 
  return app end
 

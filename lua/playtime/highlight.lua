@@ -1,19 +1,19 @@
 
  local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
 
- local _local_2_ = vim local _local_3_ = _local_2_["api"] local nvim_set_hl = _local_3_["nvim_set_hl"] local nvim_get_hl = _local_3_["nvim_get_hl"]
+ local _local_2_ = vim["api"] local nvim_set_hl = _local_2_["nvim_set_hl"] local nvim_get_hl = _local_2_["nvim_get_hl"]
 
  local M = {}
 
  local function to_hex(c)
- local _let_4_ = require("bit") local tohex = _let_4_["tohex"]
+ local _let_3_ = require("bit") local tohex = _let_3_["tohex"]
  return string.format("#%s", tohex(c, 6)) end
 
  M["define-highlights"] = function()
  local function fetch_fg(hl_name, ...) local rest = {...}
 
 
- local function _5_(...) local _6_ = ... if ((_G.type(_6_) == "table") and (_6_.fg == nil)) then local function _7_(...) local _8_ = ... if ((_G.type(_8_) == "table") and (_8_.fg == nil)) then
+ local function _4_(...) local _5_ = ... if ((_G.type(_5_) == "table") and (_5_.fg == nil)) then local function _6_(...) local _7_ = ... if ((_G.type(_7_) == "table") and (_7_.fg == nil)) then
 
 
 
@@ -22,9 +22,9 @@
 
  return fetch_fg(next, table.unpack(rest0)) elseif ((_G.type(rest) == "table") and (rest[1] == nil)) then
 
- return {fg = "#FF00DD"} else return nil end elseif ((_G.type(_8_) == "table") and (nil ~= _8_.fg)) then local fg = _8_.fg
+ return {fg = "#FF00DD"} else return nil end elseif ((_G.type(_7_) == "table") and (nil ~= _7_.fg)) then local fg = _7_.fg
 
- return {fg = to_hex(fg)} else return nil end end return _7_(nvim_get_hl(0, {name = hl_name, link = true})) elseif ((_G.type(_6_) == "table") and (nil ~= _6_.fg)) then local fg = _6_.fg return {fg = to_hex(fg)} else return nil end end return _5_(nvim_get_hl(0, {name = hl_name, link = false})) end
+ return {fg = to_hex(fg)} else return nil end end return _6_(nvim_get_hl(0, {name = hl_name, link = true})) elseif ((_G.type(_5_) == "table") and (nil ~= _5_.fg)) then local fg = _5_.fg return {fg = to_hex(fg)} else return nil end end return _4_(nvim_get_hl(0, {name = hl_name, link = false})) end
  local function define_hl_if_missing(ns, hl_name, hl_data)
 
 
@@ -47,7 +47,7 @@
 
 
 
- for _, _13_ in ipairs(core_hls) do local _each_14_ = _13_ local name = _each_14_[1] local data = _each_14_[2] hl(name, data) end
+ for _, _12_ in ipairs(core_hls) do local name = _12_[1] local data = _12_[2] hl(name, data) end
 
  link("@playtime.ui.on", "PlaytimeNormal")
  link("@playtime.ui.off", "PlaytimeMuted")

@@ -15,18 +15,18 @@
 
 
  local function card_graphics(suit, rank, _color_count)
- local rank_text do local _2_ = {suit, rank} if ((_G.type(_2_) == "table") and (_2_[1] == "red")) then rank_text = "\197\160" elseif ((_G.type(_2_) == "table") and (_2_[1] == "green")) then rank_text = "\195\145" elseif ((_G.type(_2_) == "table") and (_2_[1] == "white")) then rank_text = "\195\149" elseif ((_G.type(_2_) == "table") and (_2_[1] == "flower")) then rank_text = "\198\146" elseif ((_G.type(_2_) == "table") and true and (nil ~= _2_[2])) then local _ = _2_[1] local pip = _2_[2]
+ local rank_text do local _2_, _3_ = suit, rank if (_2_ == "red") then rank_text = "\197\160" elseif (_2_ == "green") then rank_text = "\195\145" elseif (_2_ == "white") then rank_text = "\195\149" elseif (_2_ == "flower") then rank_text = "\198\146" elseif (true and (nil ~= _3_)) then local _ = _2_ local pip = _3_
 
 
 
 
  rank_text = tostring(pip) else rank_text = nil end end local highlight
 
- local function _4_() if (suit == "green") then return "dragon.green" elseif (suit == "red") then return "dragon.red" elseif (suit == "white") then return "dragon.white" elseif (nil ~= suit) then local suit0 = suit
+ local _5_ if (suit == "green") then _5_ = "dragon.green" elseif (suit == "red") then _5_ = "dragon.red" elseif (suit == "white") then _5_ = "dragon.white" elseif (nil ~= suit) then local suit0 = suit
 
 
 
- return suit0 else return nil end end highlight = ("@playtime.game.shenzhen." .. _4_())
+ _5_ = suit0 else _5_ = nil end highlight = ("@playtime.game.shenzhen." .. _5_)
  return {"", rank_text, highlight} end
 
  M["location->position"] = function(app, location)
@@ -64,10 +64,10 @@
 
  local function make_lock_button_component(tag, text, position, enabled_highlight, disabled_highlight) _G.assert((nil ~= disabled_highlight), "Missing argument disabled-highlight on fnl/playtime/game/shenzhen-solitaire/app.fnl:65") _G.assert((nil ~= enabled_highlight), "Missing argument enabled-highlight on fnl/playtime/game/shenzhen-solitaire/app.fnl:65") _G.assert((nil ~= position), "Missing argument position on fnl/playtime/game/shenzhen-solitaire/app.fnl:65") _G.assert((nil ~= text), "Missing argument text on fnl/playtime/game/shenzhen-solitaire/app.fnl:65") _G.assert((nil ~= tag), "Missing argument tag on fnl/playtime/game/shenzhen-solitaire/app.fnl:65")
 
- local function _7_(self, enabled_3f)
+ local function _13_(self, enabled_3f)
  local hi if enabled_3f then hi = enabled_highlight else hi = disabled_highlight end self["set-content"](self, {{{text, hi}}})
 
- if enabled_3f then return self["set-tag"](self, tag) else return self["set-tag"](self, nil) end end return Component["set-size"](Component["set-position"](Component.build(_7_), position), {width = 3, height = 1}):update(false) end
+ if enabled_3f then return self["set-tag"](self, tag) else return self["set-tag"](self, nil) end end return Component["set-size"](Component["set-position"](Component.build(_13_), position), {width = 3, height = 1}):update(false) end
 
 
 
@@ -81,11 +81,11 @@
  return AppState.Default.Delegate.app.tick(app) end
 
  AppState.Default.OnEvent.app["maybe-auto-move"] = function(app)
- local function _10_(...) local _11_ = ... if ((_G.type(_11_) == "table") and (nil ~= _11_[1]) and (nil ~= _11_[2])) then local from = _11_[1] local to = _11_[2] local function _12_(...) local _13_, _14_ = ... if ((nil ~= _13_) and (nil ~= _14_)) then local next_game = _13_ local events = _14_
+ local function _16_(...) local _17_ = ... if ((_G.type(_17_) == "table") and (nil ~= _17_[1]) and (nil ~= _17_[2])) then local from = _17_[1] local to = _17_[2] local function _18_(...) local _19_, _20_ = ... if ((nil ~= _19_) and (nil ~= _20_)) then local next_game = _19_ local events = _20_
 
 
 
- local after local function _15_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"move", from, to}) end after = _15_ local timeline = app["build-event-animation"](app, events, after, {["stagger-ms"] = 200}) return app["switch-state"](app, AppState.Animating, timeline) else local __85_auto = _13_ return ... end end return _12_(Logic.Action.move(app.game, from, to)) else local __85_auto = _11_ return ... end end return _10_((Logic.Plan["next-move-to-flower"](app.game) or Logic.Plan["next-move-to-foundation"](app.game))) end
+ local after local function _21_() app["switch-state"](app, AppState.Default) app["queue-event"](app, "app", "maybe-auto-move") return app["update-game"](app, next_game, {"move", from, to}) end after = _21_ local timeline = app["build-event-animation"](app, events, after, {["stagger-ms"] = 200}) return app["switch-state"](app, AppState.Animating, timeline) else local __85_auto = _19_ return ... end end return _18_(Logic.Action.move(app.game, from, to)) else local __85_auto = _17_ return ... end end return _16_((Logic.Plan["next-move-to-flower"](app.game) or Logic.Plan["next-move-to-foundation"](app.game))) end
 
 
 
@@ -95,11 +95,11 @@
  AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, locations, pos)
  if ((_G.type(locations) == "table") and ((_G.type(locations[1]) == "table") and (locations[1][1] == "button") and (locations[1][2] == "lock") and (nil ~= locations[1][3]))) then local color = locations[1][3]
 
- local function _18_(...) local _19_, _20_ = ... if ((nil ~= _19_) and (nil ~= _20_)) then local next_game = _19_ local events = _20_
+ local function _24_(...) local _25_, _26_ = ... if ((nil ~= _25_) and (nil ~= _26_)) then local next_game = _25_ local events = _26_
 
  local timeline
 
- local function _21_() app["queue-event"](app, "app", "noop") app["queue-event"](app, "app", "maybe-auto-move") app["switch-state"](app, AppState.Default) return app["update-game"](app, next_game, {"lock-dragon", color}) end timeline = app["build-event-animation"](app, events, _21_, {["stagger-ms"] = 120}) return app["switch-state"](app, AppState.Animating, timeline) elseif ((_19_ == nil) and (nil ~= _20_)) then local err = _20_ return app:notify(err) else return nil end end return _18_(Logic.Action["lock-dragon"](app.game, color)) else local _ = locations
+ local function _27_() app["queue-event"](app, "app", "noop") app["queue-event"](app, "app", "maybe-auto-move") app["switch-state"](app, AppState.Default) return app["update-game"](app, next_game, {"lock-dragon", color}) end timeline = app["build-event-animation"](app, events, _27_, {["stagger-ms"] = 120}) return app["switch-state"](app, AppState.Animating, timeline) elseif ((_25_ == nil) and (nil ~= _26_)) then local err = _26_ return app:notify(err) else return nil end end return _24_(Logic.Action["lock-dragon"](app.game, color)) else local _ = locations
 
 
 
@@ -122,7 +122,7 @@
 
 
 
- do local tbl_19_auto = {} local i_20_auto = 0 for _, a in ipairs({{{"button", "lock", "red"}, "\226\138\178 \197\160", app["location->position"](app, {"button", "lock", "red"}), "@playtime.game.shenzhen.dragon.red", "@playtime.ui.off"}, {{"button", "lock", "green"}, "\226\138\178 \195\145", app["location->position"](app, {"button", "lock", "green"}), "@playtime.game.shenzhen.dragon.green", "@playtime.ui.off"}, {{"button", "lock", "white"}, "\226\138\178 \195\149", app["location->position"](app, {"button", "lock", "white"}), "@playtime.game.shenzhen.dragon.white", "@playtime.ui.off"}}) do
+ do local tbl_21_auto = {} local i_22_auto = 0 for _, a in ipairs({{{"button", "lock", "red"}, "\226\138\178 \197\160", app["location->position"](app, {"button", "lock", "red"}), "@playtime.game.shenzhen.dragon.red", "@playtime.ui.off"}, {{"button", "lock", "green"}, "\226\138\178 \195\145", app["location->position"](app, {"button", "lock", "green"}), "@playtime.game.shenzhen.dragon.green", "@playtime.ui.off"}, {{"button", "lock", "white"}, "\226\138\178 \195\149", app["location->position"](app, {"button", "lock", "white"}), "@playtime.game.shenzhen.dragon.white", "@playtime.ui.off"}}) do
 
 
 
@@ -137,7 +137,7 @@
 
 
 
- local val_21_auto = make_lock_button_component(table.unpack(a)) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end buttons = tbl_19_auto end
+ local val_23_auto = make_lock_button_component(table.unpack(a)) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end buttons = tbl_21_auto end
  table.merge(app.components, {buttons = buttons}) app:render()
 
 
@@ -149,7 +149,7 @@
 
  return app end
 
- M.render = function(app) do end (app.view):render({app.components["empty-fields"], app.components.buttons, app.components.cards, app["standard-patience-components"](app)})
+ M.render = function(app) app.view:render({app.components["empty-fields"], app.components.buttons, app.components.cards, app["standard-patience-components"](app)})
 
 
 

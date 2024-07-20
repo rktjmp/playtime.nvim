@@ -5,7 +5,7 @@
  do local t = {} for _, game in ipairs(find()) do
  if ((_G.type(game) == "table") and (game.rulesets == nil)) then
  table.insert(t, game.mod) t = t elseif ((_G.type(game) == "table") and (nil ~= game.rulesets)) then local rulesets = game.rulesets
- local t0 = t for _0, _2_ in ipairs(rulesets) do local _each_3_ = _2_ local cli = _each_3_["cli"] local config = _each_3_["config"]
+ local t0 = t for _0, _2_ in ipairs(rulesets) do local cli = _2_["cli"] local config = _2_["config"]
  table.insert(t0, cli) t0 = t0 end t = t0 else t = nil end end games = t end
  game_names = games
  table.sort(game_names) else end
@@ -13,14 +13,14 @@
 
  local function load_diskette(game_name, args) _G.assert((nil ~= args), "Missing argument args on plugin/playtime.fnl:14") _G.assert((nil ~= game_name), "Missing argument game-name on plugin/playtime.fnl:14")
  local Playtime = require("playtime")
- local _let_6_ = args local _3fseed = _let_6_[1]
+ local _3fseed = args[1]
  return Playtime.play(game_name, _3fseed) end
 
  local function eq_any_3f(x, ys) local ok_3f = false
  for _, y in ipairs(ys) do if ok_3f then break end
  ok_3f = (x == y) end return ok_3f end
 
- local function run(_7_) local _arg_8_ = _7_ local fargs = _arg_8_["fargs"]
+ local function run(_5_) local fargs = _5_["fargs"]
  if ((_G.type(fargs) == "table") and (fargs[1] == nil)) then
 
  return load_diskette("playtime", {}) elseif ((_G.type(fargs) == "table") and (nil ~= fargs[1])) then local game = fargs[1] local args = {select(2, (table.unpack or _G.unpack)(fargs))}
@@ -30,8 +30,8 @@
  return error("Usage: `:Playtime <game-name> <game-seed> <game-options>` or `:Playtime` for menu") end end
 
  local function complete(arg_lead, cmd_line, cursor_pos)
- local tbl_19_auto = {} local i_20_auto = 0 for _, name in ipairs(list_games()) do local val_21_auto
+ local tbl_21_auto = {} local i_22_auto = 0 for _, name in ipairs(list_games()) do local val_23_auto
  if (1 == string.find(name, arg_lead, 1, true)) then
- val_21_auto = name else val_21_auto = nil end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end return tbl_19_auto end
+ val_23_auto = name else val_23_auto = nil end if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end return tbl_21_auto end
 
  return vim.api.nvim_create_user_command("Playtime", run, {nargs = "*", complete = complete})

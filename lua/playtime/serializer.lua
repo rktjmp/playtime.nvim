@@ -15,14 +15,14 @@
 
  M.decode = function(data)
  local function re_id(data0)
- local _2_ = type(data0) if (_2_ == "table") then local tbl_14_auto = {}
- for key, val in pairs(data0) do local k_15_auto, v_16_auto = nil, nil
+ local _2_ = type(data0) if (_2_ == "table") then local tbl_16_auto = {}
+ for key, val in pairs(data0) do local k_17_auto, v_18_auto = nil, nil
  do local key0 do local _3_ = tonumber(key) if (nil ~= _3_) then local num = _3_
  key0 = num elseif (_3_ == nil) then
  key0 = key else key0 = nil end end
  if ("id" == key0) then
- k_15_auto, v_16_auto = key0, Id.new() else
- k_15_auto, v_16_auto = key0, re_id(val) end end if ((k_15_auto ~= nil) and (v_16_auto ~= nil)) then tbl_14_auto[k_15_auto] = v_16_auto else end end return tbl_14_auto else local _ = _2_
+ k_17_auto, v_18_auto = key0, Id.new() else
+ k_17_auto, v_18_auto = key0, re_id(val) end end if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end return tbl_16_auto else local _ = _2_
  return data0 end end
  return re_id(vim.json.decode(data, {luanil = {array = false, object = false}})) end
 

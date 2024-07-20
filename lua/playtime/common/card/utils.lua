@@ -63,7 +63,7 @@
  if ((_G.type(card) == "table") and (card.face == "up")) then return true elseif ((_G.type(card) == "table") and (card.face == "down")) then return false else local _ = card
 
 
- local function _28_() local data_5_auto = {card = card} local resolve_6_auto local function _22_(name_7_auto) local _23_ = data_5_auto[name_7_auto] local function _24_() local t_8_auto = _23_ return ("table" == type(t_8_auto)) end if ((nil ~= _23_) and _24_()) then local t_8_auto = _23_ local _25_ = getmetatable(t_8_auto) if ((_G.type(_25_) == "table") and (nil ~= _25_.__tostring)) then local f_9_auto = _25_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _25_ return vim.inspect(t_8_auto) end elseif (nil ~= _23_) then local v_11_auto = _23_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _22_ return string.gsub("Not a card: #{card}", "#{(.-)}", resolve_6_auto) end return error(_28_()) end end
+ local function _29_() local data_5_auto = {card = card} local resolve_6_auto local function _22_(name_7_auto) local _23_ = data_5_auto[name_7_auto] local and_24_ = (nil ~= _23_) if and_24_ then local t_8_auto = _23_ and_24_ = ("table" == type(t_8_auto)) end if and_24_ then local t_8_auto = _23_ local _26_ = getmetatable(t_8_auto) if ((_G.type(_26_) == "table") and (nil ~= _26_.__tostring)) then local f_9_auto = _26_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _26_ return vim.inspect(t_8_auto) end elseif (nil ~= _23_) then local v_11_auto = _23_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _22_ return string.gsub("Not a card: #{card}", "#{(.-)}", resolve_6_auto) end return error(_29_()) end end
 
  fns["card-face-down?"] = function(card)
  return not fns["card-face-up?"](card) end
@@ -75,8 +75,8 @@
 
 
  fns["card-color"] = function(card)
- if ((_G.type(card) == "table") and (nil ~= card[1]) and (nil ~= card[2])) then local suit = card[1] local rank = card[2] local function _31_(...) return error(Error("invalid card #{card}", {card = card})) end
- return (spec.color[suit] or _31_()) else local _ = card return error(Error("invalid card #{card}", {card = card})) end end
+ if ((_G.type(card) == "table") and (nil ~= card[1]) and (nil ~= card[2])) then local suit = card[1] local rank = card[2]
+ local or_32_ = spec.color[suit] if not or_32_ then or_32_ = error(Error("invalid card #{card}", {card = card})) end return or_32_ else local _ = card return error(Error("invalid card #{card}", {card = card})) end end
 
 
  fns["card-rank"] = function(card)
@@ -98,7 +98,7 @@
  return fns end
 
  M["make-valid-sequence?-fn"] = function(comparitor_fn) _G.assert((nil ~= comparitor_fn), "Missing argument comparitor-fn on fnl/playtime/common/card/utils.fnl:100")
- local function _35_(sequence)
+ local function _36_(sequence)
  if ((_G.type(sequence) == "table") and (nil ~= sequence[1])) then local top_card = sequence[1] local other_cards = {select(2, (table.unpack or _G.unpack)(sequence))}
 
  local ok_3f, checked_cards, memo = true, {top_card}, nil for _, card in ipairs(other_cards) do if not ok_3f then break end
@@ -107,7 +107,7 @@
  local ok_3f0, memo0 = comparitor_fn(card, checked_cards, memo)
  if ok_3f0 then
  ok_3f, checked_cards, memo = true, table.insert(checked_cards, 1, card), memo0 else
- ok_3f, checked_cards, memo = false end end return ok_3f, checked_cards, memo else local _ = sequence return false end end return _35_ end
+ ok_3f, checked_cards, memo = false end end return ok_3f, checked_cards, memo else local _ = sequence return false end end return _36_ end
 
 
  M["inc-moves"] = function(state, _3fcount)
@@ -117,28 +117,28 @@
  M["apply-events"] = function(state, events) _G.assert((nil ~= events), "Missing argument events on fnl/playtime/common/card/utils.fnl:117") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/common/card/utils.fnl:117")
  local state0, true_events = state, {} for event_num, event in ipairs(events) do
 
- local matched_3f_38_, location_39_ = nil, nil if ((_G.type(event) == "table") and (event[1] == "face-up") and (nil ~= event[2])) then local location = event[2] matched_3f_38_, location_39_ = true, location elseif ((_G.type(event) == "table") and (event[1] == "face-down") and (nil ~= event[2])) then local location = event[2] matched_3f_38_, location_39_ = true, location else matched_3f_38_, location_39_ = nil end if matched_3f_38_ then local location = location_39_
+ local matched_3f_39_, location_40_ = nil, nil if ((_G.type(event) == "table") and (event[1] == "face-up") and (nil ~= event[2])) then local location = event[2] matched_3f_39_, location_40_ = true, location elseif ((_G.type(event) == "table") and (event[1] == "face-down") and (nil ~= event[2])) then local location = event[2] matched_3f_39_, location_40_ = true, location else matched_3f_39_, location_40_ = nil end if matched_3f_39_ then local location = location_40_
 
- local index do local _41_ = table.last(location) if (_41_ == "top") then
- index = #table["get-in"](state0, table.split(location, -1)) elseif (_41_ == "bottom") then index = 1 elseif (nil ~= _41_) then local n = _41_
+ local index do local _42_ = table.last(location) if (_42_ == "top") then
+ index = #table["get-in"](state0, table.split(location, -1)) elseif (_42_ == "bottom") then index = 1 elseif (nil ~= _42_) then local n = _42_
 
  index = n else index = nil end end
- local _let_43_ = event local face_where = _let_43_[1] local _ = _let_43_[2]
+ local face_where = event[1] local _ = event[2]
  local location0 = table.set(clone(location), #location, index)
  do local _44_ = table["get-in"](state0, location0) if (nil ~= _44_) then local card = _44_
  if (face_where == "face-up") then card.face = "up" elseif (face_where == "face-down") then card.face = "down" else end else local _0 = _44_
 
 
- local function _52_() local data_5_auto = {event = event, ["event-num"] = event_num, events = events} local resolve_6_auto local function _46_(name_7_auto) local _47_ = data_5_auto[name_7_auto] local function _48_() local t_8_auto = _47_ return ("table" == type(t_8_auto)) end if ((nil ~= _47_) and _48_()) then local t_8_auto = _47_ local _49_ = getmetatable(t_8_auto) if ((_G.type(_49_) == "table") and (nil ~= _49_.__tostring)) then local f_9_auto = _49_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _49_ return vim.inspect(t_8_auto) end elseif (nil ~= _47_) then local v_11_auto = _47_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _46_ return string.gsub("apply-events: no card, cannot apply #{event-num}: #{event}, #{events}", "#{(.-)}", resolve_6_auto) end error(_52_()) end end
+ local function _53_() local data_5_auto = {event = event, ["event-num"] = event_num, events = events} local resolve_6_auto local function _46_(name_7_auto) local _47_ = data_5_auto[name_7_auto] local and_48_ = (nil ~= _47_) if and_48_ then local t_8_auto = _47_ and_48_ = ("table" == type(t_8_auto)) end if and_48_ then local t_8_auto = _47_ local _50_ = getmetatable(t_8_auto) if ((_G.type(_50_) == "table") and (nil ~= _50_.__tostring)) then local f_9_auto = _50_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _50_ return vim.inspect(t_8_auto) end elseif (nil ~= _47_) then local v_11_auto = _47_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _46_ return string.gsub("apply-events: no card, cannot apply #{event-num}: #{event}, #{events}", "#{(.-)}", resolve_6_auto) end error(_53_()) end end
  state0, true_events = state0, table.insert(true_events, {face_where, location0}) elseif ((_G.type(event) == "table") and (event[1] == "swap") and (nil ~= event[2]) and (nil ~= event[3])) then local a = event[2] local b = event[3]
 
- local a_index do local _54_ = table.last(a) if (_54_ == "bottom") then a_index = 1 elseif (_54_ == "top") then
+ local a_index do local _55_ = table.last(a) if (_55_ == "bottom") then a_index = 1 elseif (_55_ == "top") then
 
- a_index = #table["get-in"](state0, table.split(a, -1)) elseif (nil ~= _54_) then local n = _54_
+ a_index = #table["get-in"](state0, table.split(a, -1)) elseif (nil ~= _55_) then local n = _55_
  a_index = n else a_index = nil end end local b_index
- do local _56_ = table.last(b) if (_56_ == "bottom") then b_index = 1 elseif (_56_ == "top") then
+ do local _57_ = table.last(b) if (_57_ == "bottom") then b_index = 1 elseif (_57_ == "top") then
 
- b_index = #table["get-in"](state0, table.split(b, -1)) elseif (nil ~= _56_) then local n = _56_
+ b_index = #table["get-in"](state0, table.split(b, -1)) elseif (nil ~= _57_) then local n = _57_
  b_index = n else b_index = nil end end
  local a0 = table.set(clone(a), #a, a_index)
 
@@ -149,13 +149,13 @@
  table["set-in"](state0, a0, temp)
  state0, true_events = state0, table.insert(true_events, {"swap", a0, b0}) elseif ((_G.type(event) == "table") and (event[1] == "move") and (nil ~= event[2]) and (nil ~= event[3])) then local from = event[2] local to = event[3]
 
- local from_index do local _58_ = table.last(from) if (_58_ == "bottom") then from_index = 1 elseif (_58_ == "top") then
+ local from_index do local _59_ = table.last(from) if (_59_ == "bottom") then from_index = 1 elseif (_59_ == "top") then
 
- from_index = #table["get-in"](state0, table.split(from, -1)) elseif (nil ~= _58_) then local n = _58_
+ from_index = #table["get-in"](state0, table.split(from, -1)) elseif (nil ~= _59_) then local n = _59_
  from_index = n else from_index = nil end end local mod_fn, to_index = nil, nil
- do local _60_ = table.last(to) if (_60_ == "bottom") then
- mod_fn, to_index = table["insert-in"], 1 elseif (_60_ == "top") then
- mod_fn, to_index = table["set-in"], (1 + #table["get-in"](state0, table.split(to, -1))) elseif (nil ~= _60_) then local n = _60_
+ do local _61_ = table.last(to) if (_61_ == "bottom") then
+ mod_fn, to_index = table["insert-in"], 1 elseif (_61_ == "top") then
+ mod_fn, to_index = table["set-in"], (1 + #table["get-in"](state0, table.split(to, -1))) elseif (nil ~= _61_) then local n = _61_
  mod_fn, to_index = table["set-in"], n else mod_fn, to_index = nil end end
  local from0 = table.set(clone(from), #from, from_index)
 
@@ -183,16 +183,16 @@
 
  if ((_G.type(event) == "table") and (event[1] == "wait") and (nil ~= event[2])) then local n = event[2]
 
- local function _68_() return nil end t, run_at_ms = table.set(t, run_at_ms, {Animate.linear, n, _68_}), (run_at_ms + n) else local matched_3f_63_, location_64_ = nil, nil if ((_G.type(event) == "table") and (event[1] == "face-up") and (nil ~= event[2])) then local location = event[2] matched_3f_63_, location_64_ = true, location elseif ((_G.type(event) == "table") and (event[1] == "face-down") and (nil ~= event[2])) then local location = event[2] matched_3f_63_, location_64_ = true, location else matched_3f_63_, location_64_ = nil end if matched_3f_63_ then local location = location_64_
+ local function _69_() return nil end t, run_at_ms = table.set(t, run_at_ms, {Animate.linear, n, _69_}), (run_at_ms + n) else local matched_3f_64_, location_65_ = nil, nil if ((_G.type(event) == "table") and (event[1] == "face-up") and (nil ~= event[2])) then local location = event[2] matched_3f_64_, location_65_ = true, location elseif ((_G.type(event) == "table") and (event[1] == "face-down") and (nil ~= event[2])) then local location = event[2] matched_3f_64_, location_65_ = true, location else matched_3f_64_, location_65_ = nil end if matched_3f_64_ then local location = location_65_
 
 
- local card_id local function _70_(...) local t_71_ = memo if (nil ~= t_71_) then t_71_ = t_71_[table.concat(location, ".")] else end return t_71_ end card_id = (_70_() or table["get-in"](app.game, location).id)
+ local card_id local _72_ do local t_71_ = memo if (nil ~= t_71_) then t_71_ = t_71_[table.concat(location, ".")] else end _72_ = t_71_ end card_id = (_72_ or table["get-in"](app.game, location).id)
 
  local comp = app["card-id->components"][card_id]
  local memo0 = {once = false}
  local dir = event[1] local tween
- local function _73_(percent)
- if ((0.5 < percent) and not memo0.once) then memo0.once = true return comp["force-flip"](comp, dir) else return nil end end tween = _73_
+ local function _74_(percent)
+ if ((0.5 < percent) and not memo0.once) then memo0.once = true return comp["force-flip"](comp, dir) else return nil end end tween = _74_
 
 
  t, run_at_ms = table.set(t, run_at_ms, {Animate["ease-out-quad"], 1, tween}), (run_at_ms + 1) elseif ((_G.type(event) == "table") and (event[1] == "swap") and (nil ~= event[2]) and (nil ~= event[3])) then local a = event[2] local b = event[3]
@@ -203,54 +203,54 @@
 
 
 
- local id_a local function _75_(...) local t_76_ = memo if (nil ~= t_76_) then t_76_ = t_76_[table.concat(a, ".")] else end return t_76_ end local function _78_(...)
- local t_79_ = table["get-in"](app.game, a) if (nil ~= t_79_) then t_79_ = t_79_.id else end return t_79_ end
- local function _87_() local data_5_auto = {a = a} local resolve_6_auto local function _81_(name_7_auto) local _82_ = data_5_auto[name_7_auto] local function _83_() local t_8_auto = _82_ return ("table" == type(t_8_auto)) end if ((nil ~= _82_) and _83_()) then local t_8_auto = _82_ local _84_ = getmetatable(t_8_auto) if ((_G.type(_84_) == "table") and (nil ~= _84_.__tostring)) then local f_9_auto = _84_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _84_ return vim.inspect(t_8_auto) end elseif (nil ~= _82_) then local v_11_auto = _82_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _81_ return string.gsub("no card known #{a}", "#{(.-)}", resolve_6_auto) end id_a = (_75_() or _78_() or error(_87_())) local id_b local function _88_(...)
- local t_89_ = memo if (nil ~= t_89_) then t_89_ = t_89_[table.concat(b, ".")] else end return t_89_ end local function _91_(...)
- local t_92_ = table["get-in"](app.game, b) if (nil ~= t_92_) then t_92_ = t_92_.id else end return t_92_ end
- local function _100_() local data_5_auto = {b = b} local resolve_6_auto local function _94_(name_7_auto) local _95_ = data_5_auto[name_7_auto] local function _96_() local t_8_auto = _95_ return ("table" == type(t_8_auto)) end if ((nil ~= _95_) and _96_()) then local t_8_auto = _95_ local _97_ = getmetatable(t_8_auto) if ((_G.type(_97_) == "table") and (nil ~= _97_.__tostring)) then local f_9_auto = _97_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _97_ return vim.inspect(t_8_auto) end elseif (nil ~= _95_) then local v_11_auto = _95_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _94_ return string.gsub("no card known #{b}", "#{(.-)}", resolve_6_auto) end id_b = (_88_() or _91_() or error(_100_())) local _
- do end (memo)[table.concat(b, ".")] = id_a _ = nil local _0
+ local id_a local _77_ do local t_76_ = memo if (nil ~= t_76_) then t_76_ = t_76_[table.concat(a, ".")] else end _77_ = t_76_ end local or_79_ = _77_
+ if not or_79_ then local t_80_ = table["get-in"](app.game, a) if (nil ~= t_80_) then t_80_ = t_80_.id else end or_79_ = t_80_ end
+ if not or_79_ then local function _89_() local data_5_auto = {a = a} local resolve_6_auto local function _82_(name_7_auto) local _83_ = data_5_auto[name_7_auto] local and_84_ = (nil ~= _83_) if and_84_ then local t_8_auto = _83_ and_84_ = ("table" == type(t_8_auto)) end if and_84_ then local t_8_auto = _83_ local _86_ = getmetatable(t_8_auto) if ((_G.type(_86_) == "table") and (nil ~= _86_.__tostring)) then local f_9_auto = _86_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _86_ return vim.inspect(t_8_auto) end elseif (nil ~= _83_) then local v_11_auto = _83_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _82_ return string.gsub("no card known #{a}", "#{(.-)}", resolve_6_auto) end or_79_ = error(_89_()) end id_a = or_79_ local id_b
+ local _91_ do local t_90_ = memo if (nil ~= t_90_) then t_90_ = t_90_[table.concat(b, ".")] else end _91_ = t_90_ end local or_93_ = _91_
+ if not or_93_ then local t_94_ = table["get-in"](app.game, b) if (nil ~= t_94_) then t_94_ = t_94_.id else end or_93_ = t_94_ end
+ if not or_93_ then local function _103_() local data_5_auto = {b = b} local resolve_6_auto local function _96_(name_7_auto) local _97_ = data_5_auto[name_7_auto] local and_98_ = (nil ~= _97_) if and_98_ then local t_8_auto = _97_ and_98_ = ("table" == type(t_8_auto)) end if and_98_ then local t_8_auto = _97_ local _100_ = getmetatable(t_8_auto) if ((_G.type(_100_) == "table") and (nil ~= _100_.__tostring)) then local f_9_auto = _100_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _100_ return vim.inspect(t_8_auto) end elseif (nil ~= _97_) then local v_11_auto = _97_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _96_ return string.gsub("no card known #{b}", "#{(.-)}", resolve_6_auto) end or_93_ = error(_103_()) end id_b = or_93_ local _
+ memo[table.concat(b, ".")] = id_a _ = nil local _0
  memo[table.concat(a, ".")] = id_b _0 = nil
- local t0, run_at_ms0 = t, run_at_ms for _1, _101_ in ipairs({{id_a, a, b}, {id_b, b, a}}) do
- local _each_102_ = _101_ local card_id = _each_102_[1] local from = _each_102_[2] local to = _each_102_[3]
+ local t0, run_at_ms0 = t, run_at_ms for _1, _104_ in ipairs({{id_a, a, b}, {id_b, b, a}}) do
+ local card_id = _104_[1] local from = _104_[2] local to = _104_[3]
  local comp = app["card-id->components"][card_id]
- local _let_103_ = app["location->position"](app, from) local from_row = _let_103_["row"] local from_col = _let_103_["col"]
- local _let_104_ = app["location->position"](app, to) local to_row = _let_104_["row"] local to_col = _let_104_["col"] local z = _let_104_["z"]
+ local _let_105_ = app["location->position"](app, from) local from_row = _let_105_["row"] local from_col = _let_105_["col"]
+ local _let_106_ = app["location->position"](app, to) local to_row = _let_106_["row"] local to_col = _let_106_["col"] local z = _let_106_["z"]
  local duration = opts["duration-ms"] local tween
- local function _105_(percent)
+ local function _107_(percent)
 
 
 
- local _106_ if (percent < 1) then _106_ = app["z-index-for-layer"](app, "animation", (10 + z)) else
+ local _108_ if (percent < 1) then _108_ = app["z-index-for-layer"](app, "animation", (10 + z)) else
 
- _106_ = z end return comp["set-position"](comp, {row = (from_row + math.ceil(((to_row - from_row) * percent))), col = (from_col + math.ceil(((to_col - from_col) * percent))), z = _106_}) end tween = _105_
- t0, run_at_ms0 = table.set(t0, run_at_ms0, {Animate["ease-out-quad"], duration, tween}), (run_at_ms0 + opts["stagger-ms"]) end t, run_at_ms = t0, run_at_ms0 else local matched_3f_65_, from_66_, to_67_ = nil, nil, nil if ((_G.type(event) == "table") and (event[1] == "move") and (nil ~= event[2]) and (nil ~= event[3])) then local from = event[2] local to = event[3] matched_3f_65_, from_66_, to_67_ = true, from, to elseif ((_G.type(event) == "table") and (nil ~= event[1]) and (nil ~= event[2])) then local from = event[1] local to = event[2] matched_3f_65_, from_66_, to_67_ = true, from, to else matched_3f_65_, from_66_, to_67_ = nil end if matched_3f_65_ then local from, to = from_66_, to_67_
-
-
+ _108_ = z end return comp["set-position"](comp, {row = (from_row + math.ceil(((to_row - from_row) * percent))), col = (from_col + math.ceil(((to_col - from_col) * percent))), z = _108_}) end tween = _107_
+ t0, run_at_ms0 = table.set(t0, run_at_ms0, {Animate["ease-out-quad"], duration, tween}), (run_at_ms0 + opts["stagger-ms"]) end t, run_at_ms = t0, run_at_ms0 else local matched_3f_66_, from_67_, to_68_ = nil, nil, nil if ((_G.type(event) == "table") and (event[1] == "move") and (nil ~= event[2]) and (nil ~= event[3])) then local from = event[2] local to = event[3] matched_3f_66_, from_67_, to_68_ = true, from, to elseif ((_G.type(event) == "table") and (nil ~= event[1]) and (nil ~= event[2])) then local from = event[1] local to = event[2] matched_3f_66_, from_67_, to_68_ = true, from, to else matched_3f_66_, from_67_, to_68_ = nil end if matched_3f_66_ then local from, to = from_67_, to_68_
 
 
 
 
 
- local card_id local function _109_(...) local t_110_ = memo if (nil ~= t_110_) then t_110_ = t_110_[table.concat(from, ".")] else end return t_110_ end local function _112_(...)
- local t_113_ = table["get-in"](app.game, from) if (nil ~= t_113_) then t_113_ = t_113_.id else end return t_113_ end
- local function _121_() local data_5_auto = {from = from} local resolve_6_auto local function _115_(name_7_auto) local _116_ = data_5_auto[name_7_auto] local function _117_() local t_8_auto = _116_ return ("table" == type(t_8_auto)) end if ((nil ~= _116_) and _117_()) then local t_8_auto = _116_ local _118_ = getmetatable(t_8_auto) if ((_G.type(_118_) == "table") and (nil ~= _118_.__tostring)) then local f_9_auto = _118_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _118_ return vim.inspect(t_8_auto) end elseif (nil ~= _116_) then local v_11_auto = _116_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _115_ return string.gsub("no card known #{from}", "#{(.-)}", resolve_6_auto) end card_id = (_109_() or _112_() or error(_121_())) local _
- do end (memo)[table.concat(to, ".")] = card_id _ = nil
+
+
+ local card_id local _112_ do local t_111_ = memo if (nil ~= t_111_) then t_111_ = t_111_[table.concat(from, ".")] else end _112_ = t_111_ end local or_114_ = _112_
+ if not or_114_ then local t_115_ = table["get-in"](app.game, from) if (nil ~= t_115_) then t_115_ = t_115_.id else end or_114_ = t_115_ end
+ if not or_114_ then local function _124_() local data_5_auto = {from = from} local resolve_6_auto local function _117_(name_7_auto) local _118_ = data_5_auto[name_7_auto] local and_119_ = (nil ~= _118_) if and_119_ then local t_8_auto = _118_ and_119_ = ("table" == type(t_8_auto)) end if and_119_ then local t_8_auto = _118_ local _121_ = getmetatable(t_8_auto) if ((_G.type(_121_) == "table") and (nil ~= _121_.__tostring)) then local f_9_auto = _121_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _121_ return vim.inspect(t_8_auto) end elseif (nil ~= _118_) then local v_11_auto = _118_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _117_ return string.gsub("no card known #{from}", "#{(.-)}", resolve_6_auto) end or_114_ = error(_124_()) end card_id = or_114_ local _
+ memo[table.concat(to, ".")] = card_id _ = nil
  local comp = app["card-id->components"][card_id]
- local _let_122_ = app["location->position"](app, from) local from_row = _let_122_["row"] local from_col = _let_122_["col"]
- local _let_123_ = app["location->position"](app, to) local to_row = _let_123_["row"] local to_col = _let_123_["col"] local z = _let_123_["z"]
+ local _let_125_ = app["location->position"](app, from) local from_row = _let_125_["row"] local from_col = _let_125_["col"]
+ local _let_126_ = app["location->position"](app, to) local to_row = _let_126_["row"] local to_col = _let_126_["col"] local z = _let_126_["z"]
  local duration = opts["duration-ms"] local tween
- local function _124_(percent)
+ local function _127_(percent)
 
 
 
- local _125_ if (percent < 1) then _125_ = app["z-index-for-layer"](app, "animation", (10 + z)) else
+ local _128_ if (percent < 1) then _128_ = app["z-index-for-layer"](app, "animation", (10 + z)) else
 
- _125_ = z end return comp["set-position"](comp, {row = (from_row + math.ceil(((to_row - from_row) * percent))), col = (from_col + math.ceil(((to_col - from_col) * percent))), z = _125_}) end tween = _124_
+ _128_ = z end return comp["set-position"](comp, {row = (from_row + math.ceil(((to_row - from_row) * percent))), col = (from_col + math.ceil(((to_col - from_col) * percent))), z = _128_}) end tween = _127_
  t, run_at_ms = table.set(t, run_at_ms, {Animate["ease-out-quad"], duration, tween}), (run_at_ms + opts["stagger-ms"]) else local _ = event
 
 
- local function _133_() local data_5_auto = {event = event} local resolve_6_auto local function _127_(name_7_auto) local _128_ = data_5_auto[name_7_auto] local function _129_() local t_8_auto = _128_ return ("table" == type(t_8_auto)) end if ((nil ~= _128_) and _129_()) then local t_8_auto = _128_ local _130_ = getmetatable(t_8_auto) if ((_G.type(_130_) == "table") and (nil ~= _130_.__tostring)) then local f_9_auto = _130_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _130_ return vim.inspect(t_8_auto) end elseif (nil ~= _128_) then local v_11_auto = _128_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _127_ return string.gsub("Unknown event, cant animate: #{event}", "#{(.-)}", resolve_6_auto) end t, run_at_ms = error(_133_()) end end end end timeline = t, run_at_ms end
+ local function _137_() local data_5_auto = {event = event} local resolve_6_auto local function _130_(name_7_auto) local _131_ = data_5_auto[name_7_auto] local and_132_ = (nil ~= _131_) if and_132_ then local t_8_auto = _131_ and_132_ = ("table" == type(t_8_auto)) end if and_132_ then local t_8_auto = _131_ local _134_ = getmetatable(t_8_auto) if ((_G.type(_134_) == "table") and (nil ~= _134_.__tostring)) then local f_9_auto = _134_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _134_ return vim.inspect(t_8_auto) end elseif (nil ~= _131_) then local v_11_auto = _131_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _130_ return string.gsub("Unknown event, cant animate: #{event}", "#{(.-)}", resolve_6_auto) end t, run_at_ms = error(_137_()) end end end end timeline = t, run_at_ms end
  timeline["after"] = after
  return Animate.timeline(timeline) end
  return M

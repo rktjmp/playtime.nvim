@@ -12,7 +12,7 @@
  local App = require("playtime.app")
  local Window = require("playtime.app.window")
 
- local _local_2_ = vim local api = _local_2_["api"]
+ local api = vim["api"]
  local uv = (vim.loop or vim.uv)
  local M = setmetatable({}, {__index = App})
  local Logic = require("playtime.game.the-emissary.logic")
@@ -36,36 +36,36 @@
 
  AppState.Default.OnEvent.app["new-game"] = function(app) app["setup-new-game"](app, app["game-config"], nil)
 
- local function _3_() return app["switch-state"](app, AppState.DealPhase) end return vim.defer_fn(_3_, 300) end
+ local function _2_() return app["switch-state"](app, AppState.DealPhase) end return vim.defer_fn(_2_, 300) end
 
  AppState.Default.OnEvent.app["restart-game"] = function(app) app["setup-new-game"](app, app["game-config"], app.seed)
 
- local function _4_() return app["switch-state"](app, AppState.DealPhase) end return vim.defer_fn(_4_, 300) end
+ local function _3_() return app["switch-state"](app, AppState.DealPhase) end return vim.defer_fn(_3_, 300) end
 
- AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _5_, pos) local _arg_6_ = _5_ local click_location = _arg_6_[1] local rest = (function (t, k, e) local mt = getmetatable(t) if 'table' == type(mt) and mt.__fennelrest then return mt.__fennelrest(t, k) elseif e then local rest = {} for k, v in pairs(t) do if not e[k] then rest[k] = v end end return rest else return {(table.unpack or unpack)(t, k)} end end)(_arg_6_, 2)
+ AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _4_, pos) local click_location = _4_[1] local rest = (function (t, k, e) local mt = getmetatable(t) if 'table' == type(mt) and mt.__fennelrest then return mt.__fennelrest(t, k) elseif e then local rest = {} for k, v in pairs(t) do if not e[k] then rest[k] = v end end return rest else return {(table.unpack or unpack)(t, k)} end end)(_4_, 2)
  if ((_G.type(click_location) == "table") and (click_location[1] == "menu") and (nil ~= click_location[2]) and (click_location[3] == nil)) then local idx = click_location[2] local menu_item = click_location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
 
 
 
  AppState.GameEnded.activated = function(app)
  app["ended-at"] = os.time()
- local _let_8_ = Logic.Query["game-result"](app.game) local won_3f = _let_8_[1] local score = _let_8_[2]
+ local _let_6_ = Logic.Query["game-result"](app.game) local won_3f = _let_6_[1] local score = _let_6_[2]
  local other = {string.fmt("Time: %ds", (app["ended-at"] - app["started-at"])), string.fmt("Score: %d/16", score)}
 
- if won_3f then app["update-statistics"](app) else end return (app.components["game-report"]):update(won_3f, other) end
+ if won_3f then app["update-statistics"](app) else end return app.components["game-report"]:update(won_3f, other) end
 
 
- AppState.GameEnded.OnEvent.input["<LeftMouse>"] = function(app, _10_, pos) local _arg_11_ = _10_ local location = _arg_11_[1]
+ AppState.GameEnded.OnEvent.input["<LeftMouse>"] = function(app, _8_, pos) local location = _8_[1]
  if ((_G.type(location) == "table") and (location[1] == "menu")) then
  return AppState.Default.OnEvent.input["<LeftMouse>"](app, {location}, pos) else return nil end end
 
 
 
 
- AppState.AbilityDiplomacy.activated = function(app, which_advisor) do end (app.components["guide-text"]):update("Discarding cards in rulers suit...")
+ AppState.AbilityDiplomacy.activated = function(app, which_advisor) app.components["guide-text"]:update("Discarding cards in rulers suit...")
 
  local next_game, events = Logic.Action.diplomacy(app.game, which_advisor) local after
- local function _13_() app["update-game"](app, next_game, {"diplomacy", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _13_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
+ local function _10_() app["update-game"](app, next_game, {"diplomacy", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _10_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
 
 
 
@@ -75,10 +75,10 @@
 
 
 
- AppState.AbilityMilitary.activated = function(app, which_advisor) do end (app.components["guide-text"]):update("Drawing cards for each club in hand...")
+ AppState.AbilityMilitary.activated = function(app, which_advisor) app.components["guide-text"]:update("Drawing cards for each club in hand...")
 
  local next_game, events = Logic.Action.military(app.game, which_advisor) local after
- local function _14_() app["update-game"](app, next_game, {"military", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _14_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
+ local function _11_() app["update-game"](app, next_game, {"military", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _11_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
 
 
 
@@ -88,27 +88,27 @@
 
 
 
- AppState.AbilityPolitics.activated = function(app, which_advisor) do end (app.components["guide-text"]):update("Select kingdom ruler to swap with current ruler...")
+ AppState.AbilityPolitics.activated = function(app, which_advisor) app.components["guide-text"]:update("Select kingdom ruler to swap with current ruler...")
 
  app.state.context = {["which-advisor"] = which_advisor} return nil end
 
- AppState.AbilityPolitics.OnEvent.input["<LeftMouse>"] = function(app, _15_) local _arg_16_ = _15_ local location = _arg_16_[1]
+ AppState.AbilityPolitics.OnEvent.input["<LeftMouse>"] = function(app, _12_) local location = _12_[1]
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
  app.state.context.selecting = {"kingdom", n} return nil elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
 
 
 
- AppState.AbilityPolitics.OnEvent.input["<LeftDrag>"] = function(app, _18_) local _arg_19_ = _18_ local location = _arg_19_[1]
+ AppState.AbilityPolitics.OnEvent.input["<LeftDrag>"] = function(app, _14_) local location = _14_[1]
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
  app.state.context.selecting = {"kingdom", n} return nil else return nil end end
 
- AppState.AbilityPolitics.OnEvent.input["<LeftRelease>"] = function(app, _21_) local _arg_22_ = _21_ local location = _arg_22_[1]
+ AppState.AbilityPolitics.OnEvent.input["<LeftRelease>"] = function(app, _16_) local location = _16_[1]
  if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
- local _let_23_ = app.state.context local which_advisor = _let_23_["which-advisor"]
+ local which_advisor = app.state.context["which-advisor"]
  local next_game, events = Logic.Action.politics(app.game, which_advisor, n) local after
- local function _24_() app["update-game"](app, next_game, {"politics", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _24_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) else local _ = location
+ local function _17_() app["update-game"](app, next_game, {"politics", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _17_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) else local _ = location
 
 
 
@@ -119,39 +119,39 @@
 
 
 
- AppState.AbilityCommerce.activated = function(app, which_advisor) do end (app.components["guide-text"]):update("Drawing two cards, select two cards to discard...")
+ AppState.AbilityCommerce.activated = function(app, which_advisor) app.components["guide-text"]:update("Drawing two cards, select two cards to discard...")
 
  app.state.context = {["which-advisor"] = which_advisor, selected = {hand = {}}, selecting = nil}
 
 
  local next_game, events = Logic.Action.commerce(app.game, which_advisor) local after
- local function _26_() app["update-game"](app, next_game, {"commerce", which_advisor}) return app["pop-state"](app) end after = _26_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["push-state"](app, App.State.DefaultAnimatingState, timeline) end
+ local function _19_() app["update-game"](app, next_game, {"commerce", which_advisor}) return app["pop-state"](app) end after = _19_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["push-state"](app, App.State.DefaultAnimatingState, timeline) end
 
 
 
 
 
- AppState.AbilityCommerce.OnEvent.input["<LeftMouse>"] = function(app, _27_) local _arg_28_ = _27_ local location = _arg_28_[1]
+ AppState.AbilityCommerce.OnEvent.input["<LeftMouse>"] = function(app, _20_) local location = _20_[1]
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
  app.state.context.selecting = {"hand", n} return nil elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
 
 
 
- AppState.AbilityCommerce.OnEvent.input["<LeftDrag>"] = function(app, _30_) local _arg_31_ = _30_ local location = _arg_31_[1]
+ AppState.AbilityCommerce.OnEvent.input["<LeftDrag>"] = function(app, _22_) local location = _22_[1]
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
  app.state.context.selecting = {"hand", n} return nil else return nil end end
 
- AppState.AbilityCommerce.OnEvent.input["<LeftRelease>"] = function(app, _33_) local _arg_34_ = _33_ local location = _arg_34_[1]
+ AppState.AbilityCommerce.OnEvent.input["<LeftRelease>"] = function(app, _24_) local location = _24_[1]
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
- local _let_35_ = app.state.context local which_advisor = _let_35_["which-advisor"] local selected = _let_35_["selected"] local _
- local _36_ if (nil == selected.hand[n]) then _36_ = true else _36_ = nil end selected.hand[n] = _36_ _ = nil
+ local which_advisor = app.state.context["which-advisor"] local selected = app.state.context["selected"] local _
+ local _25_ if (nil == selected.hand[n]) then _25_ = true else _25_ = nil end selected.hand[n] = _25_ _ = nil
  local ns = table.keys(selected.hand)
  if (2 == #ns) then
  local next_game, events = Logic.Action.commerce(app.game, which_advisor, ns) local after
- local function _38_() app["update-game"](app, next_game, {"commerce", which_advisor, ns}) return app["switch-state"](app, AppState.RulerPhase) end after = _38_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) else return nil end else return nil end end
+ local function _27_() app["update-game"](app, next_game, {"commerce", which_advisor, ns}) return app["switch-state"](app, AppState.RulerPhase) end after = _27_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) else return nil end else return nil end end
 
 
 
@@ -161,10 +161,10 @@
 
 
 
- AppState.DealPhase.activated = function(app) do end (app.components["guide-text"]):update("Select a kingdom to visit...")
+ AppState.DealPhase.activated = function(app) app.components["guide-text"]:update("Select a kingdom to visit...")
 
  local next_game, events = Logic.Action.deal(app.game) local after
- local function _41_() app["update-game"](app, next_game, {"deal"}) return app["switch-state"](app, AppState.PickKingdomPhase) end after = _41_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
+ local function _30_() app["update-game"](app, next_game, {"deal"}) return app["switch-state"](app, AppState.PickKingdomPhase) end after = _30_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
 
 
 
@@ -180,28 +180,28 @@
 
 
 
- local _let_42_ = map[suit] local action = _let_42_[1] local state = _let_42_[2]
- local _43_, _44_ = Logic.Query[action](app.game, n) if (_43_ == true) then return app["switch-state"](app, state, n) elseif ((_43_ == nil) and (nil ~= _44_)) then local err = _44_ return app:notify(err) else return nil end end
+ local _let_31_ = map[suit] local action = _let_31_[1] local state = _let_31_[2]
+ local _32_, _33_ = Logic.Query[action](app.game, n) if (_32_ == true) then return app["switch-state"](app, state, n) elseif ((_32_ == nil) and (nil ~= _33_)) then local err = _33_ return app:notify(err) else return nil end end
 
 
 
- AppState.PickKingdomPhase.OnEvent.input["<LeftMouse>"] = function(app, _46_, pos) local _arg_47_ = _46_ local location = _arg_47_[1]
+ AppState.PickKingdomPhase.OnEvent.input["<LeftMouse>"] = function(app, _35_, pos) local location = _35_[1]
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
  app.state.context.selecting = {"kingdom", n} return nil else return nil end end
 
- AppState.PickKingdomPhase.OnEvent.input["<LeftDrag>"] = function(app, _49_, pos) local _arg_50_ = _49_ local location = _arg_50_[1]
+ AppState.PickKingdomPhase.OnEvent.input["<LeftDrag>"] = function(app, _37_, pos) local location = _37_[1]
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
  app.state.context.selecting = {"kingdom", n} return nil else return nil end end
 
- AppState.PickKingdomPhase.OnEvent.input["<LeftRelease>"] = function(app, _52_, pos) local _arg_53_ = _52_ local location = _arg_53_[1]
+ AppState.PickKingdomPhase.OnEvent.input["<LeftRelease>"] = function(app, _39_, pos) local location = _39_[1]
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and true) then local n = location[2] local _ = location[3]
 
- local function _54_(...) local _55_, _56_ = ... if (nil ~= _55_) then local next_game = _55_
+ local function _40_(...) local _41_, _42_ = ... if (nil ~= _41_) then local next_game = _41_
 
- local _let_57_ = app["location->position"](app, {"kingdom", n}) local row = _let_57_["row"] local col = _let_57_["col"] local z = _let_57_["z"] do end (function(tgt, m, ...) return tgt[m](tgt, ...) end)(app.components.emissary, "set-position", {row = (row + 1), col = (col - 1), z = (z + 1)}) return app["update-game"](app, next_game, {"pick-kingdom", n}) elseif ((_55_ == nil) and (nil ~= _56_)) then local e = _56_ return app:notify(e) else return nil end end return _54_(Logic.Action["pick-kingdom"](app.game, n)) elseif ((_G.type(location) == "table") and (location[1] == "draw")) then
+ local _let_43_ = app["location->position"](app, {"kingdom", n}) local row = _let_43_["row"] local col = _let_43_["col"] local z = _let_43_["z"] app.components.emissary["set-position"](app.components.emissary, {row = (row + 1), col = (col - 1), z = (z + 1)}) return app["update-game"](app, next_game, {"pick-kingdom", n}) elseif ((_41_ == nil) and (nil ~= _42_)) then local e = _42_ return app:notify(e) else return nil end end return _40_(Logic.Action["pick-kingdom"](app.game, n)) elseif ((_G.type(location) == "table") and (location[1] == "draw")) then
 
 
 
@@ -216,10 +216,10 @@
 
 
 
- AppState.PreparePhase.activated = function(app) return (app.components["guide-text"]):update("Activate an ability or click deck/hand for ruler turn") end
+ AppState.PreparePhase.activated = function(app) return app.components["guide-text"]:update("Activate an ability or click deck/hand for ruler turn") end
 
 
- AppState.PreparePhase.OnEvent.input["<LeftMouse>"] = function(app, _63_, pos) local _arg_64_ = _63_ local location = _arg_64_[1]
+ AppState.PreparePhase.OnEvent.input["<LeftMouse>"] = function(app, _49_, pos) local location = _49_[1]
  if ((_G.type(location) == "table") and (location[1] == "draw")) then return app["switch-state"](app, AppState.RulerPhase) elseif ((_G.type(location) == "table") and (location[1] == "hand")) then return app["switch-state"](app, AppState.RulerPhase) elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (nil ~= location[2]) and (nil ~= location[3])) then local suit = location[2] local n = location[3]
 
 
@@ -233,11 +233,9 @@
  AppState.RulerPhase.activated = function(app)
  if Logic.Query["hand-exhausted?"](app.game) then return app["switch-state"](app, AppState.FinishKingdom) else
 
- local function _66_(...) local _67_, _68_ = ... if ((nil ~= _67_) and (nil ~= _68_)) then local next_game = _67_ local moves = _68_
+ local function _51_(...) local _52_, _53_ = ... if ((nil ~= _52_) and (nil ~= _53_)) then local next_game = _52_ local moves = _53_
 
- local after local function _69_() app["update-game"](app, next_game, {"draw"}) return app["switch-state"](app, AppState.RespondPhase) end after = _69_ local timeline = app["build-event-animation"](app, moves, after) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_67_ == nil) and (nil ~= _68_)) then local e = _68_ return app:notify(e) else return nil end end return _66_(Logic.Action.draw(app.game)) end end
-
-
+ local after local function _54_() app["update-game"](app, next_game, {"draw"}) return app["switch-state"](app, AppState.RespondPhase) end after = _54_ local timeline = app["build-event-animation"](app, moves, after) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_52_ == nil) and (nil ~= _53_)) then local e = _53_ return app:notify(e) else return nil end end return _51_(Logic.Action.draw(app.game)) end end
 
 
 
@@ -247,10 +245,12 @@
 
 
 
- AppState.RespondPhase.activated = function(app) return (app.components["guide-text"]):update("Select card to respond") end
 
 
- AppState.RespondPhase.OnEvent.input["<LeftMouse>"] = function(app, _72_, pos) local _arg_73_ = _72_ local location = _arg_73_[1] app.state.context.safe = true
+ AppState.RespondPhase.activated = function(app) return app.components["guide-text"]:update("Select card to respond") end
+
+
+ AppState.RespondPhase.OnEvent.input["<LeftMouse>"] = function(app, _57_, pos) local location = _57_[1] app.state.context.safe = true
 
 
 
@@ -259,22 +259,22 @@
  app.state.context.selecting = {"hand", n} return nil elseif ((_G.type(location) == "table") and (location[1] == "menu")) then
  return AppState.Default.OnEvent.input["<LeftMouse>"](app, {location}, pos) else return nil end end
 
- AppState.RespondPhase.OnEvent.input["<LeftDrag>"] = function(app, _75_, pos) local _arg_76_ = _75_ local location = _arg_76_[1]
+ AppState.RespondPhase.OnEvent.input["<LeftDrag>"] = function(app, _59_, pos) local location = _59_[1]
  if app.state.context.safe then
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
  app.state.context.selecting = {"hand", n} return nil else return nil end else return nil end end
 
- AppState.RespondPhase.OnEvent.input["<LeftRelease>"] = function(app, _79_, pos) local _arg_80_ = _79_ local location = _arg_80_[1]
+ AppState.RespondPhase.OnEvent.input["<LeftRelease>"] = function(app, _62_, pos) local location = _62_[1]
  if app.state.context.safe then
  app.state.context.selecting = nil
  if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
- local function _81_(...) local _82_, _83_ = ... if ((nil ~= _82_) and (nil ~= _83_)) then local next_game = _82_ local moves = _83_
+ local function _63_(...) local _64_, _65_ = ... if ((nil ~= _64_) and (nil ~= _65_)) then local next_game = _64_ local moves = _65_
 
  local _ = table.insert(moves, 2, {"wait", 300}) local after
- local function _84_() app["update-game"](app, next_game, {"play-hand", n})
+ local function _66_() app["update-game"](app, next_game, {"play-hand", n})
 
- if Logic.Query["hand-exhausted?"](app.game) then return app["switch-state"](app, AppState.FinishKingdom) else return app["switch-state"](app, AppState.PreparePhase) end end after = _84_ local timeline = app["build-event-animation"](app, moves, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_82_ == nil) and (nil ~= _83_)) then local e = _83_ return app:notify(e) else return nil end end return _81_(Logic.Action["play-hand"](app.game, n)) elseif ((_G.type(location) == "table") and (location[1] == "advisor")) then return app:notify("You may only activate a advisor before a ruler statement") else return nil end else return nil end end
+ if Logic.Query["hand-exhausted?"](app.game) then return app["switch-state"](app, AppState.FinishKingdom) else return app["switch-state"](app, AppState.PreparePhase) end end after = _66_ local timeline = app["build-event-animation"](app, moves, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_64_ == nil) and (nil ~= _65_)) then local e = _65_ return app:notify(e) else return nil end end return _63_(Logic.Action["play-hand"](app.game, n)) elseif ((_G.type(location) == "table") and (location[1] == "advisor")) then return app:notify("You may only activate a advisor before a ruler statement") else return nil end else return nil end end
 
 
 
@@ -285,11 +285,9 @@
 
  AppState.FinishKingdom.activated = function(app)
  local next_game, events = Logic.Action["finish-kingdom"](app.game) local after
- local function _89_() app["update-game"](app, next_game, {"finish-kingdom"})
+ local function _71_() app["update-game"](app, next_game, {"finish-kingdom"})
 
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.DealPhase) end end after = _89_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
-
-
+ if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.DealPhase) end end after = _71_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
 
 
 
@@ -297,14 +295,16 @@
 
 
 
- local function update_card_counts(app) do end (app.components["card-counts"].draw):update(#app.game.draw) do end (app.components["card-counts"].discard):update(#app.game.discard) return (app.components["card-counts"].score):update(#app.game.score) end
+
+
+ local function update_card_counts(app) app.components["card-counts"].draw:update(#app.game.draw) app.components["card-counts"].discard:update(#app.game.discard) return app.components["card-counts"].score:update(#app.game.score) end
 
 
 
 
  M["build-event-animation"] = function(app, events, after, _3fopts, _3fhand_length)
  if _3fhand_length then
- local proxy local function _91_(_241, _242) return app["location->position"](app, _242, _3fhand_length) end proxy = setmetatable({["location->position"] = _91_}, {__index = app})
+ local proxy local function _73_(_241, _242) return app["location->position"](app, _242, _3fhand_length) end proxy = setmetatable({["location->position"] = _73_}, {__index = app})
 
  return CardUtils["build-event-animation"](proxy, events, after, _3fopts) else
  return CardUtils["build-event-animation"](app, events, after, _3fopts) end end
@@ -320,9 +320,9 @@
  local score = {row = 8, col = (draw.col + card_col_step)}
  local hand = {row = 14, col = 28}
  local advisor = {row = 20, col = 23} local hand_offset
- do local _93_ = (_3fhand_length or #app.game.hand) if (_93_ == 0) then
- hand.col = draw.col hand_offset = nil elseif (_93_ == 1) then
- hand.col = draw.col hand_offset = nil elseif (nil ~= _93_) then local n = _93_
+ do local _75_ = (_3fhand_length or #app.game.hand) if (_75_ == 0) then
+ hand.col = draw.col hand_offset = nil elseif (_75_ == 1) then
+ hand.col = draw.col hand_offset = nil elseif (nil ~= _75_) then local n = _75_
  hand.col = (draw.col - (2 * (n - 1))) hand_offset = nil else hand_offset = nil end end
 
  if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and true) then local n = location[2] local _ = location[3]
@@ -333,9 +333,9 @@
 
 
 
- local _95_ if (c == 1) then
- _95_ = (debate.col - 2) elseif (c == 2) then
- _95_ = (debate.col + 2) else local _ = c _95_ = 0 end return {row = debate.row, col = _95_, z = app["z-index-for-layer"](app, "debate", ((1 * 10) + c))} elseif ((_G.type(location) == "table") and (location[1] == "discard") and (nil ~= location[2])) then local c = location[2]
+ local _77_ if (c == 1) then
+ _77_ = (debate.col - 2) elseif (c == 2) then
+ _77_ = (debate.col + 2) else local _ = c _77_ = 0 end return {row = debate.row, col = _77_, z = app["z-index-for-layer"](app, "debate", ((1 * 10) + c))} elseif ((_G.type(location) == "table") and (location[1] == "discard") and (nil ~= location[2])) then local c = location[2]
 
 
  return {row = discard.row, col = discard.col, z = app["z-index-for-layer"](app, "cards", c)} elseif ((_G.type(location) == "table") and (location[1] == "draw") and (nil ~= location[2])) then local c = location[2]
@@ -402,7 +402,7 @@
 
 
 
- local function _101_() return app["switch-state"](app, AppState.DealPhase) end vim.defer_fn(_101_, 300)
+ local function _83_() return app["switch-state"](app, AppState.DealPhase) end vim.defer_fn(_83_, 300)
  return app end
 
  M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:408")
@@ -412,24 +412,24 @@
 
 
  local function build_label(text, position)
- local _let_102_ = position local row = _let_102_["row"] local col = _let_102_["col"] local z = _let_102_["z"]
+ local row = position["row"] local col = position["col"] local z = position["z"]
 
- local function _103_(self, enabled)
- local hl if enabled then hl = "@playtime.ui.on" else hl = "@playtime.ui.off" end return self["set-content"](self, {{{text, hl}}}) end return Component["set-content"](Component["set-size"](Component["set-position"](Component.build(_103_), position), {width = #text, height = 1}), {{{text, "@playtime.ui.off"}}}) end
-
-
+ local function _84_(self, enabled)
+ local hl if enabled then hl = "@playtime.ui.on" else hl = "@playtime.ui.off" end return self["set-content"](self, {{{text, hl}}}) end return Component["set-content"](Component["set-size"](Component["set-position"](Component.build(_84_), position), {width = #text, height = 1}), {{{text, "@playtime.ui.off"}}}) end
 
 
- local card_card_components do local tbl_14_auto = {} for location, card in Logic["iter-cards"](app.game) do local k_15_auto, v_16_auto = nil, nil
+
+
+ local card_card_components do local tbl_16_auto = {} for location, card in Logic["iter-cards"](app.game) do local k_17_auto, v_18_auto = nil, nil
  do local card_style if (8 < Logic["card-value"](card)) then
  card_style = table.set(clone(app["card-style"]), "stacking", "vertical-down") else
 
  card_style = app["card-style"] end local comp
- local function _106_(...) return app["location->position"](app, ...) end comp = CardComponents.card(_106_, location, card, card_style)
+ local function _87_(...) return app["location->position"](app, ...) end comp = CardComponents.card(_87_, location, card, card_style)
 
 
 
- k_15_auto, v_16_auto = card.id, comp end if ((k_15_auto ~= nil) and (v_16_auto ~= nil)) then tbl_14_auto[k_15_auto] = v_16_auto else end end card_card_components = tbl_14_auto end
+ k_17_auto, v_18_auto = card.id, comp end if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end card_card_components = tbl_16_auto end
  local menubar = CommonComponents.menubar({{"The Emissary", {"file"}, {{"", nil}, {"New Game", {"new-game"}}, {"Restart Game", {"restart-game"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}, {string.format("Seed: %s", app.seed), nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")}) local card_counts
 
 
@@ -445,32 +445,32 @@
 
 
 
- do local tbl_14_auto = {} for _, key in ipairs({"draw", "discard", "score"}) do local k_15_auto, v_16_auto = nil, nil
+ do local tbl_16_auto = {} for _, key in ipairs({"draw", "discard", "score"}) do local k_17_auto, v_18_auto = nil, nil
 
 
- local function _108_() return app["z-index-for-layer"](app, "label") end k_15_auto, v_16_auto = key, CardComponents.count(table["update-in"](app["location->position"](app, {key, 0}), {"z"}, _108_), app["card-style"]) if ((k_15_auto ~= nil) and (v_16_auto ~= nil)) then tbl_14_auto[k_15_auto] = v_16_auto else end end card_counts = tbl_14_auto end local win_needed_labels
+ local function _89_() return app["z-index-for-layer"](app, "label") end k_17_auto, v_18_auto = key, CardComponents.count(table["update-in"](app["location->position"](app, {key, 0}), {"z"}, _89_), app["card-style"]) if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end card_counts = tbl_16_auto end local win_needed_labels
 
- do local pos local function _110_(n) local _111_ = app["location->position"](app, {"kingdom", n})
+ do local pos local function _91_(n) local tmp_9_auto = app["location->position"](app, {"kingdom", n})
 
- local function _112_(_241) return (_241 + 4) end table["update-in"](_111_, {"row"}, _112_)
- local function _113_(_241) return (_241 + 2) end table["update-in"](_111_, {"col"}, _113_)
- local function _114_(_241) return (_241 + 5) end table["update-in"](_111_, {"z"}, _114_) return _111_ end pos = _110_
- local tbl_19_auto = {} local i_20_auto = 0 for n = 1, 8 do
- local val_21_auto = build_label((" " .. tostring(n) .. " "), pos(n)) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end win_needed_labels = tbl_19_auto end
+ local function _92_(_241) return (_241 + 4) end table["update-in"](tmp_9_auto, {"row"}, _92_)
+ local function _93_(_241) return (_241 + 2) end table["update-in"](tmp_9_auto, {"col"}, _93_)
+ local function _94_(_241) return (_241 + 5) end table["update-in"](tmp_9_auto, {"z"}, _94_) return tmp_9_auto end pos = _91_
+ local tbl_21_auto = {} local i_22_auto = 0 for n = 1, 8 do
+ local val_23_auto = build_label((" " .. tostring(n) .. " "), pos(n)) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end win_needed_labels = tbl_21_auto end
  local advisors = {hearts = "dip.", clubs = "mil.", spades = "pol.", diamonds = "com."} local advisor_titles
- do local tbl_19_auto = {} local i_20_auto = 0 for suit, short_name in pairs(advisors) do
- local val_21_auto = build_label(short_name, app["location->position"](app, {"advisor", suit, "label"})) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end advisor_titles = tbl_19_auto end local empty_fields
- do local base = {} for _, _117_ in ipairs({{"kingdom", 8}, {"draw", 1}, {"discard", 1}, {"score", 1}}) do local _each_118_ = _117_ local field = _each_118_[1] local count = _each_118_[2]
+ do local tbl_21_auto = {} local i_22_auto = 0 for suit, short_name in pairs(advisors) do
+ local val_23_auto = build_label(short_name, app["location->position"](app, {"advisor", suit, "label"})) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end advisor_titles = tbl_21_auto end local empty_fields
+ do local base = {} for _, _97_ in ipairs({{"kingdom", 8}, {"draw", 1}, {"discard", 1}, {"score", 1}}) do local field = _97_[1] local count = _97_[2]
 
 
 
- local tbl_17_auto = base for i = 1, count do local val_18_auto
- local function _119_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_18_auto = CardComponents.slot(_119_, {field, i, 0}, app["card-style"]) table.insert(tbl_17_auto, val_18_auto) end base = tbl_17_auto end empty_fields = base end local empty_fields0
+ local tbl_19_auto = base for i = 1, count do local val_20_auto
+ local function _98_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_auto = CardComponents.slot(_98_, {field, i, 0}, app["card-style"]) table.insert(tbl_19_auto, val_20_auto) end base = tbl_19_auto end empty_fields = base end local empty_fields0
 
 
 
- do local tbl_17_auto = empty_fields for _, t in ipairs(advisors) do local val_18_auto
- local function _120_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_18_auto = CardComponents.slot(_120_, {"advisor", t, 0}, app["card-style"]) table.insert(tbl_17_auto, val_18_auto) end empty_fields0 = tbl_17_auto end
+ do local tbl_19_auto = empty_fields for _, t in ipairs(advisors) do local val_20_auto
+ local function _99_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_auto = CardComponents.slot(_99_, {"advisor", t, 0}, app["card-style"]) table.insert(tbl_19_auto, val_20_auto) end empty_fields0 = tbl_19_auto end
 
 
 
@@ -480,7 +480,7 @@
 
 
 
- local function _121_(self, text) self["set-content"](self, {{{text, "@playtime.ui.off"}}}) self["set-position"](self, {row = 30, col = math.floor(((app.view.width / 2) - (#text / 2))), z = app["z-index-for-layer"](app, "label")}) return self["set-size"](self, {width = #text, height = 1}) end guide_text = Component.build(_121_):update("Select a kingdom") local win_count
+ local function _100_(self, text) self["set-content"](self, {{{text, "@playtime.ui.off"}}}) self["set-position"](self, {row = 30, col = math.floor(((app.view.width / 2) - (#text / 2))), z = app["z-index-for-layer"](app, "label")}) return self["set-size"](self, {width = #text, height = 1}) end guide_text = Component.build(_100_):update("Select a kingdom") local win_count
 
 
 
@@ -488,7 +488,7 @@
 
 
 
- do local _let_122_ = app["fetch-statistics"](app) local wins = _let_122_["wins"]
+ do local _let_101_ = app["fetch-statistics"](app) local wins = _let_101_["wins"]
  win_count = CommonComponents["win-count"](wins, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar", 1)}) end
 
 
@@ -507,7 +507,7 @@
 
  return update_card_counts(app) end
 
- M.render = function(app) do end (app.view):render({app.components["empty-fields"], app.components["advisor-titles"], app.components.cards, app.components["win-needed-labels"], {app.components.emissary, app.components["guide-text"], app.components["card-counts"].discard, app.components["card-counts"].draw, app.components["card-counts"].score, app.components["game-report"], app.components["win-count"], app.components.menubar}})
+ M.render = function(app) app.view:render({app.components["empty-fields"], app.components["advisor-titles"], app.components.cards, app.components["win-needed-labels"], {app.components.emissary, app.components["guide-text"], app.components["card-counts"].discard, app.components["card-counts"].draw, app.components["card-counts"].score, app.components["game-report"], app.components["win-count"], app.components.menubar}})
 
 
 
@@ -525,13 +525,13 @@
  M.tick = function(app)
  local now = uv.now() app["process-next-event"](app)
 
- do local _123_ = app.state.module.tick if (nil ~= _123_) then local f = _123_
- f(app) else local _ = _123_
+ do local _102_ = app.state.module.tick if (nil ~= _102_) then local f = _102_
+ f(app) else local _ = _102_
  local adjustment do local t = {}
  for key, vals in pairs((app.state.context.selected or {})) do
  for i, _0 in pairs(vals) do
  table.set(t, string.fmt("%s.%s", key, i), {key, i}) end end
- do local _124_ = app.state.context.selecting if ((_G.type(_124_) == "table") and (nil ~= _124_[1]) and (nil ~= _124_[2])) then local key = _124_[1] local v = _124_[2]
+ do local _103_ = app.state.context.selecting if ((_G.type(_103_) == "table") and (nil ~= _103_[1]) and (nil ~= _103_[2])) then local key = _103_[1] local v = _103_[2]
  table.set(t, string.fmt("%s.%s", key, v), {key, v}) else end end
 
  adjustment = table.values(t) end
@@ -539,7 +539,7 @@
  local comp = app["card-id->components"][card.id] comp:update(location, card)
 
  for _0, marked in ipairs(adjustment) do
- local _126_, _127_ = location, marked if (((_G.type(_126_) == "table") and (nil ~= _126_[1]) and (nil ~= _126_[2])) and ((_G.type(_127_) == "table") and (_126_[1] == _127_[1]) and (_126_[2] == _127_[2]))) then local f = _126_[1] local n = _126_[2] comp["set-position"](comp, {row = (comp.row - 1)}) else end end end end end
+ local _105_, _106_ = location, marked if (((_G.type(_105_) == "table") and (nil ~= _105_[1]) and (nil ~= _105_[2])) and ((_G.type(_106_) == "table") and (_105_[1] == _106_[1]) and (_105_[2] == _106_[2]))) then local f = _105_[1] local n = _105_[2] comp["set-position"](comp, {row = (comp.row - 1)}) else end end end end end
 
  update_card_counts(app) return app["request-render"](app) end
 

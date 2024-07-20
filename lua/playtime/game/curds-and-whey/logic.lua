@@ -10,12 +10,12 @@
 
 
 
- local _local_2_ = CardGameUtils local inc_moves = _local_2_["inc-moves"]
- local apply_events = _local_2_["apply-events"]
+ local inc_moves = CardGameUtils["inc-moves"]
+ local apply_events = CardGameUtils["apply-events"]
  M["iter-cards"] = CardGameUtils["make-iter-cards-fn"]({"draw", "tableau", "complete"})
- local _local_3_ = CardGameUtils["make-card-util-fns"]({value = {king = 13, queen = 12, jack = 11}, color = {diamonds = "red", hearts = "red", clubs = "black", spades = "black"}}) local card_value = _local_3_["card-value"] local card_color = _local_3_["card-color"] local card_rank = _local_3_["card-rank"]
- local card_suit = _local_3_["card-suit"] local rank_value = _local_3_["rank-value"] local suit_color = _local_3_["suit-color"]
- local card_face_up_3f = _local_3_["card-face-up?"] local card_face_down_3f = _local_3_["card-face-down?"]
+ local _local_2_ = CardGameUtils["make-card-util-fns"]({value = {king = 13, queen = 12, jack = 11}, color = {diamonds = "red", hearts = "red", clubs = "black", spades = "black"}}) local card_value = _local_2_["card-value"] local card_color = _local_2_["card-color"] local card_rank = _local_2_["card-rank"]
+ local card_suit = _local_2_["card-suit"] local rank_value = _local_2_["rank-value"] local suit_color = _local_2_["suit-color"]
+ local card_face_up_3f = _local_2_["card-face-up?"] local card_face_down_3f = _local_2_["card-face-down?"]
 
 
 
@@ -33,30 +33,30 @@
  local deck = Deck.shuffle(Deck.Standard52.build())
 
  local state = new_game_state()
- do end (state)["draw"][1] = deck
+ state["draw"][1] = deck
  state["suits"] = config.suits
  return state end
 
  local valid_build_sequence_3f, valid_move_sequence_3f = nil, nil
- do local same_rank_any_suit local function _6_(next_card, _4_) local _arg_5_ = _4_ local last_card = _arg_5_[1]
+ do local same_rank_any_suit local function _4_(next_card, _3_) local last_card = _3_[1]
  local last_value = card_value(last_card)
  local next_value = card_value(next_card)
- return (last_value == next_value) end same_rank_any_suit = _6_ local desc_rank_same_suit
- local function _9_(next_card, _7_) local _arg_8_ = _7_ local last_card = _arg_8_[1]
+ return (last_value == next_value) end same_rank_any_suit = _4_ local desc_rank_same_suit
+ local function _6_(next_card, _5_) local last_card = _5_[1]
  local last_value = card_value(last_card)
  local next_value = card_value(next_card)
  local last_suit = card_suit(last_card)
  local next_suit = card_suit(next_card)
- return ((last_suit == next_suit) and (last_value == (next_value + 1))) end desc_rank_same_suit = _9_ local build_3f
+ return ((last_suit == next_suit) and (last_value == (next_value + 1))) end desc_rank_same_suit = _6_ local build_3f
 
 
- local function _10_(next_card, other_cards)
- return (same_rank_any_suit(next_card, other_cards) or desc_rank_same_suit(next_card, other_cards)) end build_3f = CardGameUtils["make-valid-sequence?-fn"](_10_) local move_3f
+ local function _7_(next_card, other_cards)
+ return (same_rank_any_suit(next_card, other_cards) or desc_rank_same_suit(next_card, other_cards)) end build_3f = CardGameUtils["make-valid-sequence?-fn"](_7_) local move_3f
 
- local function _11_(sequence)
+ local function _8_(sequence)
  local a = CardGameUtils["make-valid-sequence?-fn"](same_rank_any_suit)
  local b = CardGameUtils["make-valid-sequence?-fn"](desc_rank_same_suit)
- return (a(sequence) or b(sequence)) end move_3f = _11_
+ return (a(sequence) or b(sequence)) end move_3f = _8_
  valid_build_sequence_3f, valid_move_sequence_3f = build_3f, move_3f end
 
  local function complete_sequence_3f(sequence)
@@ -72,8 +72,8 @@
  local flip = {"face-up", from}
 
 
- local _12_ if (t_col == 13) then _12_ = 1 else _12_ = (t_col + 1) end
- local function _14_() if (t_col == 13) then return (row + 1) else return row end end moves0, t_col, row = table.insert(table.insert(moves0, flip), move), _12_, _14_() end moves = moves0, t_col, row end
+ local _9_ if (t_col == 13) then _9_ = 1 else _9_ = (t_col + 1) end
+ local function _11_() if (t_col == 13) then return (row + 1) else return row end end moves0, t_col, row = table.insert(table.insert(moves0, flip), move), _9_, _11_() end moves = moves0, t_col, row end
  local next_state, moves0 = apply_events(clone(state), moves)
  return next_state, moves0 end
 
@@ -91,27 +91,27 @@
  return nil, Error("May not pick up from #{field}", {field = field}) else return nil end end
 
  local function put_down(state, pick_up_from, dropped_on, held)
- local _18_, _19_, _20_ = pick_up_from, dropped_on, held local function _21_() local field = _18_[1] local col = _18_[2] local from_n = _18_[3] local on_n = _19_[3] local _ = _20_ return (from_n == (1 + on_n)) end if ((((_G.type(_18_) == "table") and (nil ~= _18_[1]) and (nil ~= _18_[2]) and (nil ~= _18_[3])) and ((_G.type(_19_) == "table") and (_18_[1] == _19_[1]) and (_18_[2] == _19_[2]) and (nil ~= _19_[3])) and true) and _21_()) then local field = _18_[1] local col = _18_[2] local from_n = _18_[3] local on_n = _19_[3] local _ = _20_
+ local _15_, _16_, _17_ = pick_up_from, dropped_on, held local and_18_ = (((_G.type(_15_) == "table") and (nil ~= _15_[1]) and (nil ~= _15_[2]) and (nil ~= _15_[3])) and ((_G.type(_16_) == "table") and (_15_[1] == _16_[1]) and (_15_[2] == _16_[2]) and (nil ~= _16_[3])) and true) if and_18_ then local field = _15_[1] local col = _15_[2] local from_n = _15_[3] local on_n = _16_[3] local _ = _17_ and_18_ = (from_n == (1 + on_n)) end if and_18_ then local field = _15_[1] local col = _15_[2] local from_n = _15_[3] local on_n = _16_[3] local _ = _17_
 
 
- return nil else local function _22_() local _ = _18_ local field = _19_[1] local col_n = _19_[2] local card_n = _19_[3] local _0 = _20_ return not (card_n == #state[field][col_n]) end if ((true and ((_G.type(_19_) == "table") and (nil ~= _19_[1]) and (nil ~= _19_[2]) and (nil ~= _19_[3])) and true) and _22_()) then local _ = _18_ local field = _19_[1] local col_n = _19_[2] local card_n = _19_[3] local _0 = _20_
+ return nil else local and_20_ = (true and ((_G.type(_16_) == "table") and (nil ~= _16_[1]) and (nil ~= _16_[2]) and (nil ~= _16_[3])) and true) if and_20_ then local _ = _15_ local field = _16_[1] local col_n = _16_[2] local card_n = _16_[3] local _0 = _17_ and_20_ = not (card_n == #state[field][col_n]) end if and_20_ then local _ = _15_ local field = _16_[1] local col_n = _16_[2] local card_n = _16_[3] local _0 = _17_
 
 
 
- return nil, Error("Must place cards on the bottom of a cascade") else local function _23_() local a = _18_[2] local b = _19_[2] local _ = _20_ return not (a == b) end if ((((_G.type(_18_) == "table") and (_18_[1] == "tableau") and (nil ~= _18_[2]) and (_18_[3] == 1)) and ((_G.type(_19_) == "table") and (_19_[1] == "tableau") and (nil ~= _19_[2]) and (_19_[3] == 0)) and true) and _23_()) then local a = _18_[2] local b = _19_[2] local _ = _20_
+ return nil, Error("Must place cards on the bottom of a cascade") else local and_22_ = (((_G.type(_15_) == "table") and (_15_[1] == "tableau") and (nil ~= _15_[2]) and (_15_[3] == 1)) and ((_G.type(_16_) == "table") and (_16_[1] == "tableau") and (nil ~= _16_[2]) and (_16_[3] == 0)) and true) if and_22_ then local a = _15_[2] local b = _16_[2] local _ = _17_ and_22_ = not (a == b) end if and_22_ then local a = _15_[2] local b = _16_[2] local _ = _17_
 
 
 
 
  local from_col = state.tableau[a] local moves
- do local tbl_19_auto = {} local i_20_auto = 0 for i, _card in ipairs(from_col) do
- local val_21_auto = {"move", {"tableau", a, i}, {"tableau", b, i}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end moves = tbl_19_auto end
- return apply_events(clone(state), moves, {["unsafely?"] = true}) elseif (((_G.type(_18_) == "table") and (_18_[1] == "tableau") and (nil ~= _18_[2]) and (nil ~= _18_[3])) and ((_G.type(_19_) == "table") and (_19_[1] == "tableau") and (nil ~= _19_[2]) and (nil ~= _19_[3])) and (nil ~= _20_)) then local f_col = _18_[2] local f_card_n = _18_[3] local t_col = _19_[2] local t_card_n = _19_[3] local held0 = _20_
+ do local tbl_21_auto = {} local i_22_auto = 0 for i, _card in ipairs(from_col) do
+ local val_23_auto = {"move", {"tableau", a, i}, {"tableau", b, i}} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end moves = tbl_21_auto end
+ return apply_events(clone(state), moves, {["unsafely?"] = true}) elseif (((_G.type(_15_) == "table") and (_15_[1] == "tableau") and (nil ~= _15_[2]) and (nil ~= _15_[3])) and ((_G.type(_16_) == "table") and (_16_[1] == "tableau") and (nil ~= _16_[2]) and (nil ~= _16_[3])) and (nil ~= _17_)) then local f_col = _15_[2] local f_card_n = _15_[3] local t_col = _16_[2] local t_card_n = _16_[3] local held0 = _17_
 
 
 
- local moves do local tbl_19_auto = {} local i_20_auto = 0 for i = 1, #held0 do
- local val_21_auto = {"move", {"tableau", f_col, (f_card_n + (i - 1))}, {"tableau", t_col, (t_card_n + i)}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end moves = tbl_19_auto end
+ local moves do local tbl_21_auto = {} local i_22_auto = 0 for i = 1, #held0 do
+ local val_23_auto = {"move", {"tableau", f_col, (f_card_n + (i - 1))}, {"tableau", t_col, (t_card_n + i)}} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end moves = tbl_21_auto end
 
 
  local one_up = {"tableau", f_col, (f_card_n - 1)} local _
@@ -126,7 +126,7 @@
  return nil, Error("May only place kings in empty slots") else local _1 = _28_
  if valid_build_sequence_3f(new_run) then
  return next_state, moves else
- return nil, Error("Must build piles in same suit, descending rank or any suit, same rank") end end else local _ = _18_
+ return nil, Error("Must build piles in same suit, descending rank or any suit, same rank") end end else local _ = _15_
 
 
  return nil, Error("No putdown for #{field}", {field = dropped_on}) end end end end
@@ -144,13 +144,13 @@
 
  local complete_n do local index = nil for i, c in ipairs(state.complete) do if index then break end
  if (0 == #c) then index = i else index = nil end end complete_n = index end
- local _let_50_ = sequence_starts_at local f_field = _let_50_[1] local f_col = _let_50_[2] local f_card_n = _let_50_[3] local moves
- do local tbl_19_auto = {} local i_20_auto = 0 for i = (f_card_n + 12), f_card_n, -1 do
- local val_21_auto = {"move", {f_field, f_col, i}, {"complete", complete_n, ((f_card_n + 12) - (i - 1))}} if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end moves = tbl_19_auto end
+ local f_field = sequence_starts_at[1] local f_col = sequence_starts_at[2] local f_card_n = sequence_starts_at[3] local moves
+ do local tbl_21_auto = {} local i_22_auto = 0 for i = (f_card_n + 12), f_card_n, -1 do
+ local val_23_auto = {"move", {f_field, f_col, i}, {"complete", complete_n, ((f_card_n + 12) - (i - 1))}} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end moves = tbl_21_auto end
 
 
  local one_up = {"tableau", f_col, (f_card_n - 1)} local _
- do local _52_ = table["get-in"](state, one_up) if ((_G.type(_52_) == "table") and (_52_.face == "down")) then
+ do local _51_ = table["get-in"](state, one_up) if ((_G.type(_51_) == "table") and (_51_.face == "down")) then
  _ = table.insert(moves, {"face-up", one_up}) else _ = nil end end
  local next_state, moves0 = apply_events(clone(state), moves)
  return next_state, moves0 elseif ((_47_ == nil) and (nil ~= _48_)) then local err = _48_ else return nil end end return _46_(complete_sequence_3f(held)) elseif ((_44_ == nil) and (nil ~= _45_)) then local err = _45_ else return nil end end return _43_(#held) elseif ((_41_ == nil) and (nil ~= _42_)) then local err = _42_ else return nil end end return _40_(check_pick_up(state, sequence_starts_at)) end

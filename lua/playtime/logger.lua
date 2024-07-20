@@ -13,9 +13,9 @@
 
  M.info = function(msg, _3fdetails)
  local function get_detail(name)
- local _5_ = (_3fdetails or {})[name] local function _6_() local t = _5_ return type["table?"](t) end if ((nil ~= _5_) and _6_()) then local t = _5_
- local _7_ = getmetatable(t) local function _8_() local mt = _7_ return mt.__tostring end if ((nil ~= _7_) and _8_()) then local mt = _7_
- return mt.__tostring(t) else local _ = _7_
+ local _5_ = (_3fdetails or {})[name] local and_6_ = (nil ~= _5_) if and_6_ then local t = _5_ and_6_ = type["table?"](t) end if and_6_ then local t = _5_
+ local _8_ = getmetatable(t) local and_9_ = (nil ~= _8_) if and_9_ then local mt = _8_ and_9_ = mt.__tostring end if and_9_ then local mt = _8_
+ return mt.__tostring(t) else local _ = _8_
  return view(t) end elseif (nil ~= _5_) then local v = _5_
  return tostring(v) elseif (_5_ == nil) then
  return ("! missing detail value: " .. name .. " !") else return nil end end

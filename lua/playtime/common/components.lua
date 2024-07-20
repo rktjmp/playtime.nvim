@@ -23,7 +23,7 @@
 
 
 
- M["win-count"] = function(_3fwins, _4_) local _arg_5_ = _4_ local width = _arg_5_["width"] local z = _arg_5_["z"] _G.assert((nil ~= z), "Missing argument z on fnl/playtime/common/components.fnl:26") _G.assert((nil ~= width), "Missing argument width on fnl/playtime/common/components.fnl:26")
+ M["win-count"] = function(_3fwins, _4_) local width = _4_["width"] local z = _4_["z"] _G.assert((nil ~= z), "Missing argument z on fnl/playtime/common/components.fnl:26") _G.assert((nil ~= width), "Missing argument width on fnl/playtime/common/components.fnl:26")
  local text = ("Wins: " .. (_3fwins or 0))
  return Component["set-content"](Component["set-size"](Component["set-position"](Component.build(), {row = 0, col = (width - #text - 1), z = z}), {width = #text, height = 1}), {{{text, "@playtime.ui.menu"}}}) end
 
@@ -33,9 +33,9 @@
  M["game-report"] = function(view_width, view_height, z, options) _G.assert((nil ~= options), "Missing argument options on fnl/playtime/common/components.fnl:33") _G.assert((nil ~= z), "Missing argument z on fnl/playtime/common/components.fnl:33") _G.assert((nil ~= view_height), "Missing argument view-height on fnl/playtime/common/components.fnl:33") _G.assert((nil ~= view_width), "Missing argument view-width on fnl/playtime/common/components.fnl:33")
 
 
- local function _6_(comp, result, _3fother_lines)
+ local function _5_(comp, result, _3fother_lines)
  local other_lines = (_3fother_lines or {}) local max_len
- do local m = 0 for _, _7_ in ipairs(options) do local _each_8_ = _7_ local _id = _each_8_[1] local text = _each_8_[2]
+ do local m = 0 for _, _6_ in ipairs(options) do local _id = _6_[1] local text = _6_[2]
  m = math.max(m, string["col-width"](text)) end max_len = m end local max_len0
  do local m = max_len for _, text in ipairs(other_lines) do
  m = math.max(m, string["col-width"](text)) end max_len0 = m end
@@ -50,17 +50,17 @@
 
 
 
- local function _9_() if (0 < #other_lines) then
- return (#other_lines + 1) else return 0 end end height = (1 + 1 + #options + 1 + _9_() + 1) local row = 5
+ local _7_ if (0 < #other_lines) then
+ _7_ = (#other_lines + 1) else _7_ = 0 end height = (1 + 1 + #options + 1 + _7_ + 1) local row = 5
 
 
 
 
  local col = (math.floor((view_width / 2)) - math.floor((width / 2))) local lines
- do local tbl_19_auto = {} local i_20_auto = 0 for _, _10_ in ipairs(options) do local _each_11_ = _10_ local id = _each_11_[1] local text = _each_11_[2] local val_21_auto
- do local text0 local function _12_() if (id == result) then return "\226\152\145 " else return "\226\152\144 " end end text0 = (_12_() .. " " .. text)
+ do local tbl_21_auto = {} local i_22_auto = 0 for _, _9_ in ipairs(options) do local id = _9_[1] local text = _9_[2] local val_23_auto
+ do local text0 local _10_ if (id == result) then _10_ = "\226\152\145 " else _10_ = "\226\152\144 " end text0 = (_10_ .. " " .. text)
 
- local function _13_() if (id == result) then return "@playtime.color.yellow" else return "@playtime.ui.off" end end val_21_auto = {{(edge .. " "), border_color}, {text0, _13_()}, {string.rep(" ", (max_len1 - string["col-width"](text0) - 1))}, {(edge .. " "), border_color}} end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end lines = tbl_19_auto end
+ local function _12_() if (id == result) then return "@playtime.color.yellow" else return "@playtime.ui.off" end end val_23_auto = {{(edge .. " "), border_color}, {text0, _12_()}, {string.rep(" ", (max_len1 - string["col-width"](text0) - 1))}, {(edge .. " "), border_color}} end if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end lines = tbl_21_auto end
 
 
  table.insert(lines, 1, empty)
@@ -72,7 +72,7 @@
 
 
  table.insert(lines, empty)
- table.insert(lines, bottom) comp["set-size"](comp, {width = width, height = height}) comp["set-position"](comp, {row = row, col = col, z = z}) comp["set-visible"](comp, true) return comp["set-content"](comp, lines) end return Component["set-visible"](Component.build(_6_), false) end
+ table.insert(lines, bottom) comp["set-size"](comp, {width = width, height = height}) comp["set-position"](comp, {row = row, col = col, z = z}) comp["set-visible"](comp, true) return comp["set-content"](comp, lines) end return Component["set-visible"](Component.build(_5_), false) end
 
 
 
@@ -109,9 +109,9 @@
 
 
  local lines
- do local tbl_19_auto = {} local i_20_auto = 0 for _, line in ipairs(raw_lines1) do local val_21_auto
+ do local tbl_21_auto = {} local i_22_auto = 0 for _, line in ipairs(raw_lines1) do local val_23_auto
  do local parts = {} for lw, letters, tw in string.gmatch(line, "(%s*)(%S+)(%s*)") do
- table.insert(parts, {lw}) table.insert(parts, {letters, "@playtime.color.red"}) table.insert(parts, {tw}) parts = parts end val_21_auto = parts end if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end lines = tbl_19_auto end
+ table.insert(parts, {lw}) table.insert(parts, {letters, "@playtime.color.red"}) table.insert(parts, {tw}) parts = parts end val_23_auto = parts end if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end lines = tbl_21_auto end
 
 
 
@@ -120,25 +120,25 @@
 
 
 
- M.menubar = function(menu_structure, _16_) local _arg_17_ = _16_ local view_width = _arg_17_["width"] local z = _arg_17_["z"] _G.assert((nil ~= z), "Missing argument z on fnl/playtime/common/components.fnl:123") _G.assert((nil ~= view_width), "Missing argument view-width on fnl/playtime/common/components.fnl:123") _G.assert((nil ~= menu_structure), "Missing argument menu-structure on fnl/playtime/common/components.fnl:123")
+ M.menubar = function(menu_structure, _15_) local view_width = _15_["width"] local z = _15_["z"] _G.assert((nil ~= z), "Missing argument z on fnl/playtime/common/components.fnl:123") _G.assert((nil ~= view_width), "Missing argument view-width on fnl/playtime/common/components.fnl:123") _G.assert((nil ~= menu_structure), "Missing argument menu-structure on fnl/playtime/common/components.fnl:123")
  local function pad_text(text) _G.assert((nil ~= text), "Missing argument text on fnl/playtime/common/components.fnl:124") return (" " .. text .. " ") end
  local function fill_text_width(text, width) _G.assert((nil ~= width), "Missing argument width on fnl/playtime/common/components.fnl:125") _G.assert((nil ~= text), "Missing argument text on fnl/playtime/common/components.fnl:125")
  return (text .. string.rep(" ", (width - #text))) end local hl = "@playtime.ui.menu"
 
 
- local function make_menubar_top_menu(text, tag, _18_, _3fchildren) local _arg_19_ = _18_ local row = _arg_19_["row"] local col = _arg_19_["col"] _G.assert((nil ~= col), "Missing argument col on fnl/playtime/common/components.fnl:129") _G.assert((nil ~= row), "Missing argument row on fnl/playtime/common/components.fnl:129") _G.assert((nil ~= tag), "Missing argument tag on fnl/playtime/common/components.fnl:129") _G.assert((nil ~= text), "Missing argument text on fnl/playtime/common/components.fnl:129")
+ local function make_menubar_top_menu(text, tag, _16_, _3fchildren) local row = _16_["row"] local col = _16_["col"] _G.assert((nil ~= col), "Missing argument col on fnl/playtime/common/components.fnl:129") _G.assert((nil ~= row), "Missing argument row on fnl/playtime/common/components.fnl:129") _G.assert((nil ~= tag), "Missing argument tag on fnl/playtime/common/components.fnl:129") _G.assert((nil ~= text), "Missing argument text on fnl/playtime/common/components.fnl:129")
 
- local function _20_(self, open_3f) self["set-content"](self, {{{text, hl}}})
+ local function _17_(self, open_3f) self["set-content"](self, {{{text, hl}}})
 
- for _, c in ipairs((self.children or {})) do c["set-visible"](c, open_3f) end return nil end return Component["set-children"](Component["set-position"](Component["set-size"](Component["set-tag"](Component["set-content"](Component.build(_20_), {{{text, hl}}}), tag), {height = 1, width = #text}), {row = row, col = col, z = (z + 2)}), _3fchildren) end
-
-
+ for _, c in ipairs((self.children or {})) do c["set-visible"](c, open_3f) end return nil end return Component["set-children"](Component["set-position"](Component["set-size"](Component["set-tag"](Component["set-content"](Component.build(_17_), {{{text, hl}}}), tag), {height = 1, width = #text}), {row = row, col = col, z = (z + 2)}), _3fchildren) end
 
 
 
 
 
- local function make_menubar_menu_entry(text, _3ftag, _21_, width) local _arg_22_ = _21_ local row = _arg_22_["row"] local col = _arg_22_["col"] _G.assert((nil ~= width), "Missing argument width on fnl/playtime/common/components.fnl:141") _G.assert((nil ~= col), "Missing argument col on fnl/playtime/common/components.fnl:141") _G.assert((nil ~= row), "Missing argument row on fnl/playtime/common/components.fnl:141") _G.assert((nil ~= text), "Missing argument text on fnl/playtime/common/components.fnl:141")
+
+
+ local function make_menubar_menu_entry(text, _3ftag, _18_, width) local row = _18_["row"] local col = _18_["col"] _G.assert((nil ~= width), "Missing argument width on fnl/playtime/common/components.fnl:141") _G.assert((nil ~= col), "Missing argument col on fnl/playtime/common/components.fnl:141") _G.assert((nil ~= row), "Missing argument row on fnl/playtime/common/components.fnl:141") _G.assert((nil ~= text), "Missing argument text on fnl/playtime/common/components.fnl:141")
  return Component["set-visible"](Component["set-size"](Component["set-position"](Component["set-tag"](Component["set-content"](Component.build(), {{{fill_text_width(pad_text(text), width), hl}}}), _3ftag), {row = row, col = col, z = (z + 2)}), {height = 1, width = #fill_text_width(pad_text(text), width)}), false) end
 
 
@@ -146,13 +146,13 @@
 
 
 
- local top_menu_items do local top_items, col = {}, 1 for top_index, _23_ in ipairs(menu_structure) do
- local _each_24_ = _23_ local text = _each_24_[1] local _event = _each_24_[2] local _3fchildren = _each_24_[3]
+ local top_menu_items do local top_items, col = {}, 1 for top_index, _19_ in ipairs(menu_structure) do
+ local text = _19_[1] local _event = _19_[2] local _3fchildren = _19_[3]
  local top_text = pad_text(text) local widest_child
- do local w = #top_text for _, _25_ in ipairs((_3fchildren or {})) do local _each_26_ = _25_ local text0 = _each_26_[1]
+ do local w = #top_text for _, _20_ in ipairs((_3fchildren or {})) do local text0 = _20_[1]
  w = math.max(w, #pad_text(text0)) end widest_child = w end local children
- do local tbl_19_auto = {} local i_20_auto = 0 for child_index, _27_ in ipairs((_3fchildren or {})) do local _each_28_ = _27_ local text0 = _each_28_[1] local _event0 = _each_28_[2]
- local val_21_auto = make_menubar_menu_entry(text0, {"menu", top_index, child_index}, {row = child_index, col = (col - 1)}, widest_child) if (nil ~= val_21_auto) then i_20_auto = (i_20_auto + 1) do end (tbl_19_auto)[i_20_auto] = val_21_auto else end end children = tbl_19_auto end
+ do local tbl_21_auto = {} local i_22_auto = 0 for child_index, _21_ in ipairs((_3fchildren or {})) do local text0 = _21_[1] local _event0 = _21_[2]
+ local val_23_auto = make_menubar_menu_entry(text0, {"menu", top_index, child_index}, {row = child_index, col = (col - 1)}, widest_child) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end children = tbl_21_auto end
 
 
 
@@ -166,7 +166,7 @@
 
 
 
- do end (menubar)["menu"] = menu_structure
+ menubar["menu"] = menu_structure
  return menubar end
 
  return M
