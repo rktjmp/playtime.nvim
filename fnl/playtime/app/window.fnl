@@ -121,7 +121,7 @@
                                           (when (= winid (tostring win))
                                             (dispatch.window.via :quit)
                                             (api.nvim_del_augroup_by_id augroup)
-                                            (values true)))})
+                                            true))})
     (api.nvim_create_autocmd :VimResized
                              {:group augroup
                               :callback (fn []
@@ -129,10 +129,13 @@
                                                                              win-mini-config)]
                                             (if view.minimised?
                                               (api.nvim_win_set_config win win-mini-config)
-                                              (api.nvim_win_set_config win win-maxi-config))))})
+                                              (api.nvim_win_set_config win win-maxi-config)))
+                                          false)})
     (api.nvim_create_autocmd :ColorScheme
                              {:group augroup
-                              :callback (fn [] (Highlight.define-highlights ns))})
+                              :callback (fn []
+                                          (Highlight.define-highlights ns)
+                                          false)})
 
     (api.nvim_create_autocmd :BufLeave
                              {:group augroup
@@ -145,7 +148,7 @@
                                           (view:render [[logo-component]])
                                           ;; BUG TODO: 0.9.4 nvim clears win hl ns when setting config
                                           ; (api.nvim_win_set_hl_ns win ns)
-                                          )})
+                                          false)})
     (api.nvim_create_autocmd :BufEnter
                              {:group augroup
                               :buffer buf
@@ -158,7 +161,7 @@
                                           (dispatch.window.via :noop)
                                           ;; BUG TODO: 0.9.4 nvim clears win hl ns when setting config
                                           ; (api.nvim_win_set_hl_ns win ns)
-                                          )})
+                                          false)})
 
     (case dispatch.mouse
       {: via : events}
