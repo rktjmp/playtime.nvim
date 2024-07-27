@@ -11,9 +11,9 @@
 
 (fn position->component-tags [{: buf : ns : win : extmark-tags &as view} row col]
   (let [all-extmarks (vim.api.nvim_buf_get_extmarks buf ns [row 0] [row col] {:details true})
-        ;; get_extmarks only returns extmarks by their "anchor/start col".
-        ;; Manually check all extmarks before our position for marks that
-        ;; extend from their start-col past our position col.
+        ;; nvim_buf_get_extmarks only returns extmarks by their "anchor/start col",
+        ;; So we get *all* extmarks between the start of the row up to the given column,
+        ;; then check if they overlap our given column.
         between-extmarks (faccumulate [between [] i (length all-extmarks) 1 -1]
                            (let [[id _row extmark-col-start details] (. all-extmarks i)
                                  {:end_col extmark-col-end :priority z} details
