@@ -38,14 +38,14 @@
                   [:PlaytimeNormal (fetch-fg :NormalFloat :Normal)]
                   [:PlaytimeMuted (fetch-fg :Comment)]
                   [:PlaytimeWhite (fetch-fg :NormalFloat :Normal)]
+                  [:PlaytimeBlack (fetch-fg :Comment)]
                   [:PlaytimeRed (fetch-fg :DiagnosticError)]
                   [:PlaytimeGreen (fetch-fg :DiagnosticOk)]
                   [:PlaytimeYellow {:fg :#fcd34d}]
                   [:PlaytimeOrange (fetch-fg :DiagnosticWarn)]
                   [:PlaytimeBlue (fetch-fg :DiagnosticInfo)]
                   [:PlaytimeMagenta {:fg :#e879f9}]
-                  [:PlaytimeCyan {:fg :#22d3ee}]
-                  [:PlaytimeBlack (fetch-fg :Comment)]]]
+                  [:PlaytimeCyan {:fg :#22d3ee}]]]
 
     (each [_ [name data] (ipairs core-hls)] (hl name data))
 
