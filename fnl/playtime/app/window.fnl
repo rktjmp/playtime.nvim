@@ -111,9 +111,7 @@
     (api.nvim_buf_set_option buf :modifiable false)
     (api.nvim_buf_set_option buf :filetype filetype)
     (api.nvim_win_set_option win :wrap false)
-    (api.nvim_win_set_hl_ns win ns)
-
-    (Highlight.define-highlights ns)
+    (Highlight.define-highlights)
     (set vim.o.guicursor "a:PlaytimeHiddenCursor")
 
     (assert (?. dispatch :window :via) "Must provide dispatch.window.via function")
@@ -136,7 +134,7 @@
     (api.nvim_create_autocmd :ColorScheme
                              {:group augroup
                               :callback (fn []
-                                          (Highlight.define-highlights ns)
+                                          (Highlight.define-highlights)
                                           false)})
 
     (api.nvim_create_autocmd :BufLeave
@@ -148,8 +146,6 @@
                                           (api.nvim_win_set_cursor win [1 0])
                                           (api.nvim_win_set_config win win-mini-config)
                                           (view:render [[logo-component]])
-                                          ;; BUG TODO: 0.9.4 nvim clears win hl ns when setting config
-                                          ; (api.nvim_win_set_hl_ns win ns)
                                           false)})
     (api.nvim_create_autocmd :BufEnter
                              {:group augroup
@@ -161,8 +157,6 @@
                                           (api.nvim_win_set_config win win-maxi-config)
                                           ;; Trigger app render
                                           (dispatch.window.via :noop)
-                                          ;; BUG TODO: 0.9.4 nvim clears win hl ns when setting config
-                                          ; (api.nvim_win_set_hl_ns win ns)
                                           false)})
 
     (case dispatch.mouse
