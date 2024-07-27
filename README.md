@@ -134,38 +134,42 @@ extra game!
 
 > **My colors are U. G. L. Y.**
 
-Colors are extracted from the current color scheme, but only the foreground
-color is used. No background color or text effects are kept.
+Playtime currently uses a limited "traditional" color palette of red, green,
+yellow, orange, blue, magenta, cyan, white and black.
 
-Playtime currently uses a traditional color palette of red, green, yellow,
-orange, blue, magenta, cyan, white and black.
+Where possible, colors are derived from existing highlight groups. No
+background color or text effects are kept, for this reason, the groups are
+*not* linked. Some colors names may not match their visual appearance, for
+example `PlaytimeGreen` may be blue if your color scheme defines `DiagnosticOk`
+to be blue.
 
-Regular text derives from `NormalFloat`, "muted"/dim text derives from
-`Comment`. Red, green, orange and blue derive from `DiagnosticError`,
-`DiagnosticOk`, `DiagnosticWarn` and `DiagnosticInfo` respectively since those
-colors *mostly* align in spirit if not in substance. Yellow, magenta and cyan
-are defined explicitly. White and black use `PlaytimeNormal` and
-`PlaytimeMuted` respectively.
+Yellow, magenta and cyan are defined by Playtime itself because existing
+highlight groups did not provide a reliable default choice.
 
 You can override the colors by defining any of the following highlight groups:
 
-    PlaytimeNormal
-    PlaytimeMuted
-    PlaytimeWhite
-    PlaytimeRed
-    PlaytimeGreen
-    PlaytimeYellow
-    PlaytimeOrange
-    PlaytimeBlue
-    PlaytimeMagenta
-    PlaytimeCyan
-    PlaytimeBlack
+```lua
+PlaytimeNormal  -- NormalFloat.fg
+PlaytimeMuted   -- Comment.fg
+PlaytimeWhite   -- NormalFloat.fg
+PlaytimeBlack   -- Comment.fg
+PlaytimeRed     -- DiagnosticError.fg
+PlaytimeGreen   -- DiagnosticOk.fg
+PlaytimeYellow  -- Defined manually
+PlaytimeOrange  -- DiagnosticWarn.fg
+PlaytimeBlue    -- DiagnosticInfo.fg
+PlaytimeMagenta -- Defined manually
+PlaytimeCyan    -- Defined manually
+```
+
+There are additional `@playtime.*` groups which link to the default groups
+which you may define for per-game alterations or tweak additional UI elements.
 
 > **My text is U. G. L. Y.**
 
 I use the font [Iosevka](https://typeof.net/Iosevka/), so symbols are dictated
 by its unicode coverage. Some fonts may not support some symbols, or may render
-them in a different mannner (2-ch wide instead of 1-ch for example). You may be
+them in a different manner (2-ch wide instead of 1-ch for example). You may be
 able to configure a fallback font for your terminal, the Noto family may be a
 good option.
 
