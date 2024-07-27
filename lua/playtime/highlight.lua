@@ -9,7 +9,6 @@
  local _let_3_ = require("bit") local tohex = _let_3_["tohex"]
  return string.format("#%s", tohex(c, 6)) end
 
- M["define-highlights"] = function()
  local function fetch_fg(hl_name, ...) local rest = {...}
 
 
@@ -25,16 +24,8 @@
  return {fg = "#FF00DD"} else return nil end elseif ((_G.type(_7_) == "table") and (nil ~= _7_.fg)) then local fg = _7_.fg
 
  return {fg = to_hex(fg)} else return nil end end return _6_(nvim_get_hl(0, {name = hl_name, link = true})) elseif ((_G.type(_5_) == "table") and (nil ~= _5_.fg)) then local fg = _5_.fg return {fg = to_hex(fg)} else return nil end end return _4_(nvim_get_hl(0, {name = hl_name, link = false})) end
- local function define_hl_if_missing(ns, hl_name, hl_data)
 
-
-
- if table["empty?"](nvim_get_hl(0, {name = hl_name, link = true})) then
- return nvim_set_hl(ns, hl_name, hl_data) else return nil end end
- local function hl(name, data) return define_hl_if_missing(0, name, data) end
- local function link(name, to) return define_hl_if_missing(0, name, {link = to}) end
-
- local core_hls = {{"PlaytimeHiddenCursor", {blend = 100, reverse = true}}, {"PlaytimeNormal", fetch_fg("NormalFloat", "Normal")}, {"PlaytimeMuted", fetch_fg("Comment")}, {"PlaytimeWhite", fetch_fg("NormalFloat", "Normal")}, {"PlaytimeRed", fetch_fg("DiagnosticError")}, {"PlaytimeGreen", fetch_fg("DiagnosticOk")}, {"PlaytimeYellow", {fg = "#fcd34d"}}, {"PlaytimeOrange", fetch_fg("DiagnosticWarn")}, {"PlaytimeBlue", fetch_fg("DiagnosticInfo")}, {"PlaytimeMagenta", {fg = "#e879f9"}}, {"PlaytimeCyan", {fg = "#22d3ee"}}, {"PlaytimeBlack", fetch_fg("Comment")}}
+ local function define_hl_if_missing(hl_name, hl_data)
 
 
 
@@ -47,7 +38,30 @@
 
 
 
- for _, _12_ in ipairs(core_hls) do local name = _12_[1] local data = _12_[2] hl(name, data) end
+
+
+ if table["empty?"](nvim_get_hl(0, {name = hl_name, link = true, create = false})) then
+ return nvim_set_hl(0, hl_name, hl_data) else return nil end end
+
+ local function hl(name, data)
+ return define_hl_if_missing(name, data) end
+
+ local function link(name, to)
+ return define_hl_if_missing(name, {link = to}) end
+
+ M["define-highlights"] = function()
+ hl("PlaytimeHiddenCursor", {blend = 100, reverse = true})
+ hl("PlaytimeNormal", fetch_fg("NormalFloat", "Normal"))
+ hl("PlaytimeMuted", fetch_fg("Comment"))
+ hl("PlaytimeWhite", fetch_fg("NormalFloat", "Normal"))
+ hl("PlaytimeBlack", fetch_fg("Comment"))
+ hl("PlaytimeRed", fetch_fg("DiagnosticError"))
+ hl("PlaytimeGreen", fetch_fg("DiagnosticOk"))
+ hl("PlaytimeYellow", {fg = "#fcd34d"})
+ hl("PlaytimeOrange", fetch_fg("DiagnosticWarn"))
+ hl("PlaytimeBlue", fetch_fg("DiagnosticInfo"))
+ hl("PlaytimeMagenta", {fg = "#e879f9"})
+ hl("PlaytimeCyan", {fg = "#22d3ee"})
 
  link("@playtime.ui.on", "PlaytimeNormal")
  link("@playtime.ui.off", "PlaytimeMuted")
@@ -73,21 +87,13 @@
 
  link("@playtime.game.card.hearts.four_colors", "PlaytimeRed")
  link("@playtime.game.card.diamonds.four_colors", "PlaytimeYellow")
-
  link("@playtime.game.card.clubs.four_colors", "PlaytimeGreen")
  link("@playtime.game.card.spades.four_colors", "PlaytimeBlue")
-
-
 
  link("@playtime.game.set.selected", "PlaytimeYellow")
  link("@playtime.game.set.red", "PlaytimeRed")
  link("@playtime.game.set.green", "PlaytimeGreen")
  link("@playtime.game.set.blue", "PlaytimeBlue")
-
- link("@playtime.game.for_northwood.flowers", "PlaytimeMagenta")
- link("@playtime.game.for_northwood.claws", "PlaytimeCyan")
- link("@playtime.game.for_northwood.leaves", "PlaytimeYellow")
- link("@playtime.game.for_northwood.eyes", "PlaytimeBlue")
 
  link("@playtime.game.shenzhen.coins", "PlaytimeYellow")
  link("@playtime.game.shenzhen.myriads", "PlaytimeCyan")
@@ -96,20 +102,5 @@
  link("@playtime.game.shenzhen.dragon.green", "PlaytimeGreen")
  link("@playtime.game.shenzhen.dragon.red", "PlaytimeRed")
  return link("@playtime.game.shenzhen.dragon.white", "PlaytimeWhite") end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
  return M

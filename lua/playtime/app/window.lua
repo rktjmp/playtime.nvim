@@ -69,9 +69,11 @@
 
 
 
+
+
  return {row = row, col = col} else local _3fpos = _34_
 
- local function _42_(...) local data_5_auto = {["?pos"] = _3fpos} local resolve_6_auto local function _35_(name_7_auto) local _36_ = data_5_auto[name_7_auto] local and_37_ = (nil ~= _36_) if and_37_ then local t_8_auto = _36_ and_37_ = ("table" == type(t_8_auto)) end if and_37_ then local t_8_auto = _36_ local _39_ = getmetatable(t_8_auto) if ((_G.type(_39_) == "table") and (nil ~= _39_.__tostring)) then local f_9_auto = _39_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _39_ return vim.inspect(t_8_auto) end elseif (nil ~= _36_) then local v_11_auto = _36_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _35_ return string.gsub("Unsupported minimise position: #{?pos}", "#{(.-)}", resolve_6_auto) end return error(_42_(...)) end end local function _46_() if (minimise_position == "ne") then return {row = 0, col = (vim.o.columns - 18)} elseif (minimise_position == "nw") then return {row = 0, col = 0} elseif (minimise_position == "sw") then return {row = (vim.o.lines - 3), col = 0} elseif (minimise_position == "se") then return {row = (vim.o.lines - 3), col = (vim.o.columns - 18)} elseif ((_G.type(minimise_position) == "table") and (nil ~= minimise_position.row) and (nil ~= minimise_position.col)) then local row = minimise_position.row local col = minimise_position.col return {row = row, col = col} else local and_44_ = (nil ~= minimise_position) if and_44_ then local f = minimise_position and_44_ = type["function?"](f) end if and_44_ then local f = minimise_position return f() else return nil end end end min_pos = _33_(_46_())
+ local function _42_(...) local data_5_auto = {["?pos"] = _3fpos} local resolve_6_auto local function _35_(name_7_auto) local _36_ = data_5_auto[name_7_auto] local and_37_ = (nil ~= _36_) if and_37_ then local t_8_auto = _36_ and_37_ = ("table" == type(t_8_auto)) end if and_37_ then local t_8_auto = _36_ local _39_ = getmetatable(t_8_auto) if ((_G.type(_39_) == "table") and (nil ~= _39_.__tostring)) then local f_9_auto = _39_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _39_ return vim.inspect(t_8_auto) end elseif (nil ~= _36_) then local v_11_auto = _36_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _35_ return string.gsub("Unsupported minimise position: #{?pos}", "#{(.-)}", resolve_6_auto) end return error(_42_(...)) end end local function _46_() if (minimise_position == "ne") then return {row = 0, col = (vim.o.columns - 18)} elseif (minimise_position == "nw") then return {row = 0, col = 0} elseif (minimise_position == "sw") then return {row = (vim.o.lines - (2 + vim.o.cmdheight)), col = 0} elseif (minimise_position == "se") then return {row = (vim.o.lines - (2 + vim.o.cmdheight)), col = (vim.o.columns - 18)} elseif ((_G.type(minimise_position) == "table") and (nil ~= minimise_position.row) and (nil ~= minimise_position.col)) then local row = minimise_position.row local col = minimise_position.col return {row = row, col = col} else local and_44_ = (nil ~= minimise_position) if and_44_ then local f = minimise_position and_44_ = type["function?"](f) end if and_44_ then local f = minimise_position return f() else return nil end end end min_pos = _33_(_46_())
  max_config.height = math.min(height, (vim.o.lines - 4))
  max_config.row = max_pos.row
  max_config.col = max_pos.col
@@ -109,9 +111,7 @@
  api.nvim_buf_set_option(buf, "modifiable", false)
  api.nvim_buf_set_option(buf, "filetype", filetype)
  api.nvim_win_set_option(win, "wrap", false)
- api.nvim_win_set_hl_ns(win, ns)
-
- Highlight["define-highlights"](ns) vim.o.guicursor = "a:PlaytimeHiddenCursor"
+ Highlight["define-highlights"]() vim.o.guicursor = "a:PlaytimeHiddenCursor"
 
 
  local _50_ do local t_49_ = dispatch if (nil ~= t_49_) then t_49_ = t_49_.window else end if (nil ~= t_49_) then t_49_ = t_49_.via else end _50_ = t_49_ end assert(_50_, "Must provide dispatch.window.via function")
@@ -134,7 +134,7 @@
 
 
  local function _58_()
- Highlight["define-highlights"](ns) return false end api.nvim_create_autocmd("ColorScheme", {group = augroup, callback = _58_})
+ Highlight["define-highlights"]() return false end api.nvim_create_autocmd("ColorScheme", {group = augroup, callback = _58_})
 
 
 
@@ -150,8 +150,6 @@
 
 
 
-
-
  local function _60_() vim.o.guicursor = "a:PlaytimeHiddenCursor" view["minimised?"] = false
 
 
@@ -159,8 +157,6 @@
  api.nvim_win_set_config(win, win_maxi_config)
 
  dispatch.window.via("noop") return false end api.nvim_create_autocmd("BufEnter", {group = augroup, buffer = buf, callback = _60_})
-
-
 
 
  do local _61_ = dispatch.mouse if ((_G.type(_61_) == "table") and (nil ~= _61_.via) and (nil ~= _61_.events)) then local via = _61_.via local events = _61_.events
