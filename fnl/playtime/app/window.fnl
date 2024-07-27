@@ -65,8 +65,10 @@
                     (case minimise-position
                       :ne {:row 0 :col (- vim.o.columns 18)}
                       :nw {:row 0 :col 0}
-                      :sw {:row (- vim.o.lines 3) :col 0}
-                      :se {:row (- vim.o.lines 3) :col (- vim.o.columns 18)}
+                      :sw {:row (- vim.o.lines (+ 2 vim.o.cmdheight))
+                           :col 0}
+                      :se {:row (- vim.o.lines (+ 2 vim.o.cmdheight))
+                           :col (- vim.o.columns 18)}
                       {: row : col} {: row : col}
                       (where f (type.function? f)) (f)) {: row : col}
                     {: row : col}
