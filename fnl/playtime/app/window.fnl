@@ -109,7 +109,7 @@
     ;; scrolling, performance impact seems minimal
     (api.nvim_buf_set_lines buf 0 -1 false (fcollect [row 1 (* height 2)] (string.rep " " width)))
     (api.nvim_buf_set_option buf :modifiable false)
-    (api.nvim_buf_set_option buf :filetype filetype)
+    (api.nvim_buf_set_option buf :filetype (.. :playtime. filetype))
     (api.nvim_win_set_option win :wrap false)
     (Highlight.define-highlights)
     (set vim.o.guicursor "a:PlaytimeHiddenCursor")

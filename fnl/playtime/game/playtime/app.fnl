@@ -66,7 +66,7 @@
 (λ M.start [app-config game-config ?seed]
   (let [app (-> (App.build "Playtime" :playtime-menu app-config game-config)
                 (setmetatable {:__index M}))
-        view (Window.open :playtime-menu
+        view (Window.open :menu
                           (App.build-default-window-dispatch-options app)
                           {:width  80
                            :height 40

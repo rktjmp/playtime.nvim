@@ -44,7 +44,7 @@
 (λ M.start [app-config game-config ?seed]
   (PatienceApp.start
     {:name "Curds & Whey"
-     :filetype "curds-and-whey"
+     :filetype :curds-and-whey
      :view {:width 119 :height 42}
      :empty-fields [[:tableau 13] [:complete 4]]
      :card-style {:colors 4}}
