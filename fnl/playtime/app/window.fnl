@@ -50,7 +50,7 @@
   (api.nvim_buf_set_keymap buf :n lhs "" {:callback callback :desc desc}))
 
 (λ M.open [filetype dispatch {: width : height : window-position : minimise-position}]
-  (λ sync-configs-to-geometry! [max-config min-config]
+  (λ mutate-configs-to-geometry! [max-config min-config]
     (let [max-pos (case-try
                     (case window-position
                       :center {:row 1 :col (- (/ vim.o.columns 2) (/ width 2))}
@@ -90,7 +90,7 @@
                          :height 1
                          :style :minimal
                          :border :none}
-        _ (sync-configs-to-geometry! win-maxi-config win-mini-config)
+        _ (mutate-configs-to-geometry! win-maxi-config win-mini-config)
         buf (api.nvim_create_buf false true)
         win (api.nvim_open_win buf true win-maxi-config)
         internal-name (string.format "%s-%s" filetype (Id.new))
@@ -125,11 +125,10 @@
     (api.nvim_create_autocmd :VimResized
                              {:group augroup
                               :callback (fn []
-                                          (let [_ (sync-configs-to-geometry! win-maxi-config
-                                                                             win-mini-config)]
-                                            (if view.minimised?
-                                              (api.nvim_win_set_config win win-mini-config)
-                                              (api.nvim_win_set_config win win-maxi-config)))
+                                          (mutate-configs-to-geometry! win-maxi-config win-mini-config)
+                                          (if view.minimised?
+                                            (api.nvim_win_set_config win win-mini-config)
+                                            (api.nvim_win_set_config win win-maxi-config))
                                           false)})
     (api.nvim_create_autocmd :ColorScheme
                              {:group augroup
