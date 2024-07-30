@@ -50,7 +50,7 @@
  return api.nvim_buf_set_keymap(buf, "n", lhs, "", {callback = callback, desc = desc}) end
 
  M.open = function(filetype, dispatch, _18_) local width = _18_["width"] local height = _18_["height"] local window_position = _18_["window-position"] local minimise_position = _18_["minimise-position"] _G.assert((nil ~= minimise_position), "Missing argument minimise-position on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= window_position), "Missing argument window-position on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= height), "Missing argument height on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= width), "Missing argument width on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= dispatch), "Missing argument dispatch on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= filetype), "Missing argument filetype on fnl/playtime/app/window.fnl:52")
- local function sync_configs_to_geometry_21(max_config, min_config) _G.assert((nil ~= min_config), "Missing argument min-config on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= max_config), "Missing argument max-config on fnl/playtime/app/window.fnl:53")
+ local function mutate_configs_to_geometry_21(max_config, min_config) _G.assert((nil ~= min_config), "Missing argument min-config on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= max_config), "Missing argument max-config on fnl/playtime/app/window.fnl:53")
  local max_pos local function _19_(...) local _20_ = ... if ((_G.type(_20_) == "table") and (nil ~= _20_.row) and (nil ~= _20_.col)) then local row = _20_.row local col = _20_.col
 
 
@@ -90,7 +90,7 @@
 
 
 
- local _ = sync_configs_to_geometry_21(win_maxi_config, win_mini_config)
+ local _ = mutate_configs_to_geometry_21(win_maxi_config, win_mini_config)
  local buf = api.nvim_create_buf(false, true)
  local win = api.nvim_open_win(buf, true, win_maxi_config)
  local internal_name = string.format("%s-%s", filetype, Id.new())
@@ -125,11 +125,10 @@
 
 
  local function _56_()
- do local _0 = sync_configs_to_geometry_21(win_maxi_config, win_mini_config)
-
+ mutate_configs_to_geometry_21(win_maxi_config, win_mini_config)
  if view["minimised?"] then
  api.nvim_win_set_config(win, win_mini_config) else
- api.nvim_win_set_config(win, win_maxi_config) end end return false end api.nvim_create_autocmd("VimResized", {group = augroup, callback = _56_})
+ api.nvim_win_set_config(win, win_maxi_config) end return false end api.nvim_create_autocmd("VimResized", {group = augroup, callback = _56_})
 
 
 
