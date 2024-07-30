@@ -109,7 +109,7 @@
 
  local function _47_() local tbl_21_auto = {} local i_22_auto = 0 for row = 1, (height * 2) do local val_23_auto = string.rep(" ", width) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end return tbl_21_auto end api.nvim_buf_set_lines(buf, 0, -1, false, _47_())
  api.nvim_buf_set_option(buf, "modifiable", false)
- api.nvim_buf_set_option(buf, "filetype", filetype)
+ api.nvim_buf_set_option(buf, "filetype", ("playtime." .. filetype))
  api.nvim_win_set_option(win, "wrap", false)
  Highlight["define-highlights"]() vim.o.guicursor = "a:PlaytimeHiddenCursor"
 

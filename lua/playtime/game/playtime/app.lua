@@ -66,7 +66,7 @@
  M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/playtime/app.fnl:66") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/playtime/app.fnl:66")
  local app = setmetatable(App.build("Playtime", "playtime-menu", app_config, game_config), {__index = M})
 
- local view = Window.open("playtime-menu", App["build-default-window-dispatch-options"](app), {width = 80, height = 40, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]}) local _
+ local view = Window.open("menu", App["build-default-window-dispatch-options"](app), {width = 80, height = 40, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]}) local _
 
 
 
