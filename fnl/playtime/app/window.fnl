@@ -112,6 +112,7 @@
     (api.nvim_buf_set_option buf :filetype (.. :playtime. filetype))
     (api.nvim_win_set_option win :wrap false)
     (Highlight.define-highlights)
+    (tset (. vim :wo win) :winhighlight "NormalFloat:PlaytimeBackground")
     (set vim.o.guicursor "a:PlaytimeHiddenCursor")
 
     (assert (?. dispatch :window :via) "Must provide dispatch.window.via function")
@@ -134,6 +135,7 @@
                              {:group augroup
                               :callback (fn []
                                           (Highlight.define-highlights)
+                                          (tset (. vim :wo win) :winhighlight "NormalFloat:PlaytimeBackground")
                                           false)})
 
     (api.nvim_create_autocmd :BufLeave

@@ -149,17 +149,19 @@ highlight groups did not provide a reliable default choice.
 You can override the colors by defining any of the following highlight groups:
 
 ```lua
-PlaytimeNormal  -- NormalFloat.fg
-PlaytimeMuted   -- Comment.fg
-PlaytimeWhite   -- NormalFloat.fg
-PlaytimeBlack   -- Comment.fg
-PlaytimeRed     -- DiagnosticError.fg
-PlaytimeGreen   -- DiagnosticOk.fg
-PlaytimeYellow  -- Defined manually
-PlaytimeOrange  -- DiagnosticWarn.fg
-PlaytimeBlue    -- DiagnosticInfo.fg
-PlaytimeMagenta -- Defined manually
-PlaytimeCyan    -- Defined manually
+PlaytimeNormal     -- NormalFloat.fg, "general" elements
+PlaytimeMuted      -- Comment.fg, disabled or "dim" elements
+PlaytimeBackground -- NormalFloat, window background
+PlaytimeMenu       -- PmenuSBar, "top menu" bar color
+PlaytimeWhite      -- NormalFloat.fg
+PlaytimeBlack      -- Comment.fg
+PlaytimeRed        -- DiagnosticError.fg
+PlaytimeGreen      -- DiagnosticOk.fg
+PlaytimeYellow     -- Defined manually
+PlaytimeOrange     -- DiagnosticWarn.fg
+PlaytimeBlue       -- DiagnosticInfo.fg
+PlaytimeMagenta    -- Defined manually
+PlaytimeCyan       -- Defined manually
 ```
 
 There are additional `@playtime.*` groups which link to the default groups
