@@ -62,10 +62,12 @@
  hl("PlaytimeBlue", fetch_fg("DiagnosticInfo"))
  hl("PlaytimeMagenta", {fg = "#e879f9"})
  hl("PlaytimeCyan", {fg = "#22d3ee"})
+ link("PlaytimeBackground", "NormalFloat")
+ link("PlaytimeMenu", "PmenuSBar")
 
  link("@playtime.ui.on", "PlaytimeNormal")
  link("@playtime.ui.off", "PlaytimeMuted")
- link("@playtime.ui.menu", "PmenuSBar")
+ link("@playtime.ui.menu", "PlaytimeMenu")
 
  link("@playtime.color.white", "PlaytimeWhite")
  link("@playtime.color.red", "PlaytimeRed")

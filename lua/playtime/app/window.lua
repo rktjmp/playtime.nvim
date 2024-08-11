@@ -111,7 +111,8 @@
  api.nvim_buf_set_option(buf, "modifiable", false)
  api.nvim_buf_set_option(buf, "filetype", ("playtime." .. filetype))
  api.nvim_win_set_option(win, "wrap", false)
- Highlight["define-highlights"]() vim.o.guicursor = "a:PlaytimeHiddenCursor"
+ Highlight["define-highlights"]()
+ vim.wo[win]["winhighlight"] = "NormalFloat:PlaytimeBackground" vim.o.guicursor = "a:PlaytimeHiddenCursor"
 
 
  local _50_ do local t_49_ = dispatch if (nil ~= t_49_) then t_49_ = t_49_.window else end if (nil ~= t_49_) then t_49_ = t_49_.via else end _50_ = t_49_ end assert(_50_, "Must provide dispatch.window.via function")
@@ -133,7 +134,8 @@
 
 
  local function _58_()
- Highlight["define-highlights"]() return false end api.nvim_create_autocmd("ColorScheme", {group = augroup, callback = _58_})
+ Highlight["define-highlights"]()
+ vim.wo[win]["winhighlight"] = "NormalFloat:PlaytimeBackground" return false end api.nvim_create_autocmd("ColorScheme", {group = augroup, callback = _58_})
 
 
 
