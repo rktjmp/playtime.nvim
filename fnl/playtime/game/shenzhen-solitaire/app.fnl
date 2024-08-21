@@ -114,7 +114,7 @@
   (let [app (PatienceApp.start
               {:name "Shenzhen Solitaire"
                :filetype :shenzhen-solitaire
-               :view {:width 80 :height 42}
+               :view {:width 76 :height 42}
                :empty-fields [[:cell 3] [:tableau 8] [:foundation 3] [:flower 1]]
                :card-style {:colors :custom
                             :graphics card-graphics}}
