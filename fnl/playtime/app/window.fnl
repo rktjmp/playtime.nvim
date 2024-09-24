@@ -43,7 +43,7 @@
                       tags (position->component-tags view (- line 1) (- column 1))]
                   (callback lhs tags {: row : col}))
                 ;; Click was not in our window, we *must* re-dispatch
-                _ (vim.cmd (string.format "normal! %s" (api.nvim_eval (string.format "\"\\%s\"" lhs))))))]
+                _ (vim.cmd.exec (string.format "\"normal! \\%s\"" lhs))))]
     (api.nvim_buf_set_keymap buf :n lhs "" {:callback cb :desc desc})))
 
 (fn bind-key [{: buf} lhs desc callback]
