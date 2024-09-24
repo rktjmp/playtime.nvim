@@ -43,7 +43,7 @@
  local tags = position__3ecomponent_tags(view, (line - 1), (column - 1))
  return callback(lhs, tags, {row = row, col = col}) else local _ = _15_
 
- return vim.cmd(string.format("normal! %s", api.nvim_eval(string.format("\"\\%s\"", lhs)))) end end cb = vim.schedule_wrap(_14_)
+ return vim.cmd.exec(string.format("\"normal! \\%s\"", lhs)) end end cb = vim.schedule_wrap(_14_)
  return api.nvim_buf_set_keymap(buf, "n", lhs, "", {callback = cb, desc = desc}) end
 
  local function bind_key(_17_, lhs, desc, callback) local buf = _17_["buf"]
