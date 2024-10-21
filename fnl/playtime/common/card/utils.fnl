@@ -97,6 +97,10 @@
 
   fns)
 
+;; TODO: Smell? We never check the first card via comparitor-fn, which
+;; makes sense because we're checking a sequence, eg to check b in a, b, c
+;; we need a + b, and checking a on its own is a bit weird, but it does mean
+;; we don't enforce stuff on the top card (eg: must be face up).
 (λ M.make-valid-sequence?-fn [comparitor-fn]
   (fn [sequence]
     (case sequence

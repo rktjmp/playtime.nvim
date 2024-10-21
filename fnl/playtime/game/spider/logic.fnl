@@ -62,7 +62,9 @@
     (fn [next-card [last-card]]
       (let [last-value (card-value last-card)
             next-value (card-value next-card)]
-        (= last-value (+ next-value 1))))))
+        (and (card-face-up? last-card)
+             (card-face-up? next-card)
+             (= last-value (+ next-value 1)))))))
 
 (local valid-move-sequence?
   (CardGameUtils.make-valid-sequence?-fn
@@ -71,13 +73,17 @@
             last-value (card-value last-card)
             next-suit (card-suit next-card)
             next-value (card-value next-card)]
-        (and (card-face-up? next-card)
+        (and (card-face-up? last-card)
+             (card-face-up? next-card)
              (= last-suit next-suit)
              (= last-value (+ next-value 1)))))))
 
 (fn complete-sequence? [sequence]
-  (and (= (rank-value :king) (length sequence))
-       (valid-move-sequence? sequence)))
+  (case sequence
+    [top-card & _rest] (and (= 13 (length sequence))
+                            (= (rank-value :king) (card-value top-card))
+                            (valid-move-sequence? sequence))
+    _ false))
 
 (fn M.Action.deal [state]
   (let [moves (faccumulate [(moves t-col row) (values [] 1 1)
@@ -200,9 +206,14 @@
   (let [from (accumulate [start-at nil
                           col-n col (ipairs state.tableau)
                           &until start-at]
+               ;; A complete sequence is always 13 cards long, so
+               ;; look at most that far up a column (from the bottom)
+               ;; and check if the 12-stack is a full sequence.
                (let [index (math.max 1 (- (length col) 12))
                      (_ run) (table.split col index)]
                  (if (complete-sequence? run)
+                   ;; Return the start of the complete sequence for use with
+                   ;; Acton.remove-complete-sequence
                    [:tableau col-n index])))]
     from))
 
