@@ -97,7 +97,11 @@
 
  return fns end
 
- M["make-valid-sequence?-fn"] = function(comparitor_fn) _G.assert((nil ~= comparitor_fn), "Missing argument comparitor-fn on fnl/playtime/common/card/utils.fnl:100")
+
+
+
+
+ M["make-valid-sequence?-fn"] = function(comparitor_fn) _G.assert((nil ~= comparitor_fn), "Missing argument comparitor-fn on fnl/playtime/common/card/utils.fnl:104")
  local function _36_(sequence)
  if ((_G.type(sequence) == "table") and (nil ~= sequence[1])) then local top_card = sequence[1] local other_cards = {select(2, (table.unpack or _G.unpack)(sequence))}
 
@@ -114,7 +118,7 @@
  state["moves"] = ((_3fcount or 1) + state.moves) return state end
 
 
- M["apply-events"] = function(state, events) _G.assert((nil ~= events), "Missing argument events on fnl/playtime/common/card/utils.fnl:117") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/common/card/utils.fnl:117")
+ M["apply-events"] = function(state, events) _G.assert((nil ~= events), "Missing argument events on fnl/playtime/common/card/utils.fnl:121") _G.assert((nil ~= state), "Missing argument state on fnl/playtime/common/card/utils.fnl:121")
  local state0, true_events = state, {} for event_num, event in ipairs(events) do
 
  local matched_3f_39_, location_40_ = nil, nil if ((_G.type(event) == "table") and (event[1] == "face-up") and (nil ~= event[2])) then local location = event[2] matched_3f_39_, location_40_ = true, location elseif ((_G.type(event) == "table") and (event[1] == "face-down") and (nil ~= event[2])) then local location = event[2] matched_3f_39_, location_40_ = true, location else matched_3f_39_, location_40_ = nil end if matched_3f_39_ then local location = location_40_
@@ -173,7 +177,7 @@
  state0, true_events = state0, table.insert(true_events, {"move", from0, to0}) else local _ = event
  state0, true_events = error(Error("apply-events: unknown event #{event}", {event = event})) end end return state0, true_events end
 
- M["build-event-animation"] = function(app, events, after, _3fopts) _G.assert((nil ~= after), "Missing argument after on fnl/playtime/common/card/utils.fnl:176") _G.assert((nil ~= events), "Missing argument events on fnl/playtime/common/card/utils.fnl:176") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/common/card/utils.fnl:176")
+ M["build-event-animation"] = function(app, events, after, _3fopts) _G.assert((nil ~= after), "Missing argument after on fnl/playtime/common/card/utils.fnl:180") _G.assert((nil ~= events), "Missing argument events on fnl/playtime/common/card/utils.fnl:180") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/common/card/utils.fnl:180")
  local opts = table.merge({["stagger-ms"] = 50, ["duration-ms"] = 120}, (_3fopts or {}))
 
 
