@@ -10,7 +10,9 @@
 
 
 
- local create if vim.version.ge(vim.version(), {0, 10, 0}) then create = false else create = nil end
+
+
+ local create if (1 == vim.fn.has("nvim-0.10.0")) then create = false else create = nil end
  local opts = {name = name, link = link_3f, create = create}
  return vim.api.nvim_get_hl(ns_id, opts) end
 

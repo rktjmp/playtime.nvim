@@ -10,7 +10,9 @@
   ;;
   ;; Version check for 0.9.5 https://github.com/rktjmp/playtime.nvim/issues/5
   ;; as passing unknown options to the function raises.
-  (let [create (if (vim.version.ge (vim.version) [0 10 0]) false)
+  ;;
+  ;; Also note: vim.version also limited to 0.10+.
+  (let [create (if (= 1 (vim.fn.has :nvim-0.10.0)) false)
         opts {:name name :link link? :create create}]
     (vim.api.nvim_get_hl ns-id opts)))
 
