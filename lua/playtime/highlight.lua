@@ -1,7 +1,21 @@
 
  local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
 
- local _local_2_ = vim["api"] local nvim_set_hl = _local_2_["nvim_set_hl"] local nvim_get_hl = _local_2_["nvim_get_hl"]
+ local function get_hl(ns_id, name, link_3f)
+
+
+
+
+
+
+
+
+ local create if vim.version.ge(vim.version(), {0, 10, 0}) then create = false else create = nil end
+ local opts = {name = name, link = link_3f, create = create}
+ return vim.api.nvim_get_hl(ns_id, opts) end
+
+ local function set_hl(ns_id, name, data)
+ return vim.api.nvim_set_hl(ns_id, name, data) end
 
  local M = {}
 
@@ -23,7 +37,7 @@
 
  return {fg = "#FF00DD"} else return nil end elseif ((_G.type(_7_) == "table") and (nil ~= _7_.fg)) then local fg = _7_.fg
 
- return {fg = to_hex(fg)} else return nil end end return _6_(nvim_get_hl(0, {name = hl_name, link = true})) elseif ((_G.type(_5_) == "table") and (nil ~= _5_.fg)) then local fg = _5_.fg return {fg = to_hex(fg)} else return nil end end return _4_(nvim_get_hl(0, {name = hl_name, link = false})) end
+ return {fg = to_hex(fg)} else return nil end end return _6_(get_hl(0, hl_name, true)) elseif ((_G.type(_5_) == "table") and (nil ~= _5_.fg)) then local fg = _5_.fg return {fg = to_hex(fg)} else return nil end end return _4_(get_hl(0, hl_name, false)) end
 
  local function define_hl_if_missing(hl_name, hl_data)
 
@@ -40,8 +54,8 @@
 
 
 
- if table["empty?"](nvim_get_hl(0, {name = hl_name, link = true, create = false})) then
- return nvim_set_hl(0, hl_name, hl_data) else return nil end end
+ if table["empty?"](get_hl(0, hl_name, true)) then
+ return set_hl(0, hl_name, hl_data) else return nil end end
 
  local function hl(name, data)
  return define_hl_if_missing(name, data) end

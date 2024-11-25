@@ -1,7 +1,21 @@
 (require-macros :playtime.prelude)
 (prelude)
 
-(local {:api {: nvim_set_hl : nvim_get_hl}} vim)
+(fn get-hl [ns-id name link?]
+  ;; The create option defaults to true in 0.10, but I don't think we ever want
+  ;; this, so wrap get_hl and always set it to false.
+  ;;
+  ;; Note the created group is returned as an empty dict, does *not* appear in
+  ;; tab-completion for `hi` but does show up in `hi` output list.
+  ;;
+  ;; Version check for 0.9.5 https://github.com/rktjmp/playtime.nvim/issues/5
+  ;; as passing unknown options to the function raises.
+  (let [create (if (vim.version.ge (vim.version) [0 10 0]) false)
+        opts {:name name :link link? :create create}]
+    (vim.api.nvim_get_hl ns-id opts)))
+
+(fn set-hl [ns-id name data]
+  (vim.api.nvim_set_hl ns-id name data))
 
 (local M {})
 
@@ -14,9 +28,9 @@
   ;; fg AND links it to ErrorText for underlining, so we...
   (case-try
     ;; get the highlight group data assuming thats the best option
-    (nvim_get_hl 0 {:name hl-name :link false}) {:fg nil}
+    (get-hl 0 hl-name false) {:fg nil}
     ;; fallback to the link data if present
-    (nvim_get_hl 0 {:name hl-name :link true}) {:fg nil}
+    (get-hl 0 hl-name true) {:fg nil}
     (case rest
       ;; Some base groups just define changes over Normal
       [next & rest] (fetch-fg next (table.unpack rest))
@@ -40,8 +54,8 @@
   ;; So instead we define globally and hope our own groups have been cleared by
   ;; something else whenever define-highlights is re-called, for example, after
   ;; a colorscheme change.
-  (when (table.empty? (nvim_get_hl 0 {:name hl-name :link true :create false}))
-    (nvim_set_hl 0 hl-name hl-data)))
+  (when (table.empty? (get-hl 0 hl-name true))
+    (set-hl 0 hl-name hl-data)))
 
 (fn hl [name data]
   (define-hl-if-missing name data))
