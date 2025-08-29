@@ -5,6 +5,7 @@
 
 (local schema
   {:fps [#(and (type.number? $1) (<= 1 $1)) "must be positive integer"]
+   :window-border [#(type.string? $1) "must be valid window border name"]
    :window-position [#(or (eq-any? $1 [:center :nw :ne])
                           (match? $1 {: row : col})
                           (type.function? $1))
@@ -26,6 +27,7 @@
 
 (local defaults
   {:fps 30
+   :window-border nil ;; do not bind value so users can alter at runtime via opt.winborder
    :window-position :center
    :minimise-position :se
    :unfocused :minimise
@@ -34,10 +36,14 @@
 (var user-config {})
 (var errors nil)
 
+(fn lua-name-to-fennel-name [name]
+  ;; convert my_option to my-option, note __beta_option becomes __beta-option.
+  (string.gsub name "([^_])_" "%1-"))
+
 (fn M.valid? [config]
   (if (type.table? config)
     (let [e (icollect [k v (pairs config)]
-              (case (. schema k)
+              (case (. schema (lua-name-to-fennel-name k))
                 [f msg] (if (not (f v))
                           (<s> "config key `#{k}` did not pass validation, #{msg}"))
                 _ (<s> "config key `#{k}` not recognised")))]
@@ -48,8 +54,9 @@
   (set errors nil)
   (case-try
     (M.valid? config) true
-    (do
-      (set user-config (clone config))
+    (let [c (collect [k v (pairs config)]
+              (values (lua-name-to-fennel-name k) v))]
+      (set user-config (clone c))
       true)
     (catch
       (false errs) (do
