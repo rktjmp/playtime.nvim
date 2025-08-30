@@ -97,7 +97,12 @@ Playtime may be configured by calling `require("playtime").setup({})`.
 
 Supported options (struck through options are currently ... not supported):
 
+> Note: you may specify options in Lua style (`window_position`) or Fennel style (`window-position`).
+
 - `fps` (`30`): Animation frames-per-second. Must be greater than 1.
+- `window-border` (`nil`): Floating window border style. If not set here,
+  windows will use Neovims `vim.opt.winborder` value or `"shadow"` if that
+  option is not set.
 - `window-position` (`center`): Where to position the game window, may be
   `center`, `ne`, `nw` or a table or function that returns `{row=row, col=col}`.
 - `minimise-position` (`se`): Where to position the minimised window, may be

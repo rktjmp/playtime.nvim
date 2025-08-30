@@ -234,6 +234,7 @@
                           (App.build-default-window-dispatch-options app)
                           {:width view-width
                            :height view-height
+                           :window-border app-config.window-border
                            :window-position app-config.window-position
                            :minimise-position app-config.minimise-position})
         _ (table.merge app.z-layers {:grid 25})]

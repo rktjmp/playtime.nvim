@@ -42,6 +42,7 @@
                           (App.build-default-window-dispatch-options app)
                           {:width template-config.view.width
                            :height template-config.view.height
+                           :window-border app-config.window-border
                            :window-position app-config.window-position
                            :minimise-position app-config.minimise-position})
         card-style (table.merge {:width 7 :height 5} template-config.card-style)]

@@ -49,7 +49,7 @@
 (fn bind-key [{: buf} lhs desc callback]
   (api.nvim_buf_set_keymap buf :n lhs "" {:callback callback :desc desc}))
 
-(λ M.open [filetype dispatch {: width : height : window-position : minimise-position}]
+(λ M.open [filetype dispatch {: width : height :window-border ?window-border : window-position : minimise-position}]
   (λ mutate-configs-to-geometry! [max-config min-config]
     (let [max-pos (case-try
                     (case window-position
@@ -84,7 +84,9 @@
                          :width width
                          :height height
                          :style :minimal
-                         :border :shadow}
+                         :border (case (or ?window-border (vim.opt.winborder:get))
+                                   (where (or nil "")) :shadow
+                                   border border)}
         win-mini-config {:relative :editor
                          :width 18
                          :height 1

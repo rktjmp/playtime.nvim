@@ -256,6 +256,7 @@
                           (App.build-default-window-dispatch-options app)
                           {:width 63
                            :height 22
+                           :window-border app-config.window-border
                            :window-position app-config.window-position
                            :minimise-position app-config.minimise-position})
        _ (table.merge app.z-layers {:cards 25 :label 100 :animation 200})]

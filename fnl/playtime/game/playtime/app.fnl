@@ -70,6 +70,7 @@
                           (App.build-default-window-dispatch-options app)
                           {:width  80
                            :height 40
+                           :window-border app-config.window-border
                            :window-position app-config.window-position
                            :minimise-position app-config.minimise-position})
         _ (set app.view view)

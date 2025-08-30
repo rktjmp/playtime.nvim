@@ -390,6 +390,7 @@
                           (App.build-default-window-dispatch-options app)
                           {:width 83
                            :height 32
+                           :window-border app-config.window-border
                            :window-position app-config.window-position
                            :minimise-position app-config.minimise-position})
         _ (table.merge app.z-layers {:cards 25 :kingdom 25 :debate 90 :label 100 :hand 100 :animation 200})]
