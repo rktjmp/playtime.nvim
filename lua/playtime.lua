@@ -16,8 +16,8 @@
  local Meta = require("playtime.meta") local flat_meta
  do local t = {} for _, meta in ipairs(Meta.find()) do
  if ((_G.type(meta) == "table") and (nil ~= meta.rulesets)) then local rulesets = meta.rulesets
- local tbl_19_auto = t for _0, r in ipairs(rulesets) do
- local val_20_auto = {mod = meta.mod, ["game-name"] = r.cli, config = r.config} table.insert(tbl_19_auto, val_20_auto) end t = tbl_19_auto else local _0 = meta
+ local tbl_19_ = t for _0, r in ipairs(rulesets) do
+ local val_20_ = {mod = meta.mod, ["game-name"] = r.cli, config = r.config} table.insert(tbl_19_, val_20_) end t = tbl_19_ else local _0 = meta
  t = table.insert(t, {mod = meta.mod, ["game-name"] = meta.mod, config = {}}) end end flat_meta = t end local game_meta
  do local found = nil for _, meta in ipairs(flat_meta) do if found then break end
  if (game_name == meta["game-name"]) then found = meta else found = nil end end game_meta = found end

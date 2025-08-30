@@ -31,7 +31,7 @@
 
 
 
- AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _2_, pos) local click_location = _2_[1] local rest = (function (t, k, e) local mt = getmetatable(t) if 'table' == type(mt) and mt.__fennelrest then return mt.__fennelrest(t, k) elseif e then local rest = {} for k, v in pairs(t) do if not e[k] then rest[k] = v end end return rest else return {(table.unpack or unpack)(t, k)} end end)(_2_, 2)
+ AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _2_, pos) local click_location = _2_[1] local rest = (function (t, k) return ((getmetatable(t) or {}).__fennelrest or function (t, k) return {(table.unpack or unpack)(t, k)} end)(t, k) end)(_2_, 2)
  if ((_G.type(click_location) == "table") and (click_location[1] == "menu") and (nil ~= click_location[2]) and (click_location[3] == nil)) then local idx = click_location[2] local menu_item = click_location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
 
 
@@ -181,10 +181,10 @@
  if ((_G.type(e) == "table") and (e[1] == "move") and true and ((_G.type(e[3]) == "table") and (e[3][1] == "trick"))) then local _0 = e[2] winner_3f = true else winner_3f = nil end end _61_ = winner_3f end if _61_ then return app["switch-state"](app, AppState.PickCard) else
 
  local choices if ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "top") and (nil ~= location[3])) then local col = location[3]
- local tbl_21_auto = {} local i_22_auto = 0 for i = 1, 6 do local val_23_auto = {"grid", i, col} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end choices = tbl_21_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "bottom") and (nil ~= location[3])) then local col = location[3]
- local tbl_21_auto = {} local i_22_auto = 0 for i = 6, 1, -1 do local val_23_auto = {"grid", i, col} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end choices = tbl_21_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "left") and (nil ~= location[3])) then local row = location[3]
- local tbl_21_auto = {} local i_22_auto = 0 for i = 1, 6 do local val_23_auto = {"grid", row, i} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end choices = tbl_21_auto elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "right") and (nil ~= location[3])) then local row = location[3]
- local tbl_21_auto = {} local i_22_auto = 0 for i = 6, 1, -1 do local val_23_auto = {"grid", row, i} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end choices = tbl_21_auto else choices = nil end return app["switch-state"](app, AppState.ResolveTrick, {hand = hand_n, ["card-pos"] = pos, choices = choices}) end end after = _60_ local timeline = app["build-event-animation"](app, events0, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_57_ == nil) and (nil ~= _58_)) then local e = _58_ app:notify(e) return app["switch-state"](app, AppState.PickCard) else return nil end end return _56_(Logic.Action["play-trick"](app.game, hand_n, location)) else local _ = location return app["switch-state"](app, AppState.PickCard) end end
+ local tbl_21_ = {} local i_22_ = 0 for i = 1, 6 do local val_23_ = {"grid", i, col} if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end choices = tbl_21_ elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "bottom") and (nil ~= location[3])) then local col = location[3]
+ local tbl_21_ = {} local i_22_ = 0 for i = 6, 1, -1 do local val_23_ = {"grid", i, col} if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end choices = tbl_21_ elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "left") and (nil ~= location[3])) then local row = location[3]
+ local tbl_21_ = {} local i_22_ = 0 for i = 1, 6 do local val_23_ = {"grid", row, i} if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end choices = tbl_21_ elseif ((_G.type(location) == "table") and (location[1] == "play") and (location[2] == "right") and (nil ~= location[3])) then local row = location[3]
+ local tbl_21_ = {} local i_22_ = 0 for i = 6, 1, -1 do local val_23_ = {"grid", row, i} if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end choices = tbl_21_ else choices = nil end return app["switch-state"](app, AppState.ResolveTrick, {hand = hand_n, ["card-pos"] = pos, choices = choices}) end end after = _60_ local timeline = app["build-event-animation"](app, events0, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_57_ == nil) and (nil ~= _58_)) then local e = _58_ app:notify(e) return app["switch-state"](app, AppState.PickCard) else return nil end end return _56_(Logic.Action["play-trick"](app.game, hand_n, location)) else local _ = location return app["switch-state"](app, AppState.PickCard) end end
 
 
 
@@ -346,7 +346,8 @@
 
 
 
- local view = Window.open("optrita-lines", App["build-default-window-dispatch-options"](app), {width = 73, height = 31, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+ local view = Window.open("optrita-lines", App["build-default-window-dispatch-options"](app), {width = 73, height = 31, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+
 
 
 
@@ -359,13 +360,13 @@
  local function _111_() return app["switch-state"](app, AppState.NewRound) end vim.defer_fn(_111_, 300) return app:render() end
 
 
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/optrita-lines/app.fnl:362") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:362") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
+ M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/optrita-lines/app.fnl:363") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:363") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
 
 
 
  return app end
 
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:368")
+ M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:369")
  local function build_label(text, position)
  local row = position["row"] local col = position["col"] local z = position["z"]
 
@@ -419,12 +420,12 @@
 
 
 
- local card_card_components do local tbl_16_auto = {} for location, card in Logic["iter-cards"](app.game) do local k_17_auto, v_18_auto = nil, nil
+ local card_card_components do local tbl_16_ = {} for location, card in Logic["iter-cards"](app.game) do local k_17_, v_18_ = nil, nil
  do local comp local function _118_(...) return app["location->position"](app, ...) end comp = CardComponents.card(_118_, location, card, app["card-style"])
 
 
 
- k_17_auto, v_18_auto = card.id, comp end if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end card_card_components = tbl_16_auto end
+ k_17_, v_18_ = card.id, comp end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_card_components = tbl_16_ end
  local menubar = CommonComponents.menubar({{"Optrita: Lines", {"file"}, {{"", nil}, {"New Game", {"new-game"}}, {"Restart Game", {"restart-game"}}, {"", nil}, {"Undo", {"undo"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}, {string.format("Seed: %s", app.seed), nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")}) local pick_trump_label local tgt_120_ = build_label("Pick trump suit", {row = 24, col = 29, z = 100})
 
 
@@ -450,8 +451,8 @@
 
 
  do local t = {} for i = 1, 6 do
- local tbl_19_auto = t for _, side in ipairs({"top", "bottom", "left", "right"}) do local val_20_auto local tgt_122_ = play_drop(side, app["location->position"](app, {"play", side, i}), {"play", side, i})
- val_20_auto = (tgt_122_)["set-visible"](tgt_122_, true) table.insert(tbl_19_auto, val_20_auto) end t = tbl_19_auto end droppers = t end local droppers_by_tag
+ local tbl_19_ = t for _, side in ipairs({"top", "bottom", "left", "right"}) do local val_20_ local tgt_122_ = play_drop(side, app["location->position"](app, {"play", side, i}), {"play", side, i})
+ val_20_ = (tgt_122_)["set-visible"](tgt_122_, true) table.insert(tbl_19_, val_20_) end t = tbl_19_ end droppers = t end local droppers_by_tag
 
 
 
@@ -463,8 +464,8 @@
 
 
 
- do local tbl_16_auto = {} for _, d in ipairs(droppers) do
- local k_17_auto, v_18_auto = d.tag, d if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end droppers_by_tag = tbl_16_auto end
+ do local tbl_16_ = {} for _, d in ipairs(droppers) do
+ local k_17_, v_18_ = d.tag, d if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end droppers_by_tag = tbl_16_ end
  local grid_score = build_score("Grid", app.game.rules["score-limit"].grid, app["location->position"](app, {"label", "score", "grid"}))
 
 
@@ -513,19 +514,19 @@
 
 
 
- M.save = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/optrita-lines/app.fnl:516") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:516")
+ M.save = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/optrita-lines/app.fnl:517") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:517")
 
 
 
 
 
- local _129_ do local tbl_21_auto = {} local i_22_auto = 0 for _, _130_ in ipairs(app["game-history"]) do local _state = _130_[1] local action = _130_[2]
- local val_23_auto = action if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end _129_ = tbl_21_auto end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, replay = _129_}) end
+ local _129_ do local tbl_21_ = {} local i_22_ = 0 for _, _130_ in ipairs(app["game-history"]) do local _state = _130_[1] local action = _130_[2]
+ local val_23_ = action if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end _129_ = tbl_21_ end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, replay = _129_}) end
 
- M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/optrita-lines/app.fnl:525") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:525")
+ M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/optrita-lines/app.fnl:526") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/optrita-lines/app.fnl:526")
  local function _132_(...) local _133_ = ... if (nil ~= _133_) then local data = _133_
 
- local config = data["config"] local seed = data["seed"] local latest = data["latest"] local replay = data["replay"] app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest}) else local __85_auto = _133_ return ... end end return _132_(App.load(app, filename)) end
+ local config = data["config"] local seed = data["seed"] local latest = data["latest"] local replay = data["replay"] app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest}) else local __44_ = _133_ return ... end end return _132_(App.load(app, filename)) end
 
 
 

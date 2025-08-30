@@ -66,7 +66,8 @@
  M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/playtime/app.fnl:66") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/playtime/app.fnl:66")
  local app = setmetatable(App.build("Playtime", "playtime-menu", app_config, game_config), {__index = M})
 
- local view = Window.open("menu", App["build-default-window-dispatch-options"](app), {width = 80, height = 40, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]}) local _
+ local view = Window.open("menu", App["build-default-window-dispatch-options"](app), {width = 80, height = 40, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]}) local _
+
 
 
 
@@ -79,8 +80,8 @@
  local title = build_game_title(app.view.width, M["location->position"](nil, {"list", n}), meta)
  local n0 = (n + 1)
  local rulesets = (meta.rulesets or {{menu = nil, config = {}}}) local variants
- do local tbl_21_auto = {} local i_22_auto = 0 for i, _7_ in ipairs(rulesets) do local _menu = _7_["menu"] local config = _7_["config"]
- local val_23_auto = build_game_button(app.view.width, M["location->position"](nil, {"list", (n0 + i)}), meta, _menu, config) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end variants = tbl_21_auto end
+ do local tbl_21_ = {} local i_22_ = 0 for i, _7_ in ipairs(rulesets) do local _menu = _7_["menu"] local config = _7_["config"]
+ local val_23_ = build_game_button(app.view.width, M["location->position"](nil, {"list", (n0 + i)}), meta, _menu, config) if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end variants = tbl_21_ end
 
 
  t, n = table.join(t, {title}, variants), (n0 + 2 + #variants) end list = t, n end

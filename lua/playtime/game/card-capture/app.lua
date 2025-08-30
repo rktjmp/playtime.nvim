@@ -17,8 +17,8 @@
  local M = setmetatable({}, {__index = App})
 
  local function enabled_indexes(list)
- local tbl_21_auto = {} local i_22_auto = 0 for i, v in ipairs(list) do local val_23_auto
- if v then val_23_auto = i else val_23_auto = nil end if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end return tbl_21_auto end
+ local tbl_21_ = {} local i_22_ = 0 for i, v in ipairs(list) do local val_23_
+ if v then val_23_ = i else val_23_ = nil end if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end return tbl_21_ end
 
  local Logic = require("playtime.game.card-capture.logic")
  local AppState = {}
@@ -78,7 +78,7 @@
 
 
 
- local timeline = build_event_animation(moves, after, {["duration-ms"] = 120}) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end else local __85_auto = _14_ return ... end end return _13_(f(app.game, table.unpack(args))) else local __85_auto = _12_ return ... end end return _11_(Logic.Action[f_name]) else local __85_auto = _10_ return ... end end return _9_(action0) else return nil end else return nil end end
+ local timeline = build_event_animation(moves, after, {["duration-ms"] = 120}) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end else local __44_ = _14_ return ... end end return _13_(f(app.game, table.unpack(args))) else local __44_ = _12_ return ... end end return _11_(Logic.Action[f_name]) else local __44_ = _10_ return ... end end return _9_(action0) else return nil end else return nil end end
 
 
  AppState.DealPhase.activated = function(app)
@@ -252,7 +252,8 @@
 
 
 
- local view = Window.open("card-capture", App["build-default-window-dispatch-options"](app), {width = 63, height = 22, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+ local view = Window.open("card-capture", App["build-default-window-dispatch-options"](app), {width = 63, height = 22, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+
 
 
 
@@ -265,7 +266,7 @@
  local function _54_() return app["switch-state"](app, AppState.DealPhase) end vim.defer_fn(_54_, 300) return app:render() end
 
 
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/card-capture/app.fnl:268") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:268") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
+ M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/card-capture/app.fnl:269") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:269") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
 
 
 
@@ -277,7 +278,7 @@
  app.components["card-counts"].enemy.draw(#app.game.enemy.draw)
  return app.components["card-counts"].enemy.discard(#app.game.enemy.discard) end
 
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:280")
+ M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:281")
  local function build_label(text, position)
  local row = position["row"] local col = position["col"] local z = position["z"]
 
@@ -301,12 +302,12 @@
 
 
 
- local card_card_components do local tbl_16_auto = {} for location, card in Logic["iter-cards"](app.game) do local k_17_auto, v_18_auto = nil, nil
+ local card_card_components do local tbl_16_ = {} for location, card in Logic["iter-cards"](app.game) do local k_17_, v_18_ = nil, nil
  do local comp local function _60_(...) return app["location->position"](app, ...) end comp = CardComponents.card(_60_, location, card, app["card-style"])
 
 
 
- k_17_auto, v_18_auto = card.id, comp end if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end card_card_components = tbl_16_auto end
+ k_17_, v_18_ = card.id, comp end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_card_components = tbl_16_ end
  local card_counts = {player = {draw = build_card_count(app["location->position"](app, {"player", "draw", 0}), app["z-index-for-layer"](app, "label")), discard = build_card_count(app["location->position"](app, {"player", "discard", 0}), app["z-index-for-layer"](app, "label"))}, enemy = {draw = build_card_count(app["location->position"](app, {"enemy", "draw", 0}), app["z-index-for-layer"](app, "label")), discard = build_card_count(app["location->position"](app, {"enemy", "discard", 0}), app["z-index-for-layer"](app, "label"))}}
 
 
@@ -337,8 +338,8 @@
  do local base = {} for _, _62_ in ipairs({{"hand", 4}, {"draw", 1}, {"discard", 1}}) do local field = _62_[1] local count = _62_[2]
 
  for _0, actor in ipairs({"player", "enemy"}) do
- local tbl_19_auto = base for i = 1, count do local val_20_auto
- local function _63_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_auto = CardComponents.slot(_63_, {actor, field, i, 0}, app["card-style"]) table.insert(tbl_19_auto, val_20_auto) end end
+ local tbl_19_ = base for i = 1, count do local val_20_
+ local function _63_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_ = CardComponents.slot(_63_, {actor, field, i, 0}, app["card-style"]) table.insert(tbl_19_, val_20_) end end
 
 
 
@@ -393,7 +394,7 @@
 
 
 
- M.save = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/card-capture/app.fnl:396") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:396")
+ M.save = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/card-capture/app.fnl:397") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:397")
 
 
 
@@ -404,10 +405,10 @@
 
 
  _69_ = error(Error("unable to save turn for #{s}", {s = _3fmod})) end end
- local _75_ do local tbl_21_auto = {} local i_22_auto = 0 for _, _76_ in ipairs(app["game-history"]) do local _state = _76_[1] local action = _76_[2]
- local val_23_auto = action if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end _75_ = tbl_21_auto end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, turn = _69_, replay = _75_}) end
+ local _75_ do local tbl_21_ = {} local i_22_ = 0 for _, _76_ in ipairs(app["game-history"]) do local _state = _76_[1] local action = _76_[2]
+ local val_23_ = action if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end _75_ = tbl_21_ end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, turn = _69_, replay = _75_}) end
 
- M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/card-capture/app.fnl:410") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:410")
+ M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/game/card-capture/app.fnl:411") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:411")
  local function _78_(...) local _79_ = ... if (nil ~= _79_) then local data = _79_
 
  local config = data["config"] local seed = data["seed"] local latest = data["latest"] local replay = data["replay"] local turn = data["turn"] local state
@@ -415,11 +416,11 @@
  state = AppState.DiscardPhase elseif (turn == "capture") then
  state = AppState.CapturePhase elseif (turn == "ended") then
  state = AppState.GameEnded else local _ = turn
- state = error(Error("unknown turn: #{turn}", {turn = turn})) end app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest, state = state}) else local __85_auto = _79_ return ... end end return _78_(App.load(app, filename)) end
+ state = error(Error("unknown turn: #{turn}", {turn = turn})) end app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest, state = state}) else local __44_ = _79_ return ... end end return _78_(App.load(app, filename)) end
 
 
 
- M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:422")
+ M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/card-capture/app.fnl:423")
  local function update(d)
  local data = table.merge({version = 1, wins = 0, games = {}}, d)
  data.wins = (data.wins + 1)

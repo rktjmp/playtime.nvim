@@ -42,7 +42,7 @@
 
  local function _3_() return app["switch-state"](app, AppState.DealPhase) end return vim.defer_fn(_3_, 300) end
 
- AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _4_, pos) local click_location = _4_[1] local rest = (function (t, k, e) local mt = getmetatable(t) if 'table' == type(mt) and mt.__fennelrest then return mt.__fennelrest(t, k) elseif e then local rest = {} for k, v in pairs(t) do if not e[k] then rest[k] = v end end return rest else return {(table.unpack or unpack)(t, k)} end end)(_4_, 2)
+ AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _4_, pos) local click_location = _4_[1] local rest = (function (t, k) return ((getmetatable(t) or {}).__fennelrest or function (t, k) return {(table.unpack or unpack)(t, k)} end)(t, k) end)(_4_, 2)
  if ((_G.type(click_location) == "table") and (click_location[1] == "menu") and (nil ~= click_location[2]) and (click_location[3] == nil)) then local idx = click_location[2] local menu_item = click_location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
 
 
@@ -386,7 +386,8 @@
 
 
 
- local view = Window.open("the-emissary", App["build-default-window-dispatch-options"](app), {width = 83, height = 32, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+ local view = Window.open("the-emissary", App["build-default-window-dispatch-options"](app), {width = 83, height = 32, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+
 
 
 
@@ -398,14 +399,14 @@
 
 
 
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:401") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:401") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
+ M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:402") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:402") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
 
 
 
  local function _83_() return app["switch-state"](app, AppState.DealPhase) end vim.defer_fn(_83_, 300)
  return app end
 
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:408")
+ M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:409")
  local function build_emissary(position)
  return Component["set-position"](Component["set-size"](Component["set-content"](Component.build(), {{{"\240\159\174\178\240\159\174\179", "@playtime.ui.on"}}}), {width = 2, height = 1}), {row = 13, col = 41}) end
 
@@ -420,7 +421,7 @@
 
 
 
- local card_card_components do local tbl_16_auto = {} for location, card in Logic["iter-cards"](app.game) do local k_17_auto, v_18_auto = nil, nil
+ local card_card_components do local tbl_16_ = {} for location, card in Logic["iter-cards"](app.game) do local k_17_, v_18_ = nil, nil
  do local card_style if (8 < Logic["card-value"](card)) then
  card_style = table.set(clone(app["card-style"]), "stacking", "vertical-down") else
 
@@ -429,7 +430,7 @@
 
 
 
- k_17_auto, v_18_auto = card.id, comp end if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end card_card_components = tbl_16_auto end
+ k_17_, v_18_ = card.id, comp end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_card_components = tbl_16_ end
  local menubar = CommonComponents.menubar({{"The Emissary", {"file"}, {{"", nil}, {"New Game", {"new-game"}}, {"Restart Game", {"restart-game"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}, {string.format("Seed: %s", app.seed), nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")}) local card_counts
 
 
@@ -445,32 +446,32 @@
 
 
 
- do local tbl_16_auto = {} for _, key in ipairs({"draw", "discard", "score"}) do local k_17_auto, v_18_auto = nil, nil
+ do local tbl_16_ = {} for _, key in ipairs({"draw", "discard", "score"}) do local k_17_, v_18_ = nil, nil
 
 
- local function _89_() return app["z-index-for-layer"](app, "label") end k_17_auto, v_18_auto = key, CardComponents.count(table["update-in"](app["location->position"](app, {key, 0}), {"z"}, _89_), app["card-style"]) if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end card_counts = tbl_16_auto end local win_needed_labels
+ local function _89_() return app["z-index-for-layer"](app, "label") end k_17_, v_18_ = key, CardComponents.count(table["update-in"](app["location->position"](app, {key, 0}), {"z"}, _89_), app["card-style"]) if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_counts = tbl_16_ end local win_needed_labels
 
- do local pos local function _91_(n) local tmp_9_auto = app["location->position"](app, {"kingdom", n})
+ do local pos local function _91_(n) local tmp_9_ = app["location->position"](app, {"kingdom", n})
 
- local function _92_(_241) return (_241 + 4) end table["update-in"](tmp_9_auto, {"row"}, _92_)
- local function _93_(_241) return (_241 + 2) end table["update-in"](tmp_9_auto, {"col"}, _93_)
- local function _94_(_241) return (_241 + 5) end table["update-in"](tmp_9_auto, {"z"}, _94_) return tmp_9_auto end pos = _91_
- local tbl_21_auto = {} local i_22_auto = 0 for n = 1, 8 do
- local val_23_auto = build_label((" " .. tostring(n) .. " "), pos(n)) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end win_needed_labels = tbl_21_auto end
+ local function _92_(_241) return (_241 + 4) end table["update-in"](tmp_9_, {"row"}, _92_)
+ local function _93_(_241) return (_241 + 2) end table["update-in"](tmp_9_, {"col"}, _93_)
+ local function _94_(_241) return (_241 + 5) end table["update-in"](tmp_9_, {"z"}, _94_) return tmp_9_ end pos = _91_
+ local tbl_21_ = {} local i_22_ = 0 for n = 1, 8 do
+ local val_23_ = build_label((" " .. tostring(n) .. " "), pos(n)) if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end win_needed_labels = tbl_21_ end
  local advisors = {hearts = "dip.", clubs = "mil.", spades = "pol.", diamonds = "com."} local advisor_titles
- do local tbl_21_auto = {} local i_22_auto = 0 for suit, short_name in pairs(advisors) do
- local val_23_auto = build_label(short_name, app["location->position"](app, {"advisor", suit, "label"})) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end advisor_titles = tbl_21_auto end local empty_fields
+ do local tbl_21_ = {} local i_22_ = 0 for suit, short_name in pairs(advisors) do
+ local val_23_ = build_label(short_name, app["location->position"](app, {"advisor", suit, "label"})) if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end advisor_titles = tbl_21_ end local empty_fields
  do local base = {} for _, _97_ in ipairs({{"kingdom", 8}, {"draw", 1}, {"discard", 1}, {"score", 1}}) do local field = _97_[1] local count = _97_[2]
 
 
 
- local tbl_19_auto = base for i = 1, count do local val_20_auto
- local function _98_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_auto = CardComponents.slot(_98_, {field, i, 0}, app["card-style"]) table.insert(tbl_19_auto, val_20_auto) end base = tbl_19_auto end empty_fields = base end local empty_fields0
+ local tbl_19_ = base for i = 1, count do local val_20_
+ local function _98_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_ = CardComponents.slot(_98_, {field, i, 0}, app["card-style"]) table.insert(tbl_19_, val_20_) end base = tbl_19_ end empty_fields = base end local empty_fields0
 
 
 
- do local tbl_19_auto = empty_fields for _, t in ipairs(advisors) do local val_20_auto
- local function _99_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_auto = CardComponents.slot(_99_, {"advisor", t, 0}, app["card-style"]) table.insert(tbl_19_auto, val_20_auto) end empty_fields0 = tbl_19_auto end
+ do local tbl_19_ = empty_fields for _, t in ipairs(advisors) do local val_20_
+ local function _99_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_ = CardComponents.slot(_99_, {"advisor", t, 0}, app["card-style"]) table.insert(tbl_19_, val_20_) end empty_fields0 = tbl_19_ end
 
 
 
@@ -544,7 +545,7 @@
  update_card_counts(app) return app["request-render"](app) end
 
 
- M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:547")
+ M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:548")
  local function update(d)
  local data = table.merge({version = 1, wins = 0, games = {}}, d)
  data.wins = (data.wins + 1)

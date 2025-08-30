@@ -77,7 +77,7 @@
 
 
 
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __85_auto = _13_ return ... end end return _12_(Logic.Action["reveal-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
+ if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __44_ = _13_ return ... end end return _12_(Logic.Action["reveal-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
 
 
 
@@ -94,7 +94,7 @@
 
 
 
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __85_auto = _21_ return ... end end return _20_(Logic.Action["mark-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
+ if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __44_ = _21_ return ... end end return _20_(Logic.Action["mark-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
 
 
 
@@ -143,7 +143,7 @@
  local row = offset["row"] local col = offset["col"] local cell_height = 3 local cell_width = 5 local t
 
 
- do local tbl_16_auto = {} for _34_, cell in Logic["iter-cells"](game) do local x = _34_["x"] local y = _34_["y"] local k_17_auto, v_18_auto = nil, nil
+ do local tbl_16_ = {} for _34_, cell in Logic["iter-cells"](game) do local x = _34_["x"] local y = _34_["y"] local k_17_, v_18_ = nil, nil
  do local tag = {x = x, y = y} local f
  do local _35_, _36_ = x, y if ((_35_ == 1) and (_36_ == 1)) then
  f = UI["nw-cell"] elseif ((_35_ == width) and (_36_ == 1)) then
@@ -155,13 +155,13 @@
  f = UI["n-cell"] elseif (true and (_36_ == height)) then local _ = _35_
  f = UI["s-cell"] else local _ = _35_
  f = UI["mid-cell"] end end
- k_17_auto, v_18_auto = cell.id, f(cell, tag, {row = (row + ((cell_height - 1) * (y - 1))), col = (col + ((cell_width - 1) * (x - 1))), z = app["z-index-for-layer"](app, "grid")}) end if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end t = tbl_16_auto end local components
+ k_17_, v_18_ = cell.id, f(cell, tag, {row = (row + ((cell_height - 1) * (y - 1))), col = (col + ((cell_width - 1) * (x - 1))), z = app["z-index-for-layer"](app, "grid")}) end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end t = tbl_16_ end local components
 
 
 
 
 
- do local tbl_21_auto = {} local i_22_auto = 0 for _, _39_ in Logic["iter-cells"](game) do local id = _39_["id"] local val_23_auto = t[id] if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end components = tbl_21_auto end
+ do local tbl_21_ = {} local i_22_ = 0 for _, _39_ in Logic["iter-cells"](game) do local id = _39_["id"] local val_23_ = t[id] if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end components = tbl_21_ end
  return components, t end
 
  local grid, cell_id__3ecell_component = build_grid_component(app.game, {row = 5, col = 3})
@@ -206,8 +206,8 @@
 
  lines = {" \226\160\182\226\160\146\226\160\182 ", "\226\160\160\226\163\164\226\163\164\226\163\164\226\160\132"} else lines = nil end local content
 
- do local tbl_21_auto = {} local i_22_auto = 0 for _, l in ipairs(lines) do
- local val_23_auto = {{l, "@playtime.color.yellow"}} if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end content = tbl_21_auto end return self["set-content"](self, content) end smile = Component["set-position"](Component["set-tag"](Component["set-size"](Component.build(_43_), {width = 5, height = 2}), {"face"}), {row = 2, col = (math.floor((app.view.width / 2)) - 3), z = 100}):update("smile")
+ do local tbl_21_ = {} local i_22_ = 0 for _, l in ipairs(lines) do
+ local val_23_ = {{l, "@playtime.color.yellow"}} if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end content = tbl_21_ end return self["set-content"](self, content) end smile = Component["set-position"](Component["set-tag"](Component["set-size"](Component.build(_43_), {width = 5, height = 2}), {"face"}), {row = 2, col = (math.floor((app.view.width / 2)) - 3), z = 100}):update("smile")
 
 
 
@@ -230,7 +230,8 @@
 
  local view_width = (7 + (4 * game_config.width))
  local view_height = (8 + (2 * game_config.height))
- local view = Window.open("sweeper", App["build-default-window-dispatch-options"](app), {width = view_width, height = view_height, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+ local view = Window.open("sweeper", App["build-default-window-dispatch-options"](app), {width = view_width, height = view_height, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+
 
 
 

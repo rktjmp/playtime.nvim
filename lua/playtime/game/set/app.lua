@@ -189,7 +189,8 @@
  local _59_ if ("wide" == game_set_glyph_width) then _59_ = 10 else _59_ = 9 end card_style = {height = 5, ["glyph-width"] = game_set_glyph_width, width = _59_} local view
 
 
- local _61_ if (game_set_glyph_width == "wide") then _61_ = 71 else _61_ = 65 end view = Window.open("set", App["build-default-window-dispatch-options"](app), {width = _61_, height = 25, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+ local _61_ if (game_set_glyph_width == "wide") then _61_ = 71 else _61_ = 65 end view = Window.open("set", App["build-default-window-dispatch-options"](app), {width = _61_, height = 25, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+
 
 
 
@@ -200,21 +201,21 @@
  local function _63_() return app["queue-event"](app, "app", "deal") end vim.defer_fn(_63_, 300) return app:render() end
 
 
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/set/app.fnl:203") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:203") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, RegularAppState.Default, {selected = {}})
+ M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/set/app.fnl:204") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:204") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, RegularAppState.Default, {selected = {}})
 
 
 
  return app end
 
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:209")
+ M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:210")
  local card_style = app["card-style"] local card_card_components
- do local tbl_16_auto = {} for location, card in Logic["iter-cards"](app.game) do local k_17_auto, v_18_auto = nil, nil
+ do local tbl_16_ = {} for location, card in Logic["iter-cards"](app.game) do local k_17_, v_18_ = nil, nil
  do local comp
  local function _64_(_241) return app["location->position"](app, _241) end comp = SetComponents.card(_64_, location, card, card_style)
 
 
 
- k_17_auto, v_18_auto = card.id, comp end if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end card_card_components = tbl_16_auto end
+ k_17_, v_18_ = card.id, comp end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_card_components = tbl_16_ end
  local game_report = CommonComponents["game-report"](app.view.width, app.view.height, app["z-index-for-layer"](app, "report"), {{"won", "You did it!"}}) local slots
 
 

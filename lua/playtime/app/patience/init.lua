@@ -38,7 +38,8 @@
 
 
 
- local view = Window.open(template_config.filetype, App["build-default-window-dispatch-options"](app), {width = template_config.view.width, height = template_config.view.height, ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+ local view = Window.open(template_config.filetype, App["build-default-window-dispatch-options"](app), {width = template_config.view.width, height = template_config.view.height, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
+
 
 
 
@@ -54,19 +55,19 @@
  local function _8_() return app["queue-event"](app, "app", "deal") end vim.defer_fn(_8_, 300) return app:render() end
 
 
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/app/patience/init.fnl:57") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:57") app["new-game"](app, app.Impl.LogicImpl.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, app.Impl.StateImpl.Default)
+ M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/app/patience/init.fnl:58") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:58") app["new-game"](app, app.Impl.LogicImpl.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, app.Impl.StateImpl.Default)
 
 
 
  return app end
 
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:63")
- local card_card_components do local tbl_16_auto = {} for location, card in app.Impl.LogicImpl["iter-cards"](app.game) do local k_17_auto, v_18_auto = nil, nil
+ M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:64")
+ local card_card_components do local tbl_16_ = {} for location, card in app.Impl.LogicImpl["iter-cards"](app.game) do local k_17_, v_18_ = nil, nil
  do local comp local function _9_(...) return app["location->position"](app, ...) end comp = CardComponents.card(_9_, location, card, app["card-style"])
 
 
 
- k_17_auto, v_18_auto = card.id, comp end if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end card_card_components = tbl_16_auto end
+ k_17_, v_18_ = card.id, comp end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_card_components = tbl_16_ end
  local menubar = CommonComponents.menubar({{app.name, {"file"}, {{"", nil}, {"New Deal", {"new-deal"}}, {"Repeat Deal", {"repeat-deal"}}, {"", nil}, {"Undo", {"undo"}}, {"", nil}, {"Save current game", {"save"}}, {"Load last save", {"load"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}, {string.format("Seed: %s", app.seed), nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")}) local win_count
 
 
@@ -88,9 +89,9 @@
 
  local empty_fields = app.Template["empty-fields"] local empty_fields0
  do local base = {} for _, _12_ in ipairs(empty_fields) do local field = _12_[1] local count = _12_[2]
- local tbl_19_auto = base for i = 1, count do local val_20_auto
+ local tbl_19_ = base for i = 1, count do local val_20_
  local function _13_(location)
- return table.set(app["location->position"](app, location), "z", app["z-index-for-layer"](app, "base")) end val_20_auto = CardComponents.slot(_13_, {field, i, 0}, app["card-style"]) table.insert(tbl_19_auto, val_20_auto) end base = tbl_19_auto end empty_fields0 = base end
+ return table.set(app["location->position"](app, location), "z", app["z-index-for-layer"](app, "base")) end val_20_ = CardComponents.slot(_13_, {field, i, 0}, app["card-style"]) table.insert(tbl_19_, val_20_) end base = tbl_19_ end empty_fields0 = base end
 
 
 
@@ -104,27 +105,27 @@
  app.components.cards = table.values(card_card_components)
  return app end
 
- M["standard-patience-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:107")
- local tbl_21_auto = {} local i_22_auto = 0 for _, key in ipairs({"game-report", "win-count", "menubar", "cheating"}) do
- local val_23_auto = app.components[key] if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end return tbl_21_auto end
+ M["standard-patience-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:108")
+ local tbl_21_ = {} local i_22_ = 0 for _, key in ipairs({"game-report", "win-count", "menubar", "cheating"}) do
+ local val_23_ = app.components[key] if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end return tbl_21_ end
 
- M.save = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/app/patience/init.fnl:111") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:111")
-
-
+ M.save = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/app/patience/init.fnl:112") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:112")
 
 
 
- local _15_ do local tbl_21_auto = {} local i_22_auto = 0 for _, _16_ in ipairs(app["game-history"]) do local _state = _16_[1] local action = _16_[2]
- local val_23_auto = action if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end _15_ = tbl_21_auto end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, replay = _15_}) end
 
- M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/app/patience/init.fnl:120") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:120")
+
+ local _15_ do local tbl_21_ = {} local i_22_ = 0 for _, _16_ in ipairs(app["game-history"]) do local _state = _16_[1] local action = _16_[2]
+ local val_23_ = action if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end _15_ = tbl_21_ end return App.save(app, filename, {version = 1, ["app-id"] = app["app-id"], seed = app.seed, config = app["game-config"], latest = app.game, replay = _15_}) end
+
+ M.load = function(app, filename) _G.assert((nil ~= filename), "Missing argument filename on fnl/playtime/app/patience/init.fnl:121") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:121")
  local function _18_(...) local _19_ = ... if (nil ~= _19_) then local data = _19_
 
- local config = data["config"] local seed = data["seed"] local latest = data["latest"] local replay = data["replay"] app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest}) else local __85_auto = _19_ return ... end end return _18_(App.load(app, filename)) end
+ local config = data["config"] local seed = data["seed"] local latest = data["latest"] local replay = data["replay"] app["setup-new-game"](app, config, seed) return app["queue-event"](app, "app", "replay", {replay = replay, verify = latest}) else local __44_ = _19_ return ... end end return _18_(App.load(app, filename)) end
 
 
 
- M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:127")
+ M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/app/patience/init.fnl:128")
  local function update(d)
  local data = table.merge({version = 1, wins = 0, games = {}}, d)
  data.wins = (data.wins + 1)

@@ -20,8 +20,8 @@
  local is_between_3f = ((extmark_col_start <= col) and (col < extmark_col_end))
  local function _4_() if is_between_3f then return {id = id, z = z} else return nil end end between = table.insert(between, _4_()) end between_extmarks = between end local sorted_extmarks
  local function _7_(_5_, _6_) local a = _5_["z"] local b = _6_["z"] return (a > b) end sorted_extmarks = table.sort(between_extmarks, _7_)
- local tbl_21_auto = {} local i_22_auto = 0 for _, _8_ in ipairs(sorted_extmarks) do local id = _8_["id"]
- local val_23_auto = extmark_tags[id] if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end return tbl_21_auto end
+ local tbl_21_ = {} local i_22_ = 0 for _, _8_ in ipairs(sorted_extmarks) do local id = _8_["id"]
+ local val_23_ = extmark_tags[id] if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end return tbl_21_ end
 
  local function mouse_defaults()
  local bindings = {}
@@ -49,7 +49,7 @@
  local function bind_key(_17_, lhs, desc, callback) local buf = _17_["buf"]
  return api.nvim_buf_set_keymap(buf, "n", lhs, "", {callback = callback, desc = desc}) end
 
- M.open = function(filetype, dispatch, _18_) local width = _18_["width"] local height = _18_["height"] local window_position = _18_["window-position"] local minimise_position = _18_["minimise-position"] _G.assert((nil ~= minimise_position), "Missing argument minimise-position on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= window_position), "Missing argument window-position on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= height), "Missing argument height on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= width), "Missing argument width on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= dispatch), "Missing argument dispatch on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= filetype), "Missing argument filetype on fnl/playtime/app/window.fnl:52")
+ M.open = function(filetype, dispatch, _18_) local width = _18_["width"] local height = _18_["height"] local _3fwindow_border = _18_["window-border"] local window_position = _18_["window-position"] local minimise_position = _18_["minimise-position"] _G.assert((nil ~= minimise_position), "Missing argument minimise-position on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= window_position), "Missing argument window-position on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= height), "Missing argument height on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= width), "Missing argument width on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= dispatch), "Missing argument dispatch on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= filetype), "Missing argument filetype on fnl/playtime/app/window.fnl:52")
  local function mutate_configs_to_geometry_21(max_config, min_config) _G.assert((nil ~= min_config), "Missing argument min-config on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= max_config), "Missing argument max-config on fnl/playtime/app/window.fnl:53")
  local max_pos local function _19_(...) local _20_ = ... if ((_G.type(_20_) == "table") and (nil ~= _20_.row) and (nil ~= _20_.col)) then local row = _20_.row local col = _20_.col
 
@@ -80,11 +80,13 @@
  min_config.row = min_pos.row
  min_config.col = min_pos.col return nil end
 
- local win_maxi_config = {relative = "editor", width = width, height = height, style = "minimal", border = "shadow"}
+ local win_maxi_config
 
 
 
+ local _48_ do local _47_ = (_3fwindow_border or vim.opt.winborder:get()) if ((_47_ == nil) or (_47_ == "")) then _48_ = "shadow" elseif (nil ~= _47_) then local border = _47_
 
+ _48_ = border else _48_ = nil end end win_maxi_config = {relative = "editor", width = width, height = height, style = "minimal", border = _48_}
  local win_mini_config = {relative = "editor", width = 18, height = 1, style = "minimal", border = "none"}
 
 
@@ -107,7 +109,7 @@
 
 
 
- local function _47_() local tbl_21_auto = {} local i_22_auto = 0 for row = 1, (height * 2) do local val_23_auto = string.rep(" ", width) if (nil ~= val_23_auto) then i_22_auto = (i_22_auto + 1) tbl_21_auto[i_22_auto] = val_23_auto else end end return tbl_21_auto end api.nvim_buf_set_lines(buf, 0, -1, false, _47_())
+ local function _52_() local tbl_21_ = {} local i_22_ = 0 for row = 1, (height * 2) do local val_23_ = string.rep(" ", width) if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end return tbl_21_ end api.nvim_buf_set_lines(buf, 0, -1, false, _52_())
  api.nvim_buf_set_option(buf, "modifiable", false)
  api.nvim_buf_set_option(buf, "filetype", ("playtime." .. filetype))
  api.nvim_win_set_option(win, "wrap", false)
@@ -115,59 +117,59 @@
  vim.wo[win]["winhighlight"] = "NormalFloat:PlaytimeBackground" vim.o.guicursor = "a:PlaytimeHiddenCursor"
 
 
- local _50_ do local t_49_ = dispatch if (nil ~= t_49_) then t_49_ = t_49_.window else end if (nil ~= t_49_) then t_49_ = t_49_.via else end _50_ = t_49_ end assert(_50_, "Must provide dispatch.window.via function")
+ local _55_ do local t_54_ = dispatch if (nil ~= t_54_) then t_54_ = t_54_.window else end if (nil ~= t_54_) then t_54_ = t_54_.via else end _55_ = t_54_ end assert(_55_, "Must provide dispatch.window.via function")
 
 
- local function _54_(_53_) local winid = _53_["match"]
+ local function _59_(_58_) local winid = _58_["match"]
  if (winid == tostring(win)) then
  dispatch.window.via("quit")
- api.nvim_del_augroup_by_id(augroup) return true else return nil end end api.nvim_create_autocmd("WinClosed", {group = augroup, callback = _54_})
+ api.nvim_del_augroup_by_id(augroup) return true else return nil end end api.nvim_create_autocmd("WinClosed", {group = augroup, callback = _59_})
 
 
 
- local function _56_()
+ local function _61_()
  mutate_configs_to_geometry_21(win_maxi_config, win_mini_config)
  if view["minimised?"] then
  api.nvim_win_set_config(win, win_mini_config) else
- api.nvim_win_set_config(win, win_maxi_config) end return false end api.nvim_create_autocmd("VimResized", {group = augroup, callback = _56_})
+ api.nvim_win_set_config(win, win_maxi_config) end return false end api.nvim_create_autocmd("VimResized", {group = augroup, callback = _61_})
 
 
 
- local function _58_()
+ local function _63_()
  Highlight["define-highlights"]()
- vim.wo[win]["winhighlight"] = "NormalFloat:PlaytimeBackground" return false end api.nvim_create_autocmd("ColorScheme", {group = augroup, callback = _58_})
+ vim.wo[win]["winhighlight"] = "NormalFloat:PlaytimeBackground" return false end api.nvim_create_autocmd("ColorScheme", {group = augroup, callback = _63_})
 
 
 
 
 
- local function _59_()
+ local function _64_()
  vim.o.guicursor = user_guicursor_value view["minimised?"] = true
 
  api.nvim_win_set_cursor(win, {1, 0})
- api.nvim_win_set_config(win, win_mini_config) view:render({{logo_component}}) return false end api.nvim_create_autocmd("BufLeave", {group = augroup, buffer = buf, callback = _59_})
+ api.nvim_win_set_config(win, win_mini_config) view:render({{logo_component}}) return false end api.nvim_create_autocmd("BufLeave", {group = augroup, buffer = buf, callback = _64_})
 
 
 
 
 
- local function _60_() vim.o.guicursor = "a:PlaytimeHiddenCursor" view["minimised?"] = false
+ local function _65_() vim.o.guicursor = "a:PlaytimeHiddenCursor" view["minimised?"] = false
 
 
  api.nvim_win_set_cursor(win, {1, 0})
  api.nvim_win_set_config(win, win_maxi_config)
 
- dispatch.window.via("noop") return false end api.nvim_create_autocmd("BufEnter", {group = augroup, buffer = buf, callback = _60_})
+ dispatch.window.via("noop") return false end api.nvim_create_autocmd("BufEnter", {group = augroup, buffer = buf, callback = _65_})
 
 
- do local _61_ = dispatch.mouse if ((_G.type(_61_) == "table") and (nil ~= _61_.via) and (nil ~= _61_.events)) then local via = _61_.via local events = _61_.events
+ do local _66_ = dispatch.mouse if ((_G.type(_66_) == "table") and (nil ~= _66_.via) and (nil ~= _66_.events)) then local via = _66_.via local events = _66_.events
 
- local bindings local function _62_() local tbl_16_auto = {} for _0, event in ipairs(events) do
- local k_17_auto, v_18_auto = event, via if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then tbl_16_auto[k_17_auto] = v_18_auto else end end return tbl_16_auto end bindings = table.merge(mouse_defaults(), _62_())
+ local bindings local function _67_() local tbl_16_ = {} for _0, event in ipairs(events) do
+ local k_17_, v_18_ = event, via if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end return tbl_16_ end bindings = table.merge(mouse_defaults(), _67_())
  for key, cb in pairs(bindings) do
- local _64_ do local data_5_auto = {filetype = filetype} local resolve_6_auto local function _65_(name_7_auto) local _66_ = data_5_auto[name_7_auto] local and_67_ = (nil ~= _66_) if and_67_ then local t_8_auto = _66_ and_67_ = ("table" == type(t_8_auto)) end if and_67_ then local t_8_auto = _66_ local _69_ = getmetatable(t_8_auto) if ((_G.type(_69_) == "table") and (nil ~= _69_.__tostring)) then local f_9_auto = _69_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _69_ return vim.inspect(t_8_auto) end elseif (nil ~= _66_) then local v_11_auto = _66_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _65_ _64_ = string.gsub("playtime #{filetype} dispatch", "#{(.-)}", resolve_6_auto) end bind_mouse(view, key, _64_, cb) end else local _0 = _61_
+ local _69_ do local data_5_auto = {filetype = filetype} local resolve_6_auto local function _70_(name_7_auto) local _71_ = data_5_auto[name_7_auto] local and_72_ = (nil ~= _71_) if and_72_ then local t_8_auto = _71_ and_72_ = ("table" == type(t_8_auto)) end if and_72_ then local t_8_auto = _71_ local _74_ = getmetatable(t_8_auto) if ((_G.type(_74_) == "table") and (nil ~= _74_.__tostring)) then local f_9_auto = _74_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _74_ return vim.inspect(t_8_auto) end elseif (nil ~= _71_) then local v_11_auto = _71_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _70_ _69_ = string.gsub("playtime #{filetype} dispatch", "#{(.-)}", resolve_6_auto) end bind_mouse(view, key, _69_, cb) end else local _0 = _66_
  for key, cb in pairs(mouse_defaults) do
- local _72_ do local data_5_auto = {filetype = filetype} local resolve_6_auto local function _73_(name_7_auto) local _74_ = data_5_auto[name_7_auto] local and_75_ = (nil ~= _74_) if and_75_ then local t_8_auto = _74_ and_75_ = ("table" == type(t_8_auto)) end if and_75_ then local t_8_auto = _74_ local _77_ = getmetatable(t_8_auto) if ((_G.type(_77_) == "table") and (nil ~= _77_.__tostring)) then local f_9_auto = _77_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _77_ return vim.inspect(t_8_auto) end elseif (nil ~= _74_) then local v_11_auto = _74_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _73_ _72_ = string.gsub("playtime #{filetype} dispatch", "#{(.-)}", resolve_6_auto) end bind_mouse(view, key, _72_, cb) end end end
+ local _77_ do local data_5_auto = {filetype = filetype} local resolve_6_auto local function _78_(name_7_auto) local _79_ = data_5_auto[name_7_auto] local and_80_ = (nil ~= _79_) if and_80_ then local t_8_auto = _79_ and_80_ = ("table" == type(t_8_auto)) end if and_80_ then local t_8_auto = _79_ local _82_ = getmetatable(t_8_auto) if ((_G.type(_82_) == "table") and (nil ~= _82_.__tostring)) then local f_9_auto = _82_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _82_ return vim.inspect(t_8_auto) end elseif (nil ~= _79_) then local v_11_auto = _79_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _78_ _77_ = string.gsub("playtime #{filetype} dispatch", "#{(.-)}", resolve_6_auto) end bind_mouse(view, key, _77_, cb) end end end
  return setmetatable(view, {__index = M}) end
 
  M.render = function(view, component_layers)
@@ -206,7 +208,7 @@
 
 
  if ((row + (line - 1)) <= (overflow_height - 1)) then
- local _let_82_ = component["content-at"](component, line) local extmark_id = _let_82_["extmark-id"] local content = _let_82_["content"]
+ local _let_87_ = component["content-at"](component, line) local extmark_id = _let_87_["extmark-id"] local content = _let_87_["content"]
  nvim_buf_set_extmark(buf, ns, (row + line + -1), col, {id = extmark_id, virt_text = content, virt_text_pos = "overlay", priority = z, end_col = math.clamp((col + width), 0, (frame_width - 1))})
 
 
@@ -222,7 +224,7 @@
  api.nvim_buf_clear_namespace(buf, ns, 0, -1)
  for _, layer in ipairs(component_layers0) do
  for _0, comp in ipairs(layer) do
- local and_85_ = ((_G.type(comp) == "table") and (nil ~= comp.row) and (nil ~= comp.col)) if and_85_ then local row = comp.row local col = comp.col local comp0 = comp and_85_ = (((0 <= col) and (col <= frame_width)) and ((0 <= row) and (row <= (overflow_height - 1)))) end if and_85_ then local row = comp.row local col = comp.col local comp0 = comp
+ local and_90_ = ((_G.type(comp) == "table") and (nil ~= comp.row) and (nil ~= comp.col)) if and_90_ then local row = comp.row local col = comp.col local comp0 = comp and_90_ = (((0 <= col) and (col <= frame_width)) and ((0 <= row) and (row <= (overflow_height - 1)))) end if and_90_ then local row = comp.row local col = comp.col local comp0 = comp
 
 
  draw(comp0) else end end end
