@@ -4,16 +4,14 @@
 (local Error (require :playtime.error))
 (local Logger (require :playtime.logger))
 (local Deck (require :playtime.game.shenzhen-solitaire.deck))
-(local CardGameUtils (require :playtime.common.card.utils))
+(local CardGameUtils (require :playtime.game.shared.card-utils))
 
 (local {: location-contents : inc-moves : apply-events} CardGameUtils)
 
-(local M {:Action {}
-          :Plan {}
-          :Query {}})
+(local M {:Action {} :Query {}})
 
 (set M.iter-cards (CardGameUtils.make-iter-cards-fn [:cell :flower :foundation :tableau]))
-(local {: card-value : card-rank : card-suit : rank-value : suit-color : flip-face-up}
+(local {: card-value : card-rank : card-suit : rank-value : suit-color : flip-face-up : flip-face-down}
   (CardGameUtils.make-card-util-fns {:value {} :color {}}))
 
 (fn new-game-state []
@@ -29,11 +27,11 @@
   (let [tableau-cards (-> (Deck.Shenzhen.build)
                           (Deck.shuffle))
         state (new-game-state)]
-    (each [_ c (ipairs tableau-cards)] (flip-face-up c))
+    (each [_ c (ipairs tableau-cards)] (flip-face-down c))
     (tset state.flower 1 tableau-cards)
     state))
 
-(local valid-tableau-sequence?
+(local valid-sequence-helper
   (CardGameUtils.make-valid-sequence?-fn
     (fn [next-card [last-card]]
       ;; You can only pick up sequences of coins, strings and myriads.
@@ -44,6 +42,17 @@
         (and (not (eq-any? next-suit [:flower :green :red :white]))
              (not (= last-suit next-suit))
              (= last-value (+ next-value 1)))))))
+
+(fn valid-tableau-sequence? [seq]
+  ;; You can pick up 1 card of anything but runs may not contain any dragons or
+  ;; flower. The general helper isn't great at seeing this, so split the check.
+  (case seq
+    [card nil] true
+    _ (let [special? (accumulate [special? false
+                                  _ [suit] (ipairs seq)
+                                  &until special?]
+                       (eq-any? suit [:flower :green :red :white]))]
+        (and (not special?) (valid-sequence-helper seq)))))
 
 (local winning-foundation-sequence?
   (do
@@ -80,7 +89,9 @@
                             i (length (. state :flower 1)) 1 -1]
                 (let [from [:flower 1 i]
                       to [:tableau t-col row]]
-                  (values (table.insert moves [:move from to])
+                  (values (doto moves
+                            (table.insert [:face-up from])
+                            (table.insert [:move from to]))
                           (if (= t-col 8) 1 (+ t-col 1))
                           (if (= t-col 8) (+ row 1) row))))
         (next-state moves) (apply-events (clone state) moves)]
@@ -230,7 +241,7 @@
       (catch
         _ (values nil (Error "Unable to lock dragon"))))))
 
-(fn M.Plan.next-move-to-flower [state]
+(fn next-move-to-flower [state]
   (if (= 0 (length (. state :flower 1)))
     (let [speculative-state (clone state)
           check-locations (fcollect [i 1 3] [:cell i])
@@ -247,7 +258,7 @@
           (M.Action.move speculative-state from to) speculative-state
           [from to])))))
 
-(fn M.Plan.next-move-to-foundation [state]
+(fn next-move-to-foundation [state]
   ;; Find the lowest value still playable, if any movable non-dragon card is
   ;; that value, we can safely move it to the foundation.
   ;; Check left to right, cells then tableau.
@@ -276,6 +287,11 @@
         (M.Action.move speculative-state from to) speculative-state
         [from to]))))
 
+(fn M.Query.automatic-action [state]
+  (case (or (next-move-to-flower state)
+            (next-move-to-foundation state))
+    [from to] [:move from to]))
+
 (fn M.Query.liftable? [state location]
   (not (nil? (check-pick-up state location))))
 
@@ -283,6 +299,9 @@
   (case location
     [field] (eq-any? field [:tableau :cell :flower :foundation])
     _ false))
+
+(fn M.Query.moveable? [state from-location to-location]
+  (not (nil? (M.Action.move state from-location to-location))))
 
 (fn M.Query.game-ended? [state]
   (let [foundations? (faccumulate [won? true i 1 3]

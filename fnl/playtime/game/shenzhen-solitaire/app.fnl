@@ -3,31 +3,69 @@
 
 (local Logger (require :playtime.logger))
 (local Error (require :playtime.error))
-(local Component (require :playtime.component))
-(local PatienceApp (require :playtime.app.patience))
-(local PatienceState (require :playtime.app.patience.state))
-(local State (require :playtime.app.state))
+
+(local PatienceApp (require :playtime.patience))
 (local Logic (require :playtime.game.shenzhen-solitaire.logic))
-(local M (setmetatable {} {:__index PatienceApp}))
-(local AppState (PatienceState.build Logic))
+(local Components (require :playtime.game.shenzhen-solitaire.components))
 
-(set AppState.Default (State.build :Default {:delegate {:app AppState.Default
-                                                        :input AppState.Default}}))
+(local M (PatienceApp.scaffold-module {}))
 
-(fn card-graphics [suit rank _color-count]
-  (let [rank-text (case [suit rank]
-                    [:red] :Š
-                    [:green] :Ñ
-                    [:white] :Õ
-                    [:flower] :ƒ
-                    [_ pip] (tostring pip))
-        highlight (.. "@playtime.game.shenzhen."
-                      (case suit
-                        :green :dragon.green
-                        :red :dragon.red
-                        :white :dragon.white
-                        suit suit))]
-    ["" rank-text highlight]))
+(fn M.State.Idle.on.app.click-lock [state {: app} {: suit} fx]
+  (case (Logic.Action.lock-dragon app.game suit)
+    (next-game events) (let [animation (M.build-card-animation-from-events
+                                         app
+                                         events
+                                         (fn []
+                                           (app:synchronise-components-to-game-state)
+                                           (fx.event.dispatch :app :maybe-auto-move)
+                                           (fx.interaction-lock.unlock)
+                                           (each [_ comp (ipairs app.components.cards.children)]
+                                             (case comp.card
+                                               (where [(= suit)]) (comp:lock)))
+                                           (fx.engine.render)))]
+                         (fx.animation.play animation)
+                         (fx.interaction-lock.general-lockout)
+                         (set app.game next-game))))
+
+;;
+;; ShenzhenSolitaire App
+;;
+
+(λ M.start [runtime-config game-config ?seed]
+  (let [patience-config {:LogicImpl Logic
+                         :StateImpl M.State
+                         :ComponentImpl {:spec {:slots [{:location :cell
+                                                         :count 3
+                                                         :label "*"}
+                                                        {:location :flower
+                                                         :count 1
+                                                         :label "ƒ"}
+                                                        {:location :foundation
+                                                         :count 3
+                                                         :label "1"}
+                                                        {:location :tableau
+                                                         :count 8
+                                                         :label "*"}]}
+                                         :card Components.card}}
+        app-config {:module M
+                    :name "Shenzhen Solitaire"
+                    :app-id :shenzhen-solitaire
+                    :view {:width 76 :height 42}
+                    :menu [["Shenzhen Solitaire" [["New Game" [:app :new-game]]]]]}]
+    (PatienceApp.start patience-config
+                       app-config
+                       runtime-config
+                       game-config
+                       ?seed)))
+
+(λ M.synchronise-components-to-game-state [app]
+  (PatienceApp.synchronise-components-to-game-state app)
+  (let [colors [:red :green :white]]
+    (each [_ color (ipairs [:red :green :white])]
+      (let [button (. app.components (.. color :-lock-button))]
+        (if (not (nil? (Logic.Action.lock-dragon app.game color)))
+          (button:enable)
+          (button:disable))))))
 
 (fn M.location->position [app location]
   (let [config {:card {:margin {:row 0 :col 2}
@@ -58,102 +96,18 @@
                                       :white 3)]
                               {:row (+ button.row (- n 1))
                                :col button.col
-                               :z (app:z-index-for-layer :button)})
-      _ (error (Error "Unable to convert location to position, unknown location #{location}" 
+                               :z 150})
+      _ (error (Error "Unable to convert location to position, unknown location #{location}"
                       {: location})))))
 
-(λ make-lock-button-component [tag text position enabled-highlight disabled-highlight]
-  (-> (Component.build
-        (fn [self enabled?]
-          (let [hi (if enabled? enabled-highlight disabled-highlight)]
-            (self:set-content [[[text hi]]])
-            (if enabled?
-              (self:set-tag tag)
-              (self:set-tag nil)))))
-      (Component.set-position position)
-      (Component.set-size {:width 3 :height 1})
-      (: :update false)))
-
-(fn AppState.Default.tick [app]
-  (each [i color (ipairs [:red :green :white])]
-    (let [button (. app.components.buttons i)]
-      (button:update (not (nil? (Logic.Action.lock-dragon app.game color))))))
-  (AppState.Default.Delegate.app.tick app))
-
-(fn AppState.Default.OnEvent.app.maybe-auto-move [app]
-  (case-try
-    (or (Logic.Plan.next-move-to-flower app.game)
-        (Logic.Plan.next-move-to-foundation app.game)) [from to]
-    (Logic.Action.move app.game from to) (next-game events)
-    (let [after #(do
-                   (app:switch-state AppState.Default)
-                   (app:queue-event :app :maybe-auto-move)
-                   (app:update-game next-game [:move from to]))
-          timeline (app:build-event-animation events after {:stagger-ms 200})]
-      (app:switch-state AppState.Animating timeline))))
-
-(fn AppState.Default.OnEvent.input.<LeftMouse> [app locations pos]
-  (case locations
-    [[:button :lock color]]
-    (case-try
-      (Logic.Action.lock-dragon app.game color) (next-game events)
-      (let [timeline (app:build-event-animation
-                       events
-                       #(do
-                          (app:queue-event :app :noop)
-                          (app:queue-event :app :maybe-auto-move)
-                          (app:switch-state AppState.Default)
-                          (app:update-game next-game [:lock-dragon color]))
-                       {:stagger-ms 120})]
-        (app:switch-state AppState.Animating timeline))
-      (catch
-        (nil err) (app:notify err)))
-    _ (AppState.Default.Delegate.input.OnEvent.input.<LeftMouse> app locations pos)))
-
-(fn M.start [app-config game-config ?seed]
-  (let [app (PatienceApp.start
-              {:name "Shenzhen Solitaire"
-               :filetype :shenzhen-solitaire
-               :view {:width 76 :height 42}
-               :empty-fields [[:cell 3] [:tableau 8] [:foundation 3] [:flower 1]]
-               :card-style {:colors :custom
-                            :graphics card-graphics}}
-              {:AppImpl M
-               :LogicImpl Logic
-               :StateImpl AppState}
-              app-config game-config ?seed)
-        buttons (icollect [_ a (ipairs [[[:button :lock :red]
-                                         "⊲ Š"
-                                         (app:location->position [:button :lock :red])
-                                         "@playtime.game.shenzhen.dragon.red"
-                                         "@playtime.ui.off"]
-                                       [[:button :lock :green]
-                                        "⊲ Ñ"
-                                         (app:location->position [:button :lock :green])
-                                         "@playtime.game.shenzhen.dragon.green"
-                                         "@playtime.ui.off"]
-                                       [[:button :lock :white]
-                                        "⊲ Õ"
-                                         (app:location->position [:button :lock :white])
-                                         "@playtime.game.shenzhen.dragon.white"
-                                         "@playtime.ui.off"]])]
-                  (make-lock-button-component (table.unpack a)))]
-    (table.merge app.components {: buttons})
-    ;; PatienceApp#start will call (app:render) but or components field will
-    ;; contain a nil entry for buttons, causing the iterator to halt
-    ;; prematurely, so we must manually call renderer after setting the
-    ;; additional components.
-    ;; TODO: maybe make render more resilient to this, pass keys or perhaps
-    ;; construct the component tree in a contracted way so render can
-    ;; automatically work it all out.
-    (app:render)
-    app))
-
-(fn M.render [app]
-  (app.view:render [app.components.empty-fields
-                    app.components.buttons
-                    app.components.cards
-                    (app:standard-patience-components)])
-  app)
+(fn M.build-other-components [app]
+  (let [[red green white] (icollect [_ {: text : suit} (ipairs [{:text "⊲ Š" :suit :red}
+                                                                {:text "⊲ Ñ" :suit :green}
+                                                                {:text "⊲ Õ" :suit :white}])]
+                            (let [position (app:location->position [:button :lock suit])]
+                              (Components.lock-button {: text : suit : position})))]
+    (table.merge app.components {:red-lock-button red
+                                 :green-lock-button green
+                                 :white-lock-button white})))
 
 M
