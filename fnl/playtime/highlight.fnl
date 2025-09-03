@@ -41,6 +41,16 @@
     (catch
       {: fg} {:fg (to-hex fg)})))
 
+(fn fetch-bg [hl-name & rest]
+  (case-try
+    (get-hl 0 hl-name false) {:bg nil}
+    (get-hl 0 hl-name true) {:bg nil}
+    (case rest
+      [next & rest] (fetch-bg next (table.unpack rest))
+      [nil] {:bg :#FF00DD})
+    (catch
+      {: bg} {:bg (to-hex bg)})))
+
 (fn define-hl-if-missing [hl-name hl-data]
   ;; Uh... This historic comment does not make a lot of sense. link=true is
   ;; default. I guess there was some issue with ...hearts and
@@ -94,6 +104,33 @@
   (link "@playtime.color.magenta" :PlaytimeMagenta)
   (link "@playtime.color.cyan" :PlaytimeCyan)
   (link "@playtime.color.black" :PlaytimeBlack)
+
+  (let [colors [:White :Black :Red :Green :Yellow :Orange :Blue :Magenta :Cyan]]
+    (each [_ fg (ipairs colors)]
+      (each [_ bg (ipairs colors)]
+        (let [hl-name (string.format "@playtime.palette.%s-%s"
+                                     (string.lower fg)
+                                     (string.lower bg))
+              fg-name (string.format "Playtime%s" fg)
+              bg-name (string.format "Playtime%s" bg)]
+          (hl hl-name {:fg (. (fetch-fg fg-name) :fg)
+                       :bg (. (fetch-fg bg-name) :fg)})))))
+
+  (hl "@playtime.game.sudoku.given" {:fg (. (fetch-fg "@playtime.color.blue") :fg)
+                                     :underline true })
+  (hl "@playtime.game.sudoku.pen" {:fg (. (fetch-fg "@playtime.color.blue") :fg)
+                                   :bold true})
+  (hl "@playtime.game.sudoku.pen.complete" {:fg (. (fetch-fg "@playtime.color.blue") :fg)
+                                            :bold false})
+
+  (hl "@playtime.game.sudoku.note.maybe" {:fg (. (fetch-fg "@playtime.color.black") :fg)})
+  (hl "@playtime.game.sudoku.note.highlight" {:fg (. (fetch-fg "@playtime.color.yellow") :fg)
+                                              :standout true
+                                              })
+  (hl "@playtime.game.sudoku.note.not" {:fg (. (fetch-fg "@playtime.color.black") :fg)
+                                        :strikethrough true})
+
+  (hl "@playtime.game.sudoku.wrong" {:fg (. (fetch-fg "@playtime.color.red") :fg)})
 
   (link "@playtime.game.card.empty" :PlaytimeMuted)
   (link "@playtime.game.card.back" :PlaytimeMuted)

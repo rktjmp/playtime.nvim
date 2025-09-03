@@ -3,176 +3,206 @@
 
 (local Logger (require :playtime.logger))
 (local Error (require :playtime.error))
-(local State (require :playtime.app.state))
-(local CommonComponents (require :playtime.common.components))
+
 (local Serializer (require :playtime.serializer))
 
-(local M {: State})
+(local Engine (require :playtime.app.engine))
+(local Clock (require :playtime.app.clock))
+(local Window (require :playtime.app.window))
+(local EventQueue (require :playtime.app.event-queue))
+(local FSM (require :playtime.app.state-machine))
+
+(local Menubar (require :playtime.component.menubar))
+
+(local M {})
 (local uv (or vim.loop vim.uv))
 
-(λ M.build [name app-id app-config game-config]
-  "Scaffold a basic app table from a config."
-  {: name
-   : app-id ;; kinda smells, since we have 'id' as an int and 'app-id' as a "computer readable name"
-   :filetype (.. "playtime-" app-id)
-   :data-dir (-> (string.format "%s/playtime/%s" (vim.fn.stdpath :data) app-id)
-                 (vim.fs.normalize))
-   : app-config
-   :started-at (os.time)
-   :ended-at nil
+(fn make-app-cofx-interceptor [app]
+  {:id :app-cofx
+   :before (fn [self pipe]
+             (set pipe.context.app app)
+             pipe)})
 
-   :seed (Error "Seed not initialised")
-   :game (Error "Game not initialised")
-   : game-config
-   :game-history []
+(local GameManager
+  {:new (fn [game-config]
+          {:config game-config
+           :state nil
+           :history []
+           ; should also have interceptor to inject game state into cofx
+           ; and then also have update fx?
+           :new (fn [manager new-state ?config]
+                  (set manager.config (or ?config manager.config))
+                  (set manager.history [])
+                  (set manager.state new-state))
+           :update (fn [manager next-state replay-action]
+                     (table.insert manager.history 1 [manager.state replay-action])
+                     (set manager.state next-state)
+                     manager)
+           :undo (fn [manager]
+                   (case (table.remove manager.history 1)
+                     [state _replay-action] (set manager.state state))
+                   manager)})})
 
-   :view (Error "View not initialised")
-   :z-layers {:base 0 :report 500 :menubar 600}
-   :tick-rate-ms (math.floor (/ 1000 (or app-config.fps 30)))
-   :components {:menubar (CommonComponents.menubar
-                           [["Playtime" [:todo]]]
-                           {:width 80 :z 100})
-                :cheating (-> (CommonComponents.cheating)
-                              (: :set-visible false))}
-   :state (setmetatable [[State.DefaultAppState {}]]
-                        ;; Some convenience to access "current" state/context
-                        ;; because fennel does not support numbers in
-                        ;; key-paths.
-                        {:__index (fn [t k]
-                                    (case k
-                                      :context (?. t 1 2)
-                                      :module (?. t 1 1)))
-                         :__newindex (fn [t k v]
-                                       (case k
-                                         :context (tset t 1 2 v)))})
-   :event-queue []
-   :throttle {:render {:requested? false}
-              :tick {:last-at 0 :scheduled? false}}
-   :quit? false})
+(local default-on-handlers
+  {:input {}
+   :app {:noop (fn [])
+         :notify (fn [app cofx event fx] (app:notify (tostring event.message)))
+         :quit (fn [app cofx event fx] (app:quit))}
+   :window {:unfocused (fn [app cofx {: window} fx]
+                         (when (vim.api.nvim_win_is_valid window.win)
+                           (app.view:minimise)
+                           (app.clock:pause)))
+            :focused (fn [app cofx {: window} fx]
+                       (when (vim.api.nvim_win_is_valid window.win)
+                         (app.view:maximise)
+                         (app.clock:resume)))
+            :closed (fn [app cofx {: window} fx]
+                      (fx.event.dispatch :app :quit))}})
 
-(λ M.build-default-window-dispatch-options [app]
-  ;; TODO: passing app here could just be the via, need to bind the app target
-  {:mouse {:via #(app:queue-event :input $...)
-           :events [:<LeftMouse>
-                    :<2-LeftMouse>
-                    :<3-LeftMouse>
-                    :<LeftDrag>
-                    :<LeftRelease>
-                    :<MiddleMouse>
-                    :<RightMouse>
-                    :<RightDrag>
-                    :<RightRelease>]}
-   :window {:via #(app:queue-event :app $...)}})
+(λ M.scaffold-module [module]
+  ;; Configure given module with default app functions and on.x handlers.
+  ;; Does not overwrite any existing values but should be called early anyway.
+  ;; Copy over non-special functions
+  (let [ignore-functions [:new :derive :scaffold-module]]
+    (each [_ func-name (ipairs (table.keys M))]
+      (when (not (eq-any? func-name ignore-functions))
+        (set (. module func-name) (or (. module func-name) (. M func-name))))))
+  ; ;; Set `new` but wrap the call so the returned app __index's to the correct module.
+  ; (set module.new (or module.new
+  ;                     (fn [...]
+  ;                       (let [app (M.new ...)
+  ;                             __index (fn [_t k] (. module k))]
+  ;                         (setmetatable app {: __index })))))
+  ;; Copy over event handlers
+  (set (. module :on) (or module.on {}))
+  (each [ns handlers (pairs default-on-handlers)]
+    (set (. module :on ns) (or (. module :on ns) {}))
+    (each [name handler (pairs handlers)]
+      (set (. module :on ns name) (or (. module :on ns name)
+                                      handler))))
+  module)
 
-(fn M.z-index-for-layer [app layer ?plus]
-  (case (?. app.z-layers layer)
-    n (+ n (or ?plus 0))
-    _ (error (<s> "Unknown layer name for z-index: #{layer}"))))
+(λ M.new [{: module : name : app-id :view ?view :menu ?menu :features ?features} runtime-config]
+  (let [app {: name : app-id}
+        features {:save-load (?. ?features :save-load)
+                  :statistics (?. ?features :statistics)}
+        data-dir (-> (string.format "%s/playtime/%s" (vim.fn.stdpath :data) app-id)
+                     (vim.fs.normalize))
+        event-queue (EventQueue.new {:on-enqueued #(app.engine:request-tick)})
+        game-manager (GameManager.new)
+        fsm (FSM.new)
+        clock (Clock.new)
+        engine (Engine.new {: event-queue
+                            : app
+                            :interceptors [{:after :coeffects
+                                            :insert [(make-app-cofx-interceptor app)
+                                                     (fsm:state-coeffects-interceptor)
+                                                     (fsm:transition-interceptor)]}
+                                           {:after :dispatch-to-component
+                                            :insert [(fsm:event-dispatch-interceptor)]}]
+                            :render #(app:render)
+                            :fps runtime-config.app.engine.fps})
+        app (-> (table.merge app {: engine
+                                  :components {}
+                                  :focused? true
+                                  : data-dir
+                                  : fsm
+                                  : clock
+                                  : runtime-config
+                                  : game-manager
+                                  : event-queue})
+                (setmetatable {:__index (fn [_t k] (. module k))}))]
+    ;; Create default view if view configuration is given
+    (case ?view
+      {: width : height :filetype ?filetype}
+      (let [filetype (or ?filetype app-id)
+            view (Window.new {: filetype
+                              :dispatch-event #(app:queue-event $...)
+                              :size {: width : height}
+                              :position {:when-maximised runtime-config.app.window.maximise-position
+                                         :when-minimised runtime-config.app.window.minimise-position}
+                              :style runtime-config.app.window.border})]
+        (set app.view view)))
+    ;; Create default menu component if menu configuration is given
+    (when ?menu
+      (let [separator ["──" nil]
+            spec (accumulate [spec []
+                              menu-i [title & item-groups] (ipairs ?menu)]
+                   (let [a-drop-down [[" " nil]]
+                         _ (each [_ item-group (ipairs item-groups)]
+                             (each [_ [name action] (ipairs item-group)]
+                               (table.insert a-drop-down [name action]))
+                             (table.insert a-drop-down separator))]
+                     (when (and features.save-load (= 1 menu-i))
+                       (table.insert a-drop-down ["Load" [:app :load]])
+                       (table.insert a-drop-down ["Save" [:app :save]])
+                       (table.insert a-drop-down separator))
+                     (when (= 1 menu-i)
+                       (table.insert a-drop-down ["Quit" [:app :quit]])
+                       (table.insert a-drop-down separator))
+                     ;; remove last separator
+                     (table.remove a-drop-down)
+                     (table.insert a-drop-down [" " nil])
+                     (table.insert spec [title a-drop-down])))
+            width (or (?. ?view :width) (length (. spec 1 1)))
+            menubar (Menubar.new {: width : spec})]
+          (set app.components.menubar menubar)))
+    app))
 
-(λ M.new-game [app game-builder game-config ?seed]
-  (let [seed (or ?seed (os.time))
-        game (game-builder game-config seed)]
-    (set app.started-at (os.time))
-    (set app.ended-at nil)
-    (set app.seed seed)
-    (set app.game-config game-config)
-    (set app.game-history [])
-    (Logger.info "Built #{name} seed: #{seed}" {:name app.name : seed})
-    (app:update-game game [])))
-
-(λ M.update-game [app next-game replay]
-  "Update the current game state, record the previous state and action appied to it for replay"
-  (table.insert app.game-history [app.game replay])
-  (set app.game next-game)
+(λ M.update-game [app next-game ?action]
+  (app.game-manager:update next-game ?action)
   app)
 
-(fn throttled-tick [app]
-  (when (not app.quit?)
-    (set app.throttle.tick.last-at (uv.now))
-    (app:tick)
-    (when app.throttle.render.requested?
-      (set app.throttle.render.requested? false)
-      (app:render)))
+(λ M.notify [app message]
+  (app.runtime-config.app.notify (tostring message))
   app)
+
+(λ M.quit [app]
+  (set app.quit? true)
+  (app.engine:halt)
+  (if (and app.view (vim.api.nvim_win_is_valid app.view.win))
+    (vim.api.nvim_win_close app.view.win true))
+  app)
+
+(λ M.queue-event [app ns name ?data]
+  (-> (EventQueue.Event.new ns name ?data)
+      (app.event-queue:enqueue))
+  (app:request-tick))
 
 (λ M.request-tick [app]
-  "Request app tick ASAP, but without exceeding tickrate. Will render if previously requested."
-  (when (not app.throttle.tick.scheduled?)
-    (set app.throttle.tick.scheduled? true)
-    (let [now (uv.now)
-          next-tick-at (+ app.throttle.tick.last-at app.tick-rate-ms)
-          time-to-next-tick-ms (math.max 0 (- next-tick-at now))
-          run (fn []
-                (set app.throttle.tick.scheduled? false)
-                (throttled-tick app))]
-      (vim.defer_fn run time-to-next-tick-ms)))
+  "Request app tick ASAP, but without exceeding tickrate."
+  (app.engine:request-tick)
   app)
 
 (λ M.request-render [app]
-  "Request the app be rendered during a future tick, does not request tick."
-  (set app.throttle.render.requested? true)
+  "Request app render ASAP, but without exceeding render rate."
+  (app.engine:request-render)
   app)
 
-(λ M.queue-event [app namespace event ...]
-  ;; LeftDrag generates a lot of events, which will basically *always*
-  ;; outpace our tick-rate, so when receiving many in a row, replace the last
-  ;; event with the new event to "fast forward".
-  ;; Other input events are unlikely to, but could also outpace us, so do the
-  ;; same thing.
-  ;; App events may be generated quickly, but if they are we probably intend to
-  ;; queue the same event multiple times, so they are not debounced.
-  ;; TODO: This can maybe make starting a card drag awkward over ssh.
-  (let [index (case (values namespace (table.last app.event-queue))
-                (where (:input [:input (= event)])) (length app.event-queue)
-                _ (+ 1 (length app.event-queue)))]
-    (tset app.event-queue index [namespace event (table.pack ...)])
-    (app:request-tick))
-  app)
-
-(λ M.process-next-event [app]
-  "Pull next event off event queue and run it, otherwise does nothing.
-  If any event is dequeued, the application automatically requests another
-  tick after processing the event."
-  (case app.event-queue
-    [[ns event args] & other-events]
-    (do
-      ;; Request tick after dequeing to process next event, or events queued
-      ;; during this tick.
-      (app:request-tick)
-      (set app.event-queue other-events)
-      (case (?. app :state :module :OnEvent ns event)
-        f (f app (table.unpack args))
-        _ (Logger.info "#{state} had no handler for event #{ns}.#{event}"
-                       {:state (. app :state 1) : ns : event})))))
-
-(fn M.switch-state [app new-state ?context]
-  "Switch the current state with a new state, executes deactivated and activated callbacks"
-  (M.pop-state app)
-  (M.push-state app new-state ?context)
-  app)
-
-(fn M.push-state [app new-state ?context]
-  "Push given state onto the state stack, executes activated callbacks, but not deactivated."
-  ;; TODO: should push/pop trigger activated/deactivated state callbacks?
-  ;; The state is likely "still active" in a sense.
-  (let [context (or ?context [])]
-    (table.insert app.state 1 [new-state context])
-    (if new-state.activated
-      (new-state.activated app context))
-    app))
-
-(fn M.pop-state [app]
-  "Pop current state from the state stack, executes deactivated callbacks, but not activated.
-  Does not protect against over-popping."
-  ;; TODO: should push/pop trigger activated/deactivated state callbacks?
-  (case (table.remove app.state 1)
-    [state ?context] (if state.deactivated (state.deactivated app ?context)))
-  app)
-
-(fn M.notify [app msg]
-  ;; TODO: configable, with better visibility
-  (vim.notify (tostring msg)))
-
+(λ M.render [app]
+  ;; Reasonably sane default render implementation, render all
+  ;; components under the components property. Derivations can just
+  ;; toggle visibility or add/remove from the table.
+  (let [components (icollect [_ c (pairs app.components)] c)]
+    (app.view:render components)))
+;
+; (λ M.new-game [app game-builder game-config ?seed]
+;   (let [seed (or ?seed (os.time))
+;         game (game-builder game-config seed)]
+;     (set app.started-at (os.time))
+;     (set app.ended-at nil)
+;     (set app.seed seed)
+;     (set app.game-config game-config)
+;     (set app.game-history [])
+;     (Logger.info "Built #{name} seed: #{seed}" {:name app.name : seed})
+;     (app:update-game game [])))
+;
+; (λ M.update-game [app next-game replay]
+;   "Update the current game state, record the previous state and action appied to it for replay"
+;   (table.insert app.game-history [app.game replay])
+;   (set app.game next-game)
+;   app)
+;
 (λ M.save [app filename data]
   "Save give per-application data to a filename, which can be retrieved by `load`."
   (let [dir app.data-dir
@@ -198,21 +228,31 @@
         data)
       (catch
         (nil err) (app:notify err)))))
+;
+; (λ M.update-statistics [app]
+;   (fn update [d]
+;     (let [data (table.merge {:version 1 :wins 0 :games []} d)]
+;       (set data.wins (+ data.wins 1))
+;       (set data.games (table.insert data.games
+;                                     {:seed app.seed
+;                                      :time (- (or app.ended-at app.started-at) app.started-at)}))
+;       data))
+;   (App.update-statistics app update))
 
-(λ M.update-statistics [app updater-fn]
-  (let [path (-> (string.format "%s/%s.json" app.data-dir :stats)
-                 (vim.fs.normalize))]
-    (case-try
-      (or (Serializer.read path) {}) data
-      (updater-fn data) new-data
-      (Serializer.write path new-data) true
-      app
-      (catch
-        (nil err) (app:notify err)))))
-
-(λ M.fetch-statistics [app]
-  (let [path (-> (string.format "%s/%s.json" app.data-dir :stats)
-                 (vim.fs.normalize))]
-    (or (Serializer.read path) {})))
+; (λ M.update-statistics [app updater-fn]
+;   (let [path (-> (string.format "%s/%s.json" app.data-dir :stats)
+;                  (vim.fs.normalize))]
+;     (case-try
+;       (or (Serializer.read path) {}) data
+;       (updater-fn data) new-data
+;       (Serializer.write path new-data) true
+;       app
+;       (catch
+;         (nil err) (app:notify err)))))
+;
+; (λ M.fetch-statistics [app]
+;   (let [path (-> (string.format "%s/%s.json" app.data-dir :stats)
+;                  (vim.fs.normalize))]
+;     (or (Serializer.read path) {})))
 
 M

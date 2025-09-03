@@ -2,13 +2,13 @@
 (prelude)
 
 (local Error (require :playtime.error))
-(local Id (require :playtime.common.id))
+(local Id (require :playtime.id))
 (local Logger (require :playtime.logger))
 
 (local M {})
 
-;;; Mostly wraps vim.json, but with an affordance for generating new 'id'
-;;; values when needed.
+;; Mostly wraps vim.json, but with an affordance for generating new 'id'
+;; values when decoding to prevent collisions.
 
 (fn M.encode [data]
   (vim.json.encode data))

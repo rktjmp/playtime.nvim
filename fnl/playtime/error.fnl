@@ -15,3 +15,5 @@
         e {: msg :details ?details}
         mt {:__tostring #msg}]
     (setmetatable e mt)))
+
+Error

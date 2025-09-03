@@ -1,0 +1,164 @@
+(fn match? [x pat]
+  "Does `x` match pattern `pat`"
+  `(case ,x (where ,pat) true _# false))
+
+(fn nil? [x] `(= nil ,x))
+
+(fn assert-match [pattern value ?msg]
+  `(case ,value
+     ,pattern ,value
+     _# (error ,(or ?msg (.. (view value) " must match " (view pattern))))))
+
+;
+; (macro update-in [...]
+;   (fn update-in-path [t path func]
+;     (let [target `[,t ,(unpack path)]]
+;       `(let [val# (. ,(unpack target))
+;              new# (,func val#)]
+;        (set (. ,(unpack target)) new#))))
+;
+;   (fn update-in-multi-sym [multi-sym func]
+;     `(let [val# ,multi-sym
+;            new# (,func val#)]
+;        (set ,multi-sym new#)))
+;
+;   (case (select 1 ...)
+;     (where multi-sym (multi-sym? multi-sym)) (update-in-multi-sym ...)
+;     _ (update-in-path ...)))
+;
+; (macro ensure-path [path]
+;   (let [[table-name & path] (case (multi-sym? path)
+;                               nil (assert-compile false "must give multi-sym")
+;                               parts parts)]
+;     `(do
+;        (accumulate [t# ,table-name _# p# (ipairs ,path)]
+;          (case (. t# p#)
+;            nil (do
+;                  (tset t# p# {})
+;                  (. t# p#))
+;            [&as v#] v#
+;            v# v#)))))
+
+; (let [x {:memory {}}
+;       into [:memory :unaccounted-hearts]]
+;   ; (print :path)
+;   ; (ensure-path x.memory.hole)
+;   ; (print :msym)
+;   ; (update-in x.memory.unaccounted-hearts #(- $1 1))
+;   (print :path)
+;   ; (update-in x [:memory :unaccounted-hearts] #(- $1 1))
+;   (update-in x into #(- $1 1))
+;
+;   )
+
+;; TODO: <s> -> %f or %s
+;; TODO: allow multi-sym (just scope check first section, allow nils in output)
+;; replace (Error x ...) with (Error (%s ...))?
+(fn <s> [str ?bindings]
+  "string interpolation, `xyz #{abc}` where abc is in-scope, or given via bindings"
+  ;; The fennel.parser() is not availiable in the macro environment, so we rely
+  ;; on single symbol names.
+  (let [other (or ?bindings {})
+        lookup (collect [name (string.gmatch str "#{(.-)}")]
+                 (if
+                   (. other name) (values name (. other name))
+                   (in-scope? name) (values name (sym name))
+                   (assert-compile false (.. "symbol `" name "` not in scope"))))]
+    `(let [data# ,lookup
+           resolve# (fn [name#]
+                      (case (. data# name#)
+                        (where t# (= :table (type t#))) (case (getmetatable t#)
+                                                          {:__tostring f#} (f# t#)
+                                                          _# (vim.inspect t#))
+                        v# (tostring v#)))]
+       (string.gsub ,str "#{(.-)}" resolve#))))
+
+(local modname ...)
+(fn prelude []
+  (let [binding-names [:math :string :table
+                       :type :*jit*
+                       :eq-all? :eq-any?
+                       :copy :clone]
+        bindings (collect [_ name (ipairs binding-names)]
+                   (values name (sym name)))]
+  `(local ,bindings (require (.. ,modname)))))
+
+(fn benchmark [out ...]
+  `(let [uv# (or vim.uv vim.loop)
+         a# (uv#.hrtime)
+         pack# (fn [...] {:v [...] :n (select :# ...)})
+         v# (pack# (do ,...))
+         b# (uv#.hrtime)
+         ns# (- b# a#)
+         ms# (math.floor (/ ns# 1_000_000))]
+     (,out (.. ms# "ms") ms# ns#)
+     (unpack v#.v 1 v#.n)))
+
+(fn summark [name ...]
+  `(do
+     (set (. _G :summark-push) (or _G.summark-push []))
+     (table.insert _G.summark-push ,name)
+     (local summark-push-name# (table.concat _G.summark-push "->"))
+     (set (. _G :summark) (or (. _G :summark) {}))
+     (set (. _G.summark summark-push-name#) (or (. _G.summark summark-push-name#) {:calls 0 :time-ns 0}))
+     (local summark# (. _G.summark summark-push-name#))
+     (set summark#.calls (+ summark#.calls 1))
+
+     ; (local prof-node# {:name ,name :value 0 :children []})
+     ; (local prof-old-head# _G.summark-prof-head)
+     ; (table.insert _G.summark-prof-head.children prof-node#)
+     ; (set (. _G :summark-prof-head) prof-node#)
+
+     (let [uv# (or vim.uv vim.loop)
+           a# (uv#.hrtime)
+           pack# (fn [...] {:v [...] :n (select :# ...)})
+           v# (pack# (do ,...))
+           b# (uv#.hrtime)
+           ns# (- b# a#)]
+       (set summark#.time-ns (+ summark#.time-ns ns#))
+       (table.remove _G.summark-push)
+
+       ; (set prof-node#.value ns#)
+       ; (set (. _G :summark-prof-head) prof-old-head#)
+
+       (unpack v#.v 1 v#.n))))
+
+(fn summark-reset []
+  `(do
+     (set (. _G :summark) {})
+     (set (. _G :summark-push) [])
+     (set (. _G :summark-prof) {:name :root :value 0 :children []})
+     (set (. _G :summark-prof-head) _G.summark-prof)))
+
+(fn summark-print [out ?sort]
+  `(do
+     (let [f# (io.open :/home/soup/tmp/flamegraph/data.json :w)
+           json# (vim.json.encode _G.summark-prof)]
+       (f#:write json#)
+       (f#:close))
+     (let [data# (icollect [name# {:calls calls# :time-ns time-ns#} (pairs _G.summark)]
+                   (let [ms# (/ time-ns# 1_000_000)
+                         avg# (/ ms# calls#)]
+                     [name# [:calls calls# :time-ms ms# :avg avg#]]))
+           data# (table.sort data# (fn [[name-a# [_calls# _calls# _time-ms# time-ms-a#]]
+                                        [name-b# [_calls# _calls# _time-ms# time-ms-b#]]]
+                                     (case ,?sort
+                                       nil (> time-ms-a# time-ms-b#)
+                                       :time (> time-ms-a# time-ms-b#)
+                                       :name (< name-a# name-b#))
+                                       ))]
+       (,out data#))))
+
+; (fn benchmark [...]
+;   `(do ,...))
+
+{: match?
+ : assert-match
+ : nil?
+ : <s>
+ :%s <s>
+ : benchmark
+ : summark
+ : summark-print
+ : summark-reset
+ : prelude}

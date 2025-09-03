@@ -52,7 +52,8 @@
   (doto t (tset k v)))
 
 (fn split-at [t index]
-  "Split seq at index, -index also supported"
+  "Split seq at index, -index also supported.
+  Returns two tables, one from 1..index-1, the other index..end"
   (let [p (if (<= 0 index) index (+ (length t) (+ 1 index)))]
     (accumulate [(a b) (values [] []) i v (ipairs t)]
       (if (< i p)
@@ -67,7 +68,7 @@
 ;       (values a (*insert b v)))))
 
 (λ merge [table-into table-from ?resolver]
-  (let [resolve (or ?resolver (fn [key val-a val-b] val-b))]
+  (let [resolve (or ?resolver (fn [_key _val-a val-b] val-b))]
     (collect [key value (pairs table-from) &into table-into]
       (case (values (. table-into key) value)
         (same same) (values key value)
@@ -118,11 +119,18 @@
   (assert (type.table? t) (string.format "target argument must be table, got %s" (type t)))
   (assert (type.table? path) "path argument must be table")
   (assert (type.function? f) "f argument must be function")
-  (case path
-    [key nil] (doto t (tset key (f (. t key))))
-    [key & rest] (do
-                   (update-in (. t key) rest f)
-                   t)))
+  (let [limit (length path)]
+    (accumulate [focus t i key (ipairs path)]
+      (if (= limit i)
+        (set (. focus key) (f (. focus key)))
+        (. focus key))))
+  ;   (. t key)
+  ; (case path
+  ;   [key nil] (doto t (tset key (f (. t key))))
+  ;   [key & rest] (do
+  ;                  (update-in (. t key) rest f)
+  ;                  t))
+  )
 
 (fn set-in [t path val]
   (update-in t path #val))
@@ -141,11 +149,11 @@
   (do
     (fn pack [...] (doto [...] (tset :n (select :# ...))))
     (fn unpack [t ?from ?to] (*raw-unpack* t (or ?from 1) (or ?to t.n)))
-
+    (fn keys [t] (icollect [k _ (pairs t)] k))
     (setmetatable {:empty? (fn [t] (= nil (next t)))
                    :first (fn [t] (. t 1))
                    :last (fn [t] (. t (length t)))
-                   :keys (fn [t] (icollect [k _ (pairs t)] k))
+                   : keys
                    :values (fn [t] (icollect [_ v (pairs t)] v))
                    :invert (fn [t] (collect [k v (pairs t)] (values v k)))
                    : update-in
@@ -161,6 +169,9 @@
                    : pack
                    : unpack
                    :insert *insert
+                   ;; performance sensitive loops may want c func for jit?
+                   :raw-insert *raw-table*.insert
+                   :remove *raw-table*.remove
                    :set *set
                    :sort stable-insertion-sort ;(fn [t ?comp] (doto t (*raw-table*.sort ?comp)))
                    :group-by (fn [t f]
@@ -169,6 +180,13 @@
                                    (case (. g key)
                                      nil (*set g key [v])
                                      sub-t (*set g key (*insert sub-t v))))))
+                   :random (fn [t]
+                             (case t
+                               {1 any} (. t (math.random 1 (length t)))
+                               _ (doto (keys t)
+                                   (shuffle)
+                                   (. 1))))
+                   :__table *raw-table*
                    : shuffle}
                   {:__index *raw-table*})))
 
@@ -199,17 +217,75 @@
   (case (type data)
     :table (let [mt (getmetatable data)]
              (case mt
-               {:__clone custom} (-> (custom data)
-                                     (setmetatable mt))
+               {:__clone custom} (-> (clone data) (setmetatable mt))
                _ (-> (collect [key val (pairs data)] (values key (clone val)))
                      (setmetatable mt))))
+    ;; We dont want to just copy any cdata we get given, so allow registration
+    ;; of known cdata types and copy if we recognise it.
+    ;;
+    ;; Note that (ffi.typeof data) *appears* to return the same type data and
+    ;; (= ctype_t (typeof data)) will return true, but you can't use (typeof data)
+    ;; as a lookup value in a table of {ctype_t true}.
+    ;;
+    ;; It's also sort of unclear if (ffi.typeof) is actually creating new
+    ;; `ctype` records with the same 'tostring' apperance, when called with an
+    ;; existing structure. The documentation implies it does create a new type
+    ;; each time, probably with a __eq metamethod to compare struct fields for
+    ;; 'type equality' or something.
+    ;;
+    ;; So we rely on ffi.istype which is the explicity documented method to
+    ;; check if any given cdata is of type t, but this means we must iterate a
+    ;; list instead of just doing a table type lookup.
+    ;;
+    ;; We can attach metatables to ffi types, but getmetatable returns :ffi
+    ;; so we can't attach non-standard keys.
+    :cdata (let [ffi (require :ffi)
+                 copyable-type (accumulate [copyable-type nil
+                                            known-type allow? (pairs (or (?. _G :__playtime_ffi :clone) {}))
+                                            &until copyable-type]
+                                 (if (and allow? (ffi.istype known-type data))
+                                   known-type))]
+             (if copyable-type
+               (let [new (ffi.new copyable-type)
+                     _ (ffi.copy new data (ffi.sizeof copyable-type))]
+                 new)
+               (error "refusing to copy unknown cdata")))
     _ data))
+
+(local *jit*
+  {:opt {:hot (fn [] (jit.opt.start "hotloop=1" "hotexit=1"))}
+   :p {:on (λ [flags out]
+              (let [p (require :jit.p)]
+                (p.start flags out)))
+       :->zone (λ [name]
+               (let [z (require :jit.zone)]
+                 (z name)))
+       :<-zone (λ []
+               (let [z (require :jit.zone)]
+                 (z)))
+       :off (λ []
+              (let [p (require :jit.p)]
+                (p.stop)))}
+   :v {:on (λ [out]
+             (let [v (require :jit.v)]
+               (v.on out)))
+       :off (λ []
+              (let [v (require :jit.v)]
+                (v.off)))}
+   :d {:on (λ [?flags out]
+             (let [d (require :jit.dump)]
+               (d.on ?flags out)))
+       :off (λ []
+              (let [d (require :jit.dump)]
+                (d.off)))}})
+
 
 {: math
  :string *string*
  : type
  : table
  : clone
+ : *jit*
  ; TODO: only use these via table?
  : eq-any?
  : eq-all?}
