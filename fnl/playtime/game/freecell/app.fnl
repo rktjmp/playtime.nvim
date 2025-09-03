@@ -2,15 +2,17 @@
 (prelude)
 
 (local Logger (require :playtime.logger))
-(local PatienceApp (require :playtime.app.patience))
-(local PatienceState (require :playtime.app.patience.state))
+(local Error (require :playtime.error))
+
+(local PatienceApp (require :playtime.patience))
+(local PatienceComponent (require :playtime.patience.component))
 (local Logic (require :playtime.game.freecell.logic))
-(local {: same-location-field-column?} (require :playtime.common.card.utils))
 
-(local M (setmetatable {} {:__index PatienceApp}))
-(local AppState (PatienceState.build Logic))
+(local M (PatienceApp.scaffold-module {}))
 
-(fn M.build-event-animation [app events after ?opts]
+(local {: same-location-field-column?} (require :playtime.game.shared.card-utils))
+
+(fn M.build-card-animation-from-events [app events on-complete]
   ;; Moves are always from 1 field+column to another, but may contain multiple
   ;; cards if we are moving a stack, because freecell only allows moving 1 card
   ;; at a time.
@@ -65,11 +67,11 @@
                                       [:move (. froms i) (. tos i)]))]
                      (fcollect [i (length ff-moves) 1 -1]
                        (. ff-moves i))))]
-    (PatienceApp.build-event-animation app events after ?opts)))
+    (PatienceApp.build-card-animation-from-events app events on-complete)))
 
 (fn M.location->position [app location]
   (let [config {:card {:margin {:row 0 :col 2}
-                       :width app.card-style.width :height app.card-style.height}}
+                       :width 7 :height 5}}
         card-col-step (+ config.card.width config.card.margin.col)
         cell {:row 2 :col 4}
         foundation {:row cell.row :col (+ cell.col (* 4 card-col-step))}
@@ -89,32 +91,36 @@
                       :z card}
       _ (error (<s> "Unable to convert location to position, unknown location #{location}")))))
 
-(fn AppState.Default.OnEvent.app.maybe-auto-move [app]
-  (case-try
-    (Logic.Plan.next-move-to-foundation app.game) [from to]
-    (Logic.Action.move app.game from to) (next-game events)
-    (let [after #(do
-                   (app:switch-state AppState.Default)
-                   (app:queue-event :app :maybe-auto-move)
-                   (app:update-game next-game [:move from to]))
-          timeline (app:build-event-animation events after)]
-      (app:switch-state AppState.Animating timeline))))
-
-(λ M.start [app-config game-config ?seed]
+(λ M.start [runtime-config game-config ?seed]
   (let [game-config (table.merge {:rules :freecell} game-config)
         (name filetype colors) (case game-config.rules
                                  :bakers (values "Baker's Game" :bakers 4)
                                  :freecell (values "FreeCell" :freecell 2)
-                                 r (error (<s> "Unknown ruleset #{r}")))]
-    (PatienceApp.start
-      {: name
-       : filetype
-       :view {:width 78 :height 42}
-       :card-style {: colors}
-       :empty-fields [[:cell 4] [:foundation 4] [:tableau 8]]}
-      {:AppImpl M
-       :LogicImpl Logic
-       :StateImpl AppState}
-      app-config game-config ?seed)))
+                                 r (error (<s> "Unknown ruleset #{r}")))
+        patience-config {:LogicImpl Logic
+                         :StateImpl M.State
+                         :ComponentImpl {:spec {:slots [{:location :tableau
+                                                         :count 8
+                                                         :label :*}
+                                                        {:location :foundation
+                                                         :count 4
+                                                         :label :A}
+                                                        {:location :cell
+                                                         :count 4
+                                                         :label :*}]}
+                                         :card (case colors
+                                                 2 PatienceComponent.card-2-colors
+                                                 4 PatienceComponent.card-4-colors)}}
+
+        app-config {:module M
+                    :name ""
+                    :app-id filetype
+                    :view {:width 78 :height 42}
+                    :menu [[name [["New Game" [:app :new-game]]]]]}]
+    (PatienceApp.start patience-config
+                       app-config
+                       runtime-config
+                       game-config
+                       ?seed)))
 
 M
