@@ -2,13 +2,13 @@
 (prelude)
 
 (local Logger (require :playtime.logger))
-(local PatienceApp (require :playtime.app.patience))
-(local PatienceState (require :playtime.app.patience.state))
-(local M (setmetatable {} {:__index PatienceApp}))
+(local Error (require :playtime.error))
 
+(local PatienceApp (require :playtime.patience))
+(local PatienceComponent (require :playtime.patience.component))
 (local Logic (require :playtime.game.penguin.logic))
-(local AppState (PatienceState.build Logic))
-(local M (setmetatable {} {:__index PatienceApp}))
+
+(local M (PatienceApp.scaffold-module {}))
 
 (fn M.location->position [app location]
   (let [config {:card {:margin {:row 0 :col 2}
@@ -32,27 +32,28 @@
                       :z card}
       _ (error (<s> "Unable to convert location to position, unknown location #{location}")))))
 
-(fn AppState.Default.OnEvent.app.maybe-auto-move [app]
-  (case-try
-    (Logic.Plan.next-move-to-foundation app.game) [from to]
-    (Logic.Action.move app.game from to) (next-game events)
-    (let [after #(do
-                   (app:switch-state AppState.Default)
-                   (app:queue-event :app :maybe-auto-move)
-                   (app:update-game next-game [:move from to]))
-          timeline (app:build-event-animation events after {:stagger-ms 200})]
-      (app:switch-state AppState.Animating timeline))))
-
-(fn M.start [app-config game-config ?seed]
-  (PatienceApp.start
-    {:name "Penguin"
-     :filetype :penguin
-     :view {:width 80 :height 42}
-     :empty-fields [[:cell 7] [:tableau 7] [:foundation 4]]
-     :card-style {:colors 4}}
-    {:AppImpl M
-     :LogicImpl Logic
-     :StateImpl AppState}
-    app-config game-config ?seed))
+(λ M.start [runtime-config game-config ?seed]
+  (let [patience-config {:LogicImpl Logic
+                         :StateImpl M.State
+                         :ComponentImpl {:spec {:slots [{:location :cell
+                                                         :count 7
+                                                         :label "*"}
+                                                        {:location :foundation
+                                                         :count 4
+                                                         :label "A"}
+                                                        {:location :tableau
+                                                         :count 7
+                                                         :label "K"}]}
+                                         :card PatienceComponent.card-4-colors}}
+        app-config {:module M
+                    :name "Penguin"
+                    :app-id :penguin
+                    :view {:width 80 :height 42}
+                    :menu [["Penguin" [["New Game" [:app :new-game]]]]]}]
+    (PatienceApp.start patience-config
+                       app-config
+                       runtime-config
+                       game-config
+                       ?seed)))
 
 M

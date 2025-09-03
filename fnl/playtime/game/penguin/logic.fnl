@@ -2,8 +2,8 @@
 (prelude)
 
 (local Logger (require :playtime.logger))
-(local Deck (require :playtime.common.card.deck))
-(local CardGameUtils (require :playtime.common.card.utils))
+(local Deck (require :playtime.game.shared.french-deck))
+(local CardGameUtils (require :playtime.game.shared.card-utils))
 
 (local M {:Action {}
           :Plan {}
@@ -82,7 +82,7 @@
                                           _ (values (if (= t-col 7) 1 (+ t-col 1))
                                                     (if (= t-col 7) (+ row 1) row)
                                                     f-col))]
-                  (values (table.join moves [move [:face-up (table.last move)]])
+                  (values (table.join moves [[:face-up (. move 2)] move])
                           t-col row f-col)))
         (next-state moves) (apply-events (clone state) moves)]
     (values next-state moves)))
@@ -91,7 +91,6 @@
   (case pick-up-from
     [:tableau col-n card-n]
     (let [(remaining held) (table.split (. state :tableau col-n) card-n)]
-      (Logger.info {: pick-up-from})
       (if (valid-sequence? held)
         (values held)
         (case held
@@ -200,7 +199,7 @@
     (put-down state pick-up-from put-down-on held) (next-state moves)
     (values next-state moves)))
 
-(fn M.Plan.next-move-to-foundation [state]
+(fn next-move-to-foundation [state]
   (let [speculative-state (clone state)
         check-locations (fcollect [i 1 7] [:cell i])
         _ (fcollect [i 1 7 &into check-locations] [:tableau i])
@@ -226,6 +225,10 @@
         (M.Action.move (clone state) pick-up-from put-down-on) speculative-state
         [pick-up-from put-down-on]))))
 
+(fn M.Query.automatic-action [state]
+  (case (next-move-to-foundation state)
+    [from to] [:move from to]))
+
 (fn M.Query.liftable? [state location]
   (not (nil? (check-pick-up state location))))
 
@@ -233,6 +236,9 @@
   (case location
     [field] (eq-any? field [:tableau :cell :foundation])
     _ false))
+
+(fn M.Query.moveable? [state from-location to-location]
+  (not (nil? (M.Action.move state from-location to-location))))
 
 (fn M.Query.game-ended? [state]
   (faccumulate [won? true i 1 4]
