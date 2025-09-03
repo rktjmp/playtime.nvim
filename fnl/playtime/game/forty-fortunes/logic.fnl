@@ -3,12 +3,10 @@
 
 (local Error (require :playtime.error))
 (local Logger (require :playtime.logger))
-(local Deck (require :playtime.common.card.deck))
-(local CardGameUtils (require :playtime.common.card.utils))
+(local Deck (require :playtime.game.shared.french-deck))
+(local CardGameUtils (require :playtime.game.shared.card-utils))
 
-(local M {:Action {}
-          :Plan {}
-          :Query {}})
+(local M {:Action {} :Query {}})
 
 (local {: location-contents : inc-moves : apply-events} CardGameUtils)
 (set M.iter-cards (CardGameUtils.make-iter-cards-fn [:draw :tableau :cell :foundation]))
@@ -200,7 +198,7 @@
     (put-down state pick-up-from put-down-on held) (next-state moves)
     (values next-state moves)))
 
-(fn M.Plan.next-move-to-foundation [state]
+(fn next-move-to-foundation [state]
   (let [speculative-state (clone state)
         check-locations (fcollect [i 1 1] [:cell i])
         _ (fcollect [i 1 13 &into check-locations] [:tableau i])
@@ -226,6 +224,10 @@
         (M.Action.move (clone state) pick-up-from put-down-on) speculative-state
         [pick-up-from put-down-on]))))
 
+(fn M.Query.automatic-action [state]
+  (case (next-move-to-foundation state)
+    [from to] [:move from to]))
+
 (fn M.Query.liftable? [state location]
   (not (nil? (check-pick-up state location))))
 
@@ -233,6 +235,9 @@
   (case location
     [field] (eq-any? field [:tableau :cell :foundation])
     _ false))
+
+(fn M.Query.moveable? [state from-location to-location]
+  (not (nil? (M.Action.move state from-location to-location))))
 
 (fn M.Query.game-ended? [state]
   (faccumulate [won? true i 1 8]

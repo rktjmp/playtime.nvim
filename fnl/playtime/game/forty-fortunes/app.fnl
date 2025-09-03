@@ -3,16 +3,16 @@
 
 (local Logger (require :playtime.logger))
 (local Error (require :playtime.error))
-(local PatienceApp (require :playtime.app.patience))
-(local PatienceState (require :playtime.app.patience.state))
 
+(local PatienceApp (require :playtime.patience))
+(local PatienceComponent (require :playtime.patience.component))
 (local Logic (require :playtime.game.forty-fortunes.logic))
-(local AppState (PatienceState.build Logic))
-(local M (setmetatable {} {:__index PatienceApp}))
+
+(local M (PatienceApp.scaffold-module {}))
 
 (fn M.location->position [app location]
   (let [config {:card {:margin {:row 0 :col 2}
-                       :width app.card-style.width :height app.card-style.height}}
+                       :width 7 :height 5}}
         card-col-step (+ config.card.width config.card.margin.col)
         cell {:row 2 :col 4}
         foundation {:row cell.row :col (+ 2 cell.col (* 7 card-col-step))}
@@ -38,49 +38,33 @@
       _ (error (Error "Unable to convert location to position, unknown location #{location}"
                       {: location})))))
 
-(fn AppState.Default.OnEvent.app.maybe-auto-move [app]
-  (case-try
-    (Logic.Plan.next-move-to-foundation app.game) [from to]
-    (Logic.Action.move app.game from to) (next-game events)
-    (let [after #(do
-                   (app:switch-state AppState.Default)
-                   (app:queue-event :app :maybe-auto-move)
-                   (app:update-game next-game [:move from to]))
-          timeline (app:build-event-animation events after {:stagger-ms 200})]
-      (app:switch-state AppState.Animating timeline))))
+(fn M.State.PlanningMove.on.app.move [state cofx event fx] 
+  (set event.fast-forward-animation? false)
+  (PatienceApp.State.PlanningMove.on.app.move state cofx event fx))
 
-(fn AppState.DraggingCards.OnEvent.input.<LeftRelease> [app [_ location] pos]
-  (if (Logic.Query.droppable? app.game location)
-    (case-try
-      (values app.state.context.lifted-from location) (from to)
-      (Logic.Action.move app.game from to) (next-game events)
-      (let [after #(do
-                     (app:switch-state AppState.Default)
-                     (app:queue-event :app :maybe-auto-move)
-                     (app:update-game next-game [:move from to]))
-            timeline (app:build-event-animation events after {:stagger-ms 120})]
-        ;; force the first move in the timeline to finish immediately as it is
-        ;; the card we are dragging so its already at its destination.
-        (: (. timeline 1) :tick (. timeline 1 :finish-at))
-        (table.remove timeline 1)
-        (app:switch-state AppState.Animating timeline))
-      (catch
-        (nil err) (do
-                    (app:notify err)
-                    (app:switch-state AppState.Default))
-        _ (app:switch-state AppState.Default)))
-    (app:switch-state AppState.Default)))
-
-(fn M.start [app-config game-config ?seed]
-  (PatienceApp.start
-    {:name "Forty Fortunes"
-     :filetype :forty-fortunes
-     :view {:width 123 :height 42}
-     :empty-fields [[:cell 1] [:tableau 13] [:foundation 8]]
-     :card-style {:colors 4}}
-    {:AppImpl M
-     :LogicImpl Logic
-     :StateImpl AppState}
-    app-config game-config ?seed))
+(λ M.start [runtime-config game-config ?seed]
+  (let [patience-config {:LogicImpl Logic
+                         :StateImpl M.State
+                         :ComponentImpl {:spec {:slots [{:location :cell
+                                                         :count 1
+                                                         :label "*"}
+                                                        {:location :foundation
+                                                         :count 8
+                                                         :label "A"}
+                                                        {:location :tableau
+                                                         :count 13
+                                                         :label "*"}]}
+                                         :card PatienceComponent.card-4-colors}}
+        app-config {:module M
+                    :name "Forty Fortunes"
+                    :app-id :forty-fortunes
+                    :view {:width 123 :height 42}
+                    :menu [["Forty Fortunes" ["New Game" [:app :new-game]]]]}
+        app (PatienceApp.start patience-config
+                               app-config
+                               runtime-config
+                               game-config
+                               ?seed)]
+    app))
 
 M
