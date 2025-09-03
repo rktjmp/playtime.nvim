@@ -450,6 +450,12 @@
                                                      pad-left (math.floor (/ (- self.size.width len) 2))]
                                                  (set self.position.col pad-left)
                                                  (set self.content [[[text "@playtime.ui.off"]]])))})
+        ability-help (Component.new {:size {:width app.view.size.width :height 4}
+                                     :position {:row 27 :col 17 :z 100}
+                                     :content [[["Diplomacy - discard all cards matching current ruler." "@playtime.ui.off"]]
+                                               [["Military  - draw a card for every club in hand." "@playtime.ui.off"]]
+                                               [["Politics  - swap the current ruler with an unvisited one." "@playtime.ui.off"]]
+                                               [["Commerce  - draw 2 cards then discard 2 cards." "@playtime.ui.off"]]]})
         continue-button (let [enter-the-court (Component.new {:size {:width 5 :height 3}
                                                               :position {:row 9 :col 39 :z 200}
                                                               :visible? false
@@ -657,6 +663,7 @@
                                  : advisor-selector
                                  : score-label
                                  : continue-button
+                                 : ability-help
                                  :advisor-labels (Component.new {:children advisor-labels})
                                  :kingdom-win-requirements (Component.new {:children kingdom-win-requirements})
                                  :kingdom-win-scores (Component.new {:children kingdom-win-scores})
