@@ -3,7 +3,7 @@
 
 (local Error (require :playtime.error))
 (local Logger (require :playtime.logger))
-(local Id (require :playtime.common.id))
+(local Id (require :playtime.id))
 
 (local M {:Action {}
           :Plan {}
@@ -70,8 +70,8 @@
      :size {: width : height}
      : n-mines
      :remaining n-mines
-     :saving-throw? true
-     :lost? false
+     :nothing-revealed-yet? true
+     :game-over? false
      :won? false}))
 
 (λ M.build [config ?seed]
@@ -113,26 +113,48 @@
                      (inc-count (north-west-of state center))))]
     state))
 
+(fn do-mark-location [state location ?mark-type]
+  ;; shared between action and maybe-update-won, so separate function to
+  ;; prevent useless recursion.
+  (let [next-state (clone state)
+        cell (location-content next-state location)
+        mark-type (or ?mark-type
+                      (case cell
+                        {:revealed? false :mark nil} :flag
+                        {:revealed? false :mark :flag} :maybe
+                        _ nil))]
+    (when (~= cell.mark mark-type)
+      (set cell.mark mark-type)
+      (case mark-type
+        :flag (set next-state.remaining (- next-state.remaining 1))
+        :maybe (set next-state.remaining (+ next-state.remaining 1))))
+    next-state))
+
 (fn maybe-update-won [state]
-  (let [won? (accumulate [won? true _ cell (M.iter-cells state) &until (not won?)]
-               (case cell
-                 {:mine? true :mark :flag} true
-                 {:revealed? true} true
-                 _ false))]
-    (set state.won? (and (not state.lost?) won?))
-    state))
+  ;; You have won if there are no more cells to reveal except for the mined cells.
+  (let [unrevealed (icollect [location cell (M.iter-cells state)]
+                     (case cell
+                       {:revealed? false} location))]
+    (case (= (length unrevealed) state.n-mines)
+      true (let [next-state (accumulate [s state
+                                         _ location (ipairs unrevealed)]
+                              (do-mark-location s location :flag))]
+             (set next-state.game-over? true)
+             (set next-state.won? true)
+             next-state)
+      false state)))
 
 (λ M.Action.reveal-location [state location]
   (let [next-state (clone state)
         ;; Wait until the first reveal to place mines, as the first click never loses.
-        next-state (if next-state.saving-throw?
+        next-state (if next-state.nothing-revealed-yet?
                      (let [fns [north-west-of north-of north-east-of
                                 west-of east-of
                                 south-west-of south-of south-east-of]
                            safe-locations (icollect [_ f (ipairs fns) &into [location]]
                                             (f state location))]
                        ;; tset instead of set to avoid fennel bug
-                       (tset next-state :saving-throw? false)
+                       (tset next-state :nothing-revealed-yet? false)
                        (set-mines! next-state safe-locations))
                      next-state)
         cell (location-content next-state location)]
@@ -144,7 +166,8 @@
       {:mine? true}
       (do
         ;; ya lost son.
-        (set next-state.lost? true)
+        (set next-state.game-over? true)
+        (set next-state.won? false)
         ;; reveal all miles
         (each [_ cell (M.iter-cells next-state)]
           (set cell.revealed? (or cell.revealed? cell.mine?))))
@@ -174,29 +197,25 @@
                                (table.insert (north-west-of next-state l)))
                   {:count n} queue))
               _ queue)))))
-    (maybe-update-won next-state)
-    next-state))
+    (maybe-update-won next-state)))
 
 (λ M.Action.mark-location [state location]
-  (let [next-state (clone state)
-        cell (location-content next-state location)]
-    (case cell
-      {:revealed? false :mark nil} (do
-                                     (set next-state.remaining (- next-state.remaining 1))
-                                     (set cell.mark :flag))
-      {:revealed? false :mark :flag} (do
-                                       (set next-state.remaining (+ next-state.remaining 1))
-                                       (set cell.mark :maybe))
-      _ (set cell.mark nil))
-    (maybe-update-won next-state)
-    next-state))
+  (let [next-state (do-mark-location state location)]
+    (maybe-update-won next-state)))
 
 (λ M.Query.game-ended? [state]
-  (or state.lost? state.won?))
+  state.game-over?)
 
 (λ M.Query.game-result [state]
-  (if state.lost? :lost
-    state.won? :won
-    :unknown))
+  (let [result (if state.won?
+                 :won :lost)
+        (correct incorrect) (accumulate [(c i) (values 0 0)
+                                         _ cell (M.iter-cells state)]
+                              (case cell
+                                {:mine? true :mark :flag} (values (+ c 1) i)
+                                {:mark :flag} (values c (+ i 1))
+                                _ (values c i)))
+        total state.n-mines]
+   {: result : correct : incorrect : total}))
 
 M

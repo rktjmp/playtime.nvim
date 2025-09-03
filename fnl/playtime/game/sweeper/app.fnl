@@ -3,263 +3,143 @@
 
 (local Logger (require :playtime.logger))
 (local Error (require :playtime.error))
-(local Animate (require :playtime.animate))
-(local CommonComponents (require :playtime.common.components))
-(local Component (require :playtime.component))
-(local App (require :playtime.app))
-(local Window (require :playtime.app.window))
 
-(local {: api} vim)
-(local uv (or vim.loop vim.uv))
+(local App (require :playtime.app))
+(local Component (require :playtime.component))
+(local GameReport (require :playtime.component.game-report))
+(local {: State} (require :playtime.app.state-machine))
 
 (local Logic (require :playtime.game.sweeper.logic))
-(local UI (require :playtime.game.sweeper.ui))
-(local M (setmetatable {} {:__index App}))
+(local Components (require :playtime.game.sweeper.components))
 
-(local AppState {})
-(set AppState.Default (App.State.build :Default {:delegate {:app App.State.DefaultAppState}}))
-(set AppState.PickingCell (App.State.build :PickingCell {:delegate {:app AppState.Default}}))
-(set AppState.MarkingCell (App.State.build :MarkingCell {:delegate {:app AppState.Default}}))
-(set AppState.GameEnded (App.State.build :GameEnded {:delegate {:app AppState.Default}}))
+(local PlayingGame (State.new {:id :playing-game}))
+(local GameEnded (State.new {:id :game-ended}))
 
-;; TODO: Chording
-;; TODO: If you flag most mines, any single cell surrounded by revealed cells is automatically flagged and you win
-;; TODO: stats: win counting
+(local M (App.scaffold-module {}))
+(local m {})
 
-(fn AppState.Default.activated [app]
-  (app.components.smile:update :smile))
+(fn PlayingGame.on.enter [state {: app} event fx]
+  (app.engine:set-idle-behaviour [:interval 1000])
+  (app.components.face:emote :smile)
+  (fx.interaction-lock.unlock)
+  (fx.engine.render))
 
-(fn AppState.GameEnded.activated [app]
-  (set app.ended-at (os.time))
-  (let [other [(string.fmt "Time: %ds" (- app.ended-at app.started-at))]
-        result (Logic.Query.game-result app.game)
-        face (case result
-               :won :bruh
-               :lost :sad)]
-    (app.components.game-report:update result other)
-    (app.components.smile:update face)))
+(fn PlayingGame.on.app.emote [state {: app} event fx]
+  (app.components.face:emote event.emote)
+  (fx.engine.render))
 
-(fn AppState.PickingCell.activated [app]
-  (app.components.smile:update :scare))
+(fn PlayingGame.on.app.reveal [state {: app} {: x : y} fx]
+  (case-try
+    (Logic.Action.reveal-location app.game {: x : y}) next-game
+    (do
+      (set app.game next-game)
+      (app:synchronise-components-to-game-state)
+      (fx.engine.render)
+      (if (Logic.Query.game-ended? next-game)
+        (fx.state.transition GameEnded)))))
 
-(fn AppState.Default.OnEvent.input.<LeftMouse> [app [location] pos]
-  (case location
-    [:face]
-    (app:queue-event :app :restart-game)
+(fn PlayingGame.on.app.mark [state {: app} {: x : y} fx]
+  (case-try
+    (Logic.Action.mark-location app.game {: x : y}) next-game
+    (do
+      (set app.game next-game)
+      (app:synchronise-components-to-game-state)
+      (fx.engine.render)
+      (if (Logic.Query.game-ended? next-game)
+        (fx.state.transition GameEnded)))))
 
-    [:grid]
-    (app:push-state AppState.PickingCell {:picking location})
-
-    [:menu idx nil &as menu-item]
-    (app:push-state App.State.DefaultInMenuState {: menu-item})))
-
-(fn AppState.Default.OnEvent.input.<RightMouse> [app [location] pos]
-  (case location
-    [:grid]
-    (app:push-state AppState.MarkingCell {:picking location})))
-
-(fn AppState.GameEnded.OnEvent.input.<LeftMouse> [app [location]]
-  (case location
-    [:face] (app:queue-event :app :restart-game)
-    [:menu idx nil &as menu-item]
-    (app:push-state App.State.DefaultInMenuState {: menu-item})))
-
-(fn AppState.PickingCell.OnEvent.input.<LeftDrag> [app [location] pos]
-  (case location
-    [:grid] (set app.state.context.picking location)
-    _ (set app.state.context.picking nil)))
-
-(fn AppState.PickingCell.OnEvent.input.<LeftRelease> [app [location] pos]
-  (case location
-    [:face] (app:queue-event :app :restart-game)
-    [:grid {: x : y}]
-    (case-try
-      (Logic.Action.reveal-location app.game {: x : y}) next-game
-      (do
-        (app:update-game next-game [:reveal-location {: x : y}])
-        (if (Logic.Query.game-ended? app.game)
-          (app:switch-state AppState.GameEnded)
-          (app:switch-state AppState.Default))))
-    _ (app:switch-state AppState.Default)))
-
-(fn AppState.MarkingCell.OnEvent.input.<RightDrag> [app [location] pos]
-  (case location
-    [:grid] (set app.state.context.picking location)
-    _ (set app.state.context.picking nil)))
-
-(fn AppState.MarkingCell.OnEvent.input.<RightRelease> [app [location] pos]
-  (case location
-    [:grid {: x : y}]
-    (case-try
-      (Logic.Action.mark-location app.game {: x : y}) next-game
-      (do
-        (app:update-game next-game [:mark-location {: x : y}])
-        (if (Logic.Query.game-ended? app.game)
-          (app:switch-state AppState.GameEnded)
-          (app:switch-state AppState.Default))))
-    _ (app:switch-state AppState.Default)))
-
-(fn AppState.Default.OnEvent.app.restart-game [app]
-  (AppState.Default.OnEvent.app.new-game app [app.game-config.width
-                                              app.game-config.height
-                                              app.game-config.n-mines]))
-
-(fn AppState.Default.OnEvent.app.new-game [app [width height n-mines]]
-  (app:queue-event :app :quit)
-  (vim.schedule #(M.start app.app-config {: width : height : n-mines} nil)))
-
-(fn dim-hover [app]
-  (each [loc cell (Logic.iter-cells app.game)]
-    (let [comp (. app.cell-id->cell-component cell.id)]
-      (case (values loc app.state.context.picking)
-        ({: x : y} [:grid {: x : y}])
-        (let [pressed? (case (values cell app.state.module)
-                         (where ({:mark nil} (= AppState.PickingCell))) true
-                         (where ({: mark} (= AppState.MarkingCell))) true
-                         _ false)]
-          (comp:update cell {: pressed?}))
-        _ (comp:update cell)))))
-
-(fn AppState.PickingCell.tick [app]
-  (dim-hover app))
-
-(fn AppState.MarkingCell.tick [app]
-  (dim-hover app))
-
-(fn AppState.Default.tick [app]
-  (each [loc cell (Logic.iter-cells app.game)]
-    (let [comp (. app.cell-id->cell-component cell.id)]
-      (comp:update cell))))
-
-(fn M.setup-new-game [app game-config ?seed]
-  (app:new-game Logic.build game-config ?seed)
-  (app:build-components)
-  (app:switch-state AppState.Default)
-  app)
+(fn GameEnded.on.enter [state {: app} event fx]
+  (let [{: result : correct : incorrect : total} (Logic.Query.game-result app.game)
+        other [(string.format "Swept: %d/%d" correct total)
+               (string.format "Time: %s" (app.clock:elapsed-time))]
+        _ (if (< 0 incorrect)
+            (table.insert other 2 (string.format "Incorrect: %d" incorrect)))
+        [face won?] (case result
+                      :won [:bruh :won]
+                      :lost [:sad :lost])
+        report (GameReport.new {:view-size app.view.size
+                                :play-again ["Play Again?" [:app :new-game app.game-config]]
+                                :result result
+                                :result-lines [[:won "Clean Sweep!"]
+                                               [:lost "Oh no!"]]
+                                :other-lines other})]
+    (table.merge app.components {: report})
+    (app.components.face:emote face)
+    (fx.interaction-lock.general-lockout)
+    (app.engine:set-idle-behaviour :sleep)
+    (fx.engine.render)))
 
 (fn M.build-components [app]
-  (fn build-grid-component [game offset]
-    (let [{:size {: width : height}} game
-          {: row : col} offset
-          cell-height 3
-          cell-width 5
-          t (collect [{: x : y} cell (Logic.iter-cells game)]
-              (let [tag {: x : y}
-                    f (case (values x y)
-                        (where (1 1)) UI.nw-cell
-                        (where ((= width) 1)) UI.ne-cell
-                        (where (1 (= height))) UI.sw-cell
-                        (where ((= width) (= height))) UI.se-cell
-                        (where (1 _)) UI.w-cell
-                        (where ((= width) _)) UI.e-cell
-                        (where (_ 1)) UI.n-cell
-                        (where (_ (= height))) UI.s-cell
-                        _ UI.mid-cell)]
-                (values cell.id
-                        (f cell tag
-                           {:row (+ row (* (- cell-height 1) (- y 1)))
-                            :col (+ col (* (- cell-width 1) (- x 1)))
-                            :z (app:z-index-for-layer :grid)}))))
-          ;; Keep the cell-component order the same as the logical cells for sanity.
-          components (icollect [_ {: id} (Logic.iter-cells game)] (. t id))]
-      (values components t)))
+  (let [grid (Components.grid {:grid {:width app.game.size.width
+                                      :height app.game.size.height}
+                               :position {:row 5 :col 3}}
+                              #(Logic.iter-cells app.game))
+        remaining-mine-count (Components.remaining-mine-count app.view.size)
+        timer (Components.timer app.view.size)
+        face (Components.face app.view.size)]
+    {: remaining-mine-count : timer : grid : face}))
 
-  (let [(grid cell-id->cell-component) (build-grid-component app.game {:row 5 :col 3})
-        menubar (CommonComponents.menubar [["Sweeper" [:file]
-                                            [["" nil]
-                                             ["New Classic 8x8, 10" [:new-game [8 8 10]]]
-                                             ["New Easy 9x9, 10" [:new-game [9 9 10]]]
-                                             ["New Medium 16x16, 40" [:new-game [16 16 40]]]
-                                             ["New Expert 30x16, 99" [:new-game [30 16 99]]]
-                                             ["" nil]
-                                             ["Restart game" [:restart-game]]
-                                             ["" nil]
-                                             ["Undo" [:undo]]
-                                             ["" nil]
-                                             ["Quit" [:quit]]
-                                             ["" nil]
-                                             [(string.format "Seed: %s" app.seed) nil]]]]
-                                          {:width app.view.width
-                                           :z (app:z-index-for-layer :menubar)})
-        remaining (-> (Component.build
-                        (fn [self count]
-                          (let [s (string.format "%03d" count)]
-                            (self:set-content [[[s "@playtime.color.red"]]])
-                            (self:set-size {:width (length s) :height 1}))))
-                      (Component.set-position {:row 3 :col 4 :z 10})
-                      (: :update app.game.n-mines))
-        timer (-> (Component.build
-                    (fn [self count]
-                      (let [s (string.format "%03d" count)]
-                        (self:set-content [[[s "@playtime.color.red"]]])
-                        (self:set-size {:width (length s) :height 1}))))
-                  (Component.set-position {:row 3 :col (- app.view.width 8) :z 10})
-                  (: :update 0))
-        smile (-> (Component.build
-                    (fn [self what]
-                      (let [lines (case what
-                                    :smile [" ⠶ ⠶ "
-                                            "⠠⣀⣀⣀⠄"]
-                                    :scare [" ⠶ ⠶ "
-                                            "  ⣤  "]
-                                    :sad [" ⠶ ⠶ "
-                                          "⢀⠤⠤⠤⡀"]
-                                    :bruh [" ⠶⠒⠶ "
-                                           "⠠⣤⣤⣤⠄"])
-                            content (icollect [_ l (ipairs lines)]
-                                      [[l "@playtime.color.yellow"]])]
-                        (self:set-content content))))
-                  (Component.set-size {:width 5 :height 2})
-                  (Component.set-tag [:face])
-                  (Component.set-position {:row 2 :col (- (math.floor (/ app.view.width 2)) 3) :z 100})
-                  (: :update :smile))
-        game-report (CommonComponents.game-report app.view.width
-                                                app.view.height
-                                                (app:z-index-for-layer :report)
-                                                [[:won :Won] [:lost :Lost]])]
-    (each [{: i} cell (Logic.iter-cells app.game)]
-      (let [comp (. grid i)]
-        (comp:update cell)))
-    (set app.cell-id->cell-component cell-id->cell-component)
-    (table.merge app.components {: smile : remaining : timer
-                                 : grid : menubar : game-report})
+(λ M.start [runtime-config game-config ?seed]
+  (let [game-config (table.merge {:width 9 :height 9 :n-mines 10} game-config)
+        app (App.new {:module M
+                      :name :Sweeper
+                      :app-id :sweeper
+                      :view {:width (+ 7 (* 4 game-config.width))
+                             :height (+ 7 (* 2 game-config.height))}
+                      :menu [["Sweeper"
+                              [["New Classic 8x8, 10" [:app :restart-app {:width 8 :height 8 :n-mines 10}]]
+                               ["New Easy 9x9, 10" [:app :restart-app {:width 9 :height 9 :n-mines 10}]]
+                               ["New Medium 16x16, 40" [:app :restart-app {:width 16 :height 16 :n-mines 40}]]
+                               ["New Expert 30x16, 99" [:app :restart-app {:width 30 :height 16 :n-mines 99}]]]]]}
+                     runtime-config)]
+    (set app.game-config game-config)
+    (app.view:open)
+    (app:queue-event :app :new-game (table.merge game-config {:seed ?seed}))
     app))
 
-(fn M.start [app-config game-config ?seed]
-  (let [app (-> (App.build "Sweeper" :sweeper app-config game-config ?seed)
-                (setmetatable {:__index M}))
-        view-width (+ 7 (* 4 game-config.width))
-        view-height (+ 8 (* 2 game-config.height))
-        view (Window.open :sweeper
-                          (App.build-default-window-dispatch-options app)
-                          {:width view-width
-                           :height view-height
-                           :window-border app-config.window-border
-                           :window-position app-config.window-position
-                           :minimise-position app-config.minimise-position})
-        _ (table.merge app.z-layers {:grid 25})]
-    (set app.view view)
-    (app:setup-new-game app.game-config ?seed)
-    (app:render)))
+(local default-unfocused M.on.window.unfocused)
+(local default-focused M.on.window.focused)
+(fn M.on.window.unfocused [app cofx event fx]
+  ; (app.clock:pause)
+  (app.engine:set-idle-behaviour :sleep)
+  (default-unfocused app cofx event fx))
 
-(fn M.render [app]
-  (app.view:render [app.components.grid
-                    [app.components.smile app.components.remaining app.components.timer]
-                    [app.components.game-report
-                     app.components.menubar
-                     app.components.cheating]])
-  app)
+(fn M.on.window.focused [app cofx event fx]
+  ; (app.clock:resume)
+  (app.engine:set-idle-behaviour [:interval 1000])
+  (default-focused app cofx event fx))
 
-(fn M.tick [app]
-  (let [now (uv.now)]
-    (app:process-next-event)
-    (app.components.remaining:update app.game.remaining)
-    (app.components.timer:update (- (or app.ended-at (os.time)) app.started-at))
-    (case (. app.state.module.tick)
-      f (f app)
-      _ (each [loc cell (Logic.iter-cells app.game)]
-          (let [comp (. app.cell-id->cell-component cell.id)]
-            (comp:update cell))))
+(fn M.on.app.restart-app [app cofx {: seed : width : height : n-mines} fx]
+  (vim.schedule #(M.start app.runtime-config {: width : height : n-mines} seed))
+  (app:quit))
+
+(fn M.on.app.new-game [app cofx {: seed : width : height : n-mines} fx]
+  (let [new-config {: width : height : n-mines}
+        game (Logic.build new-config seed)]
+    (set app.game-config new-config)
+    (set app.game game)
+    (app.clock:reset)
+    (table.merge app.components (app:build-components))
+    (set app.components.report nil)
+    (set app.cell-id->component app.components.grid.lookup)
+    (app:synchronise-components-to-game-state)
+    (fx.state.reset PlayingGame)
+    (fx.interaction-lock.general-lockout)
+    (app:request-tick)
+    (app:request-render)))
+
+(fn M.on.app.restart-game [app cofx event fx]
+  (M.on.app.new-game app cofx app.game-config fx))
+
+(λ M.synchronise-components-to-game-state [app]
+  (each [{: x : y} cell (Logic.iter-cells app.game)]
+    (let [comp (. app.cell-id->component cell.id)]
+      (comp:update-content-for-cell cell)))
+  (app.components.remaining-mine-count:update-count app.game.remaining))
+
+(λ M.tick [app dt]
+  (app.components.timer:update-time (app.clock:elapsed-time))
+  (when (not app.view.minimised?)
     (app:request-render)))
 
 M
