@@ -1,111 +1,123 @@
-
- local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
-
- local Logger = require("playtime.logger")
- local Error = require("playtime.error")
- local Animate = require("playtime.animate")
- local CommonComponents = require("playtime.common.components")
- local Component = require("playtime.component")
- local App = require("playtime.app")
- local Window = require("playtime.app.window")
- local Meta = require("playtime.meta")
-
- local api = vim["api"]
- local uv = (vim.loop or vim.uv)
- local M = setmetatable({}, {__index = App})
-
- local AppState = {}
- AppState.Default = App.State.build("Default", {delegate = {app = App.State.DefaultAppState}})
-
- AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _2_, _pos) local location = _2_[1]
- if ((_G.type(location) == "table") and (location[1] == "game") and (nil ~= location[2]) and true) then local mod = location[2] local _3fconfig = location[3]
-
- local function _3_() local Playtime = require("playtime")
- return Playtime.play(mod, nil, _3fconfig) end vim.schedule(_3_) return app["queue-event"](app, "app", "quit") elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
-
-
-
-
- M["location->position"] = function(app, location)
-
- if ((_G.type(location) == "table") and (location[1] == "list") and (nil ~= location[2])) then local n = location[2]
- return {row = (2 + ((n - 1) * 1)), col = 2, z = 1} else local _ = location
- return error(Error("Unable to convert location to position, unknown location #{location}", {location = location})) end end
-
-
- local function build_game_title(view_width, position, meta) _G.assert((nil ~= meta), "Missing argument meta on fnl/playtime/game/playtime/app.fnl:36") _G.assert((nil ~= position), "Missing argument position on fnl/playtime/game/playtime/app.fnl:36") _G.assert((nil ~= view_width), "Missing argument view-width on fnl/playtime/game/playtime/app.fnl:36")
- local function justify(a, b, c, _3fcolors)
- local max_mid = (view_width - 4 - #a - #c - 2)
- local colors = (_3fcolors or {"@playtime.color.yellow", "@playtime.ui.off", "@playtime.ui.off"})
- local mid = string.sub(b, 1, max_mid)
- local fill = string.rep(" ", math.max(0, (max_mid - #mid)))
- return {{a, colors[1]}, {(" " .. mid .. fill .. " "), colors[2]}, {c, colors[3]}} end
- local lines = {justify(meta.name, ("by " .. table.concat(meta.authors, ", ")), table.concat(table.sort(meta.categories), ", "), {"@playtime.color.yellow", "@playtime.ui.off", "@playtime.ui.off"}), justify(meta.desc, "", "", {"@playtime.color.blue", "@playtime.ui.off", "@playtime.ui.off"})}
-
-
-
-
-
-
- return Component["set-content"](Component["set-position"](Component["set-size"](Component.build(), {width = view_width, height = 2}), position), lines) end
-
-
-
-
- local function build_game_button(view_width, position, meta, _3fmenu_name, config) _G.assert((nil ~= config), "Missing argument config on fnl/playtime/game/playtime/app.fnl:55") _G.assert((nil ~= meta), "Missing argument meta on fnl/playtime/game/playtime/app.fnl:55") _G.assert((nil ~= position), "Missing argument position on fnl/playtime/game/playtime/app.fnl:55") _G.assert((nil ~= view_width), "Missing argument view-width on fnl/playtime/game/playtime/app.fnl:55")
- local menu_name if (_3fmenu_name == nil) then menu_name = "Play" elseif (nil ~= _3fmenu_name) then local x = _3fmenu_name
-
- menu_name = ("Play " .. x) else menu_name = nil end
- local lines = {{{("" .. menu_name), "@playtime.ui.menu"}}}
- return Component["set-content"](Component["set-position"](Component["set-tag"](Component["set-size"](Component.build(), {width = view_width, height = 1}), {"game", meta.mod, config}), position), lines) end
-
-
-
-
-
- M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/playtime/app.fnl:66") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/playtime/app.fnl:66")
- local app = setmetatable(App.build("Playtime", "playtime-menu", app_config, game_config), {__index = M})
-
- local view = Window.open("menu", App["build-default-window-dispatch-options"](app), {width = 80, height = 40, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]}) local _
-
-
-
-
-
-
- app.view = view _ = nil
- local metas = Meta.find() local list
- do local t, n = {}, 1 for _0, meta in ipairs(metas) do
-
- local title = build_game_title(app.view.width, M["location->position"](nil, {"list", n}), meta)
- local n0 = (n + 1)
- local rulesets = (meta.rulesets or {{menu = nil, config = {}}}) local variants
- do local tbl_21_ = {} local i_22_ = 0 for i, _7_ in ipairs(rulesets) do local _menu = _7_["menu"] local config = _7_["config"]
- local val_23_ = build_game_button(app.view.width, M["location->position"](nil, {"list", (n0 + i)}), meta, _menu, config) if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end variants = tbl_21_ end
-
-
- t, n = table.join(t, {title}, variants), (n0 + 2 + #variants) end list = t, n end
-
-
-
- local menubar = CommonComponents.menubar({{"Playtime", {"file"}, {{"", nil}, {"Quit", {"quit"}}, {"", nil}}}}, {width = view.width, z = app["z-index-for-layer"](app, "menubar")})
-
-
-
-
-
- table.merge(app.components, {menubar = menubar, list = list}) app["switch-state"](app, AppState.Default) return app:render() end
-
-
-
- M.render = function(app) app.view:render({app.components.list, {app.components.menubar}})
-
- return app end
-
-
- M.tick = function(app)
- local now = uv.now() app["process-next-event"](app) return app["request-render"](app) end
-
-
-
- return M
+-- @generated by hotpot.nvim using fennel 1.6.1, edits to this file may be lost
+local _local_1_ = require("playtime.prelude")
+local _2ajit_2a = _local_1_["*jit*"]
+local clone = _local_1_.clone
+local copy = _local_1_.copy
+local eq_all_3f = _local_1_["eq-all?"]
+local eq_any_3f = _local_1_["eq-any?"]
+local math = _local_1_.math
+local string = _local_1_.string
+local table = _local_1_.table
+local type = _local_1_.type
+local App = require("playtime.app")
+local Meta = require("playtime.game.meta")
+local Component = require("playtime.component")
+local M = App["scaffold-module"]({})
+M.start = function(runtime_config, _game_config, _3fseed_)
+  if (nil == runtime_config) then
+    _G.error("Missing argument runtime-config on fnl/playtime/game/playtime/app.fnl:10", 2)
+  else
+  end
+  local app = App.new({module = M, name = "Playtime", ["app-id"] = "playtime-menu", view = {width = 80, height = 40}, menu = {{"Playtime", {}}}}, runtime_config)
+  table.merge(app.components, app["build-components"](app))
+  app.view:open()
+  app["request-tick"](app)
+  app["request-render"](app)
+  return app
+end
+M.on.app["start-game"] = function(app, _cofx, _3_, _fx)
+  local modname = _3_.modname
+  local config = _3_.config
+  local function _4_()
+    local Playtime = require("playtime")
+    return Playtime.play(modname, nil, config)
+  end
+  vim.defer_fn(_4_, 50)
+  return app:quit()
+end
+local function build_game_button(width, _5_, game_meta)
+  local row = _5_.row
+  local col = _5_.col
+  local function justify(a, b, c, _3fcolors)
+    local max_mid = (width - 1 - #a - #c - 2)
+    local colors = (_3fcolors or {"@playtime.color.yellow", "@playtime.ui.off", "@playtime.ui.off"})
+    local mid = string.sub(b, 1, max_mid)
+    local fill = string.rep(" ", math.max(0, (max_mid - #mid)))
+    return {{a, colors[1]}, {(" " .. mid .. fill .. " "), colors[2]}, {c, colors[3]}}
+  end
+  local name = game_meta.name
+  local desc = game_meta.desc
+  local authors = game_meta.authors
+  local categories = game_meta.categories
+  local rulesets
+  do
+    local case_6_ = game_meta.rulesets
+    if (case_6_ == nil) then
+      rulesets = {{menu = name, config = {}}}
+    elseif ((_G.type(case_6_) == "table") and (nil ~= case_6_[1]) and (case_6_[2] == nil)) then
+      local one_ruleset = case_6_[1]
+      rulesets = {{menu = (one_ruleset.menu or name), config = (one_ruleset.config or {})}}
+    elseif (nil ~= case_6_) then
+      local rulesets0 = case_6_
+      rulesets = rulesets0
+    else
+      rulesets = nil
+    end
+  end
+  local lines = {justify(name, ("by " .. table.concat(authors, ", ")), table.concat(table.sort(categories), ", "), {"@playtime.color.yellow", "@playtime.ui.off", "@playtime.ui.off"}), justify(desc, "", "", {"@playtime.color.blue", "@playtime.ui.off", "@playtime.ui.off"})}
+  local _
+  do
+    local tbl_24_ = lines
+    for _i = 1, #rulesets do
+      local val_25_ = {}
+      table.insert(tbl_24_, val_25_)
+    end
+    _ = tbl_24_
+  end
+  local height = #lines
+  local buttons
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for i, ruleset in ipairs(rulesets) do
+      local val_28_
+      do
+        local text = ("Play " .. ruleset.menu)
+        local function _8_(_self, _cofx, event, fx)
+          if ((_G.type(event) == "table") and (event.action == "release")) then
+            return fx.event.dispatch("app", "start-game", {modname = game_meta.mod, config = ruleset.config})
+          else
+            return nil
+          end
+        end
+        val_28_ = Component.new({position = {row = (row + 1 + i), col = col, z = 101}, size = {width = string["col-width"](text), height = 1}, content = {{{text, "@playtime.ui.menu"}}}, on = {click = _8_}})
+      end
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    buttons = tbl_26_
+  end
+  return Component.new({size = {width = width, height = height}, position = {row = row, col = col, z = 100}, content = lines, children = buttons})
+end
+M["build-components"] = function(app)
+  local buttons
+  do
+    local bs, row = {}, 2
+    for _i, game_meta in ipairs(Meta.all()) do
+      local button = build_game_button((app.view.size.width - 2), {row = row, col = 2}, game_meta)
+      bs, row = table.insert(bs, button), (row + button.size.height + 1)
+    end
+    buttons = bs, row
+  end
+  local scroll_prompt
+  do
+    local text = "More\226\134\147 "
+    local pos = {row = (app.view.size.height - 1), col = (app.view.size.width / 2), z = 100}
+    scroll_prompt = Component.new({position = pos, size = {width = 100, height = 1}, content = {{{text, "@playtime.ui.off"}}}})
+  end
+  return {buttons = Component.new({children = buttons}), scroll = scroll_prompt}
+end
+return M

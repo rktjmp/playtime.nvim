@@ -1,558 +1,1414 @@
-
- local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
-
- local Logger = require("playtime.logger")
- local Error = require("playtime.error")
-
- local Animate = require("playtime.animate")
- local Component = require("playtime.component")
- local CommonComponents = require("playtime.common.components")
- local CardComponents = require("playtime.common.card.components")
- local CardUtils = require("playtime.common.card.utils")
- local App = require("playtime.app")
- local Window = require("playtime.app.window")
-
- local api = vim["api"]
- local uv = (vim.loop or vim.uv)
- local M = setmetatable({}, {__index = App})
- local Logic = require("playtime.game.the-emissary.logic")
-
- local AppState = {}
-
- AppState.Default = App.State.build("Default", {delegate = {app = App.State.DefaultAppState}})
-
- AppState.DealPhase = App.State.build("DealPhase", {delegate = {app = AppState.Default}})
- AppState.PickKingdomPhase = App.State.build("PickKingdomPhase", {delegate = {app = AppState.Default}})
-
- AppState.PreparePhase = App.State.build("PreparePhase", {delegate = {app = AppState.Default}})
- AppState.RulerPhase = App.State.build("RulerPhase", {delegate = {app = AppState.Default}})
- AppState.RespondPhase = App.State.build("RespondPhase", {delegate = {app = AppState.Default}})
- AppState.FinishKingdom = App.State.build("FinishKingdom", {delegate = {app = AppState.Default}})
- AppState.AbilityDiplomacy = App.State.build("AbilityDiplomacy", {delegate = {app = AppState.Default}})
- AppState.AbilityMilitary = App.State.build("AbilityMilitary", {delegate = {app = AppState.Default}})
- AppState.AbilityPolitics = App.State.build("AbilityPolitics", {delegate = {app = AppState.Default}})
- AppState.AbilityCommerce = App.State.build("AbilityCommerce", {delegate = {app = AppState.Default}})
- AppState.GameEnded = App.State.build("GameEnded", {delegate = {app = AppState.Default}})
-
- AppState.Default.OnEvent.app["new-game"] = function(app) app["setup-new-game"](app, app["game-config"], nil)
-
- local function _2_() return app["switch-state"](app, AppState.DealPhase) end return vim.defer_fn(_2_, 300) end
-
- AppState.Default.OnEvent.app["restart-game"] = function(app) app["setup-new-game"](app, app["game-config"], app.seed)
-
- local function _3_() return app["switch-state"](app, AppState.DealPhase) end return vim.defer_fn(_3_, 300) end
-
- AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _4_, pos) local click_location = _4_[1] local rest = (function (t, k) return ((getmetatable(t) or {}).__fennelrest or function (t, k) return {(table.unpack or unpack)(t, k)} end)(t, k) end)(_4_, 2)
- if ((_G.type(click_location) == "table") and (click_location[1] == "menu") and (nil ~= click_location[2]) and (click_location[3] == nil)) then local idx = click_location[2] local menu_item = click_location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
-
-
-
- AppState.GameEnded.activated = function(app)
- app["ended-at"] = os.time()
- local _let_6_ = Logic.Query["game-result"](app.game) local won_3f = _let_6_[1] local score = _let_6_[2]
- local other = {string.fmt("Time: %ds", (app["ended-at"] - app["started-at"])), string.fmt("Score: %d/16", score)}
-
- if won_3f then app["update-statistics"](app) else end return app.components["game-report"]:update(won_3f, other) end
-
-
- AppState.GameEnded.OnEvent.input["<LeftMouse>"] = function(app, _8_, pos) local location = _8_[1]
- if ((_G.type(location) == "table") and (location[1] == "menu")) then
- return AppState.Default.OnEvent.input["<LeftMouse>"](app, {location}, pos) else return nil end end
-
-
-
-
- AppState.AbilityDiplomacy.activated = function(app, which_advisor) app.components["guide-text"]:update("Discarding cards in rulers suit...")
-
- local next_game, events = Logic.Action.diplomacy(app.game, which_advisor) local after
- local function _10_() app["update-game"](app, next_game, {"diplomacy", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _10_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
-
-
-
-
-
-
-
-
-
- AppState.AbilityMilitary.activated = function(app, which_advisor) app.components["guide-text"]:update("Drawing cards for each club in hand...")
-
- local next_game, events = Logic.Action.military(app.game, which_advisor) local after
- local function _11_() app["update-game"](app, next_game, {"military", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _11_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
-
-
-
-
-
-
-
-
-
- AppState.AbilityPolitics.activated = function(app, which_advisor) app.components["guide-text"]:update("Select kingdom ruler to swap with current ruler...")
-
- app.state.context = {["which-advisor"] = which_advisor} return nil end
-
- AppState.AbilityPolitics.OnEvent.input["<LeftMouse>"] = function(app, _12_) local location = _12_[1]
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
- app.state.context.selecting = {"kingdom", n} return nil elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
-
-
-
- AppState.AbilityPolitics.OnEvent.input["<LeftDrag>"] = function(app, _14_) local location = _14_[1]
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
- app.state.context.selecting = {"kingdom", n} return nil else return nil end end
-
- AppState.AbilityPolitics.OnEvent.input["<LeftRelease>"] = function(app, _16_) local location = _16_[1]
- if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
- local which_advisor = app.state.context["which-advisor"]
- local next_game, events = Logic.Action.politics(app.game, which_advisor, n) local after
- local function _17_() app["update-game"](app, next_game, {"politics", which_advisor}) return app["switch-state"](app, AppState.RulerPhase) end after = _17_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) else local _ = location
-
-
-
-
- app.state.context.selecting = nil return nil end end
-
-
-
-
-
- AppState.AbilityCommerce.activated = function(app, which_advisor) app.components["guide-text"]:update("Drawing two cards, select two cards to discard...")
-
- app.state.context = {["which-advisor"] = which_advisor, selected = {hand = {}}, selecting = nil}
-
-
- local next_game, events = Logic.Action.commerce(app.game, which_advisor) local after
- local function _19_() app["update-game"](app, next_game, {"commerce", which_advisor}) return app["pop-state"](app) end after = _19_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["push-state"](app, App.State.DefaultAnimatingState, timeline) end
-
-
-
-
-
- AppState.AbilityCommerce.OnEvent.input["<LeftMouse>"] = function(app, _20_) local location = _20_[1]
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
- app.state.context.selecting = {"hand", n} return nil elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
-
-
-
- AppState.AbilityCommerce.OnEvent.input["<LeftDrag>"] = function(app, _22_) local location = _22_[1]
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
- app.state.context.selecting = {"hand", n} return nil else return nil end end
-
- AppState.AbilityCommerce.OnEvent.input["<LeftRelease>"] = function(app, _24_) local location = _24_[1]
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
- local which_advisor = app.state.context["which-advisor"] local selected = app.state.context["selected"] local _
- local _25_ if (nil == selected.hand[n]) then _25_ = true else _25_ = nil end selected.hand[n] = _25_ _ = nil
- local ns = table.keys(selected.hand)
- if (2 == #ns) then
- local next_game, events = Logic.Action.commerce(app.game, which_advisor, ns) local after
- local function _27_() app["update-game"](app, next_game, {"commerce", which_advisor, ns}) return app["switch-state"](app, AppState.RulerPhase) end after = _27_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) else return nil end else return nil end end
-
-
-
-
-
-
-
-
-
- AppState.DealPhase.activated = function(app) app.components["guide-text"]:update("Select a kingdom to visit...")
-
- local next_game, events = Logic.Action.deal(app.game) local after
- local function _30_() app["update-game"](app, next_game, {"deal"}) return app["switch-state"](app, AppState.PickKingdomPhase) end after = _30_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
-
-
-
-
-
-
-
-
-
- local function try_ability(app, suit, n)
-
- local map = {hearts = {"diplomacy", AppState.AbilityDiplomacy}, clubs = {"military", AppState.AbilityMilitary}, spades = {"politics", AppState.AbilityPolitics}, diamonds = {"commerce", AppState.AbilityCommerce}}
-
-
-
- local _let_31_ = map[suit] local action = _let_31_[1] local state = _let_31_[2]
- local _32_, _33_ = Logic.Query[action](app.game, n) if (_32_ == true) then return app["switch-state"](app, state, n) elseif ((_32_ == nil) and (nil ~= _33_)) then local err = _33_ return app:notify(err) else return nil end end
-
-
-
- AppState.PickKingdomPhase.OnEvent.input["<LeftMouse>"] = function(app, _35_, pos) local location = _35_[1]
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
- app.state.context.selecting = {"kingdom", n} return nil else return nil end end
-
- AppState.PickKingdomPhase.OnEvent.input["<LeftDrag>"] = function(app, _37_, pos) local location = _37_[1]
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == 1)) then local n = location[2]
- app.state.context.selecting = {"kingdom", n} return nil else return nil end end
-
- AppState.PickKingdomPhase.OnEvent.input["<LeftRelease>"] = function(app, _39_, pos) local location = _39_[1]
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and true) then local n = location[2] local _ = location[3]
-
- local function _40_(...) local _41_, _42_ = ... if (nil ~= _41_) then local next_game = _41_
-
- local _let_43_ = app["location->position"](app, {"kingdom", n}) local row = _let_43_["row"] local col = _let_43_["col"] local z = _let_43_["z"] app.components.emissary["set-position"](app.components.emissary, {row = (row + 1), col = (col - 1), z = (z + 1)}) return app["update-game"](app, next_game, {"pick-kingdom", n}) elseif ((_41_ == nil) and (nil ~= _42_)) then local e = _42_ return app:notify(e) else return nil end end return _40_(Logic.Action["pick-kingdom"](app.game, n)) elseif ((_G.type(location) == "table") and (location[1] == "draw")) then
-
-
-
-
-
- if app.game["at-kingdom"] then return app["switch-state"](app, AppState.RulerPhase) else return nil end elseif ((_G.type(location) == "table") and (location[1] == "hand")) then
- if app.game["at-kingdom"] then return app["switch-state"](app, AppState.RulerPhase) else return nil end elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (nil ~= location[2]) and (nil ~= location[3])) then local suit = location[2] local n = location[3]
- if app.game["at-kingdom"] then return try_ability(app, suit, n) else return nil end elseif ((_G.type(location) == "table") and (location[1] == "menu")) then
- return AppState.Default.OnEvent.input["<LeftMouse>"](app, {location}, pos) else return nil end end
-
-
-
-
-
- AppState.PreparePhase.activated = function(app) return app.components["guide-text"]:update("Activate an ability or click deck/hand for ruler turn") end
-
-
- AppState.PreparePhase.OnEvent.input["<LeftMouse>"] = function(app, _49_, pos) local location = _49_[1]
- if ((_G.type(location) == "table") and (location[1] == "draw")) then return app["switch-state"](app, AppState.RulerPhase) elseif ((_G.type(location) == "table") and (location[1] == "hand")) then return app["switch-state"](app, AppState.RulerPhase) elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (nil ~= location[2]) and (nil ~= location[3])) then local suit = location[2] local n = location[3]
-
-
- return try_ability(app, suit, n) elseif ((_G.type(location) == "table") and (location[1] == "menu")) then
- return AppState.Default.OnEvent.input["<LeftMouse>"](app, {location}, pos) else return nil end end
-
-
-
-
-
- AppState.RulerPhase.activated = function(app)
- if Logic.Query["hand-exhausted?"](app.game) then return app["switch-state"](app, AppState.FinishKingdom) else
-
- local function _51_(...) local _52_, _53_ = ... if ((nil ~= _52_) and (nil ~= _53_)) then local next_game = _52_ local moves = _53_
-
- local after local function _54_() app["update-game"](app, next_game, {"draw"}) return app["switch-state"](app, AppState.RespondPhase) end after = _54_ local timeline = app["build-event-animation"](app, moves, after) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_52_ == nil) and (nil ~= _53_)) then local e = _53_ return app:notify(e) else return nil end end return _51_(Logic.Action.draw(app.game)) end end
-
-
-
-
-
-
-
-
-
-
-
- AppState.RespondPhase.activated = function(app) return app.components["guide-text"]:update("Select card to respond") end
-
-
- AppState.RespondPhase.OnEvent.input["<LeftMouse>"] = function(app, _57_, pos) local location = _57_[1] app.state.context.safe = true
-
-
-
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
- app.state.context.selecting = {"hand", n} return nil elseif ((_G.type(location) == "table") and (location[1] == "menu")) then
- return AppState.Default.OnEvent.input["<LeftMouse>"](app, {location}, pos) else return nil end end
-
- AppState.RespondPhase.OnEvent.input["<LeftDrag>"] = function(app, _59_, pos) local location = _59_[1]
- if app.state.context.safe then
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
- app.state.context.selecting = {"hand", n} return nil else return nil end else return nil end end
-
- AppState.RespondPhase.OnEvent.input["<LeftRelease>"] = function(app, _62_, pos) local location = _62_[1]
- if app.state.context.safe then
- app.state.context.selecting = nil
- if ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
- local function _63_(...) local _64_, _65_ = ... if ((nil ~= _64_) and (nil ~= _65_)) then local next_game = _64_ local moves = _65_
-
- local _ = table.insert(moves, 2, {"wait", 300}) local after
- local function _66_() app["update-game"](app, next_game, {"play-hand", n})
-
- if Logic.Query["hand-exhausted?"](app.game) then return app["switch-state"](app, AppState.FinishKingdom) else return app["switch-state"](app, AppState.PreparePhase) end end after = _66_ local timeline = app["build-event-animation"](app, moves, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) elseif ((_64_ == nil) and (nil ~= _65_)) then local e = _65_ return app:notify(e) else return nil end end return _63_(Logic.Action["play-hand"](app.game, n)) elseif ((_G.type(location) == "table") and (location[1] == "advisor")) then return app:notify("You may only activate a advisor before a ruler statement") else return nil end else return nil end end
-
-
-
-
-
-
-
-
- AppState.FinishKingdom.activated = function(app)
- local next_game, events = Logic.Action["finish-kingdom"](app.game) local after
- local function _71_() app["update-game"](app, next_game, {"finish-kingdom"})
-
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.DealPhase) end end after = _71_ local timeline = app["build-event-animation"](app, events, after, {}, #next_game.hand) return app["switch-state"](app, App.State.DefaultAnimatingState, timeline) end
-
-
-
-
-
-
-
-
-
- local function update_card_counts(app) app.components["card-counts"].draw:update(#app.game.draw) app.components["card-counts"].discard:update(#app.game.discard) return app.components["card-counts"].score:update(#app.game.score) end
-
-
-
-
- M["build-event-animation"] = function(app, events, after, _3fopts, _3fhand_length)
- if _3fhand_length then
- local proxy local function _73_(_241, _242) return app["location->position"](app, _242, _3fhand_length) end proxy = setmetatable({["location->position"] = _73_}, {__index = app})
-
- return CardUtils["build-event-animation"](proxy, events, after, _3fopts) else
- return CardUtils["build-event-animation"](app, events, after, _3fopts) end end
-
- M["location->position"] = function(app, location, _3fhand_length)
- local config = {card = {margin = {row = 1, col = 1}, width = 7, height = 5}}
-
- local card_col_step = (config.card.width + config.card.margin.col + 2)
- local kingdom = {row = 2, col = 3}
- local draw = {row = 8, col = 38}
- local discard = {row = 8, col = (draw.col - card_col_step)}
- local debate = {row = 8, col = draw.col}
- local score = {row = 8, col = (draw.col + card_col_step)}
- local hand = {row = 14, col = 28}
- local advisor = {row = 20, col = 23} local hand_offset
- do local _75_ = (_3fhand_length or #app.game.hand) if (_75_ == 0) then
- hand.col = draw.col hand_offset = nil elseif (_75_ == 1) then
- hand.col = draw.col hand_offset = nil elseif (nil ~= _75_) then local n = _75_
- hand.col = (draw.col - (2 * (n - 1))) hand_offset = nil else hand_offset = nil end end
-
- if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and true) then local n = location[2] local _ = location[3]
- return {row = kingdom.row, col = (kingdom.col + (card_col_step * (n - 1))), z = app["z-index-for-layer"](app, "cards")} elseif ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then local n = location[2]
-
-
- return {row = hand.row, col = (hand.col + (4 * (n - 1))), z = app["z-index-for-layer"](app, "hand", n)} elseif ((_G.type(location) == "table") and (location[1] == "debate") and (nil ~= location[2])) then local c = location[2]
-
-
-
- local _77_ if (c == 1) then
- _77_ = (debate.col - 2) elseif (c == 2) then
- _77_ = (debate.col + 2) else local _ = c _77_ = 0 end return {row = debate.row, col = _77_, z = app["z-index-for-layer"](app, "debate", ((1 * 10) + c))} elseif ((_G.type(location) == "table") and (location[1] == "discard") and (nil ~= location[2])) then local c = location[2]
-
-
- return {row = discard.row, col = discard.col, z = app["z-index-for-layer"](app, "cards", c)} elseif ((_G.type(location) == "table") and (location[1] == "draw") and (nil ~= location[2])) then local c = location[2]
-
-
- return {row = draw.row, col = draw.col, z = app["z-index-for-layer"](app, "cards", c)} elseif ((_G.type(location) == "table") and (location[1] == "score") and (nil ~= location[2])) then local c = location[2]
-
-
-
- return {row = score.row, col = score.col, z = app["z-index-for-layer"](app, "cards", c)} elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "hearts") and (location[3] == "label")) then
-
-
-
- return {row = (advisor.row - 0), col = (advisor.col + 1), z = app["z-index-for-layer"](app, "label")} elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "hearts") and (nil ~= location[3])) then local n = location[3]
-
-
- return {row = (advisor.row + ((n - 1) * 2)), col = advisor.col, z = n} elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "clubs") and (location[3] == "label")) then
-
-
-
- return {row = (advisor.row - 0), col = (advisor.col + (1 * card_col_step) + 1), z = app["z-index-for-layer"](app, "label")} elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "clubs") and (nil ~= location[3])) then local n = location[3]
-
-
- return {row = (advisor.row + ((n - 1) * 2)), col = (advisor.col + (1 * card_col_step)), z = n} elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "spades") and (location[3] == "label")) then
-
-
-
- return {row = (advisor.row - 0), col = (advisor.col + 1 + (2 * card_col_step)), z = app["z-index-for-layer"](app, "label")} elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "spades") and (nil ~= location[3])) then local n = location[3]
-
-
- return {row = (advisor.row + ((n - 1) * 2)), col = (advisor.col + (2 * card_col_step)), z = n} elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "diamonds") and (location[3] == "label")) then
-
-
-
- return {row = (advisor.row - 0), col = (advisor.col + 1 + (3 * card_col_step)), z = app["z-index-for-layer"](app, "label")} elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "diamonds") and (nil ~= location[3])) then local n = location[3]
-
-
- return {row = (advisor.row + ((n - 1) * 2)), col = (advisor.col + (3 * card_col_step)), z = n} else local _ = location
-
-
-
- return error(Error("Unable to convert location to position, unknown location #{location}", {location = location})) end end
-
-
- M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:383") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/the-emissary/app.fnl:383")
- local app = setmetatable(App.build("The Emissary", "the-emissary", app_config, game_config), {__index = M})
-
-
-
-
- local view = Window.open("the-emissary", App["build-default-window-dispatch-options"](app), {width = 83, height = 32, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
-
-
-
-
-
-
- local _ = table.merge(app["z-layers"], {cards = 25, kingdom = 25, debate = 90, label = 100, hand = 100, animation = 200})
- app.view = view
- app["card-style"] = {width = 7, height = 5, colors = 4, stacking = "horizontal-left"} app["setup-new-game"](app, app["game-config"], _3fseed) return app:render() end
-
-
-
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:402") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:402") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
-
-
-
- local function _83_() return app["switch-state"](app, AppState.DealPhase) end vim.defer_fn(_83_, 300)
- return app end
-
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:409")
- local function build_emissary(position)
- return Component["set-position"](Component["set-size"](Component["set-content"](Component.build(), {{{"\240\159\174\178\240\159\174\179", "@playtime.ui.on"}}}), {width = 2, height = 1}), {row = 13, col = 41}) end
-
-
-
- local function build_label(text, position)
- local row = position["row"] local col = position["col"] local z = position["z"]
-
- local function _84_(self, enabled)
- local hl if enabled then hl = "@playtime.ui.on" else hl = "@playtime.ui.off" end return self["set-content"](self, {{{text, hl}}}) end return Component["set-content"](Component["set-size"](Component["set-position"](Component.build(_84_), position), {width = #text, height = 1}), {{{text, "@playtime.ui.off"}}}) end
-
-
-
-
- local card_card_components do local tbl_16_ = {} for location, card in Logic["iter-cards"](app.game) do local k_17_, v_18_ = nil, nil
- do local card_style if (8 < Logic["card-value"](card)) then
- card_style = table.set(clone(app["card-style"]), "stacking", "vertical-down") else
-
- card_style = app["card-style"] end local comp
- local function _87_(...) return app["location->position"](app, ...) end comp = CardComponents.card(_87_, location, card, card_style)
-
-
-
- k_17_, v_18_ = card.id, comp end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_card_components = tbl_16_ end
- local menubar = CommonComponents.menubar({{"The Emissary", {"file"}, {{"", nil}, {"New Game", {"new-game"}}, {"Restart Game", {"restart-game"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}, {string.format("Seed: %s", app.seed), nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")}) local card_counts
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- do local tbl_16_ = {} for _, key in ipairs({"draw", "discard", "score"}) do local k_17_, v_18_ = nil, nil
-
-
- local function _89_() return app["z-index-for-layer"](app, "label") end k_17_, v_18_ = key, CardComponents.count(table["update-in"](app["location->position"](app, {key, 0}), {"z"}, _89_), app["card-style"]) if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_counts = tbl_16_ end local win_needed_labels
-
- do local pos local function _91_(n) local tmp_9_ = app["location->position"](app, {"kingdom", n})
-
- local function _92_(_241) return (_241 + 4) end table["update-in"](tmp_9_, {"row"}, _92_)
- local function _93_(_241) return (_241 + 2) end table["update-in"](tmp_9_, {"col"}, _93_)
- local function _94_(_241) return (_241 + 5) end table["update-in"](tmp_9_, {"z"}, _94_) return tmp_9_ end pos = _91_
- local tbl_21_ = {} local i_22_ = 0 for n = 1, 8 do
- local val_23_ = build_label((" " .. tostring(n) .. " "), pos(n)) if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end win_needed_labels = tbl_21_ end
- local advisors = {hearts = "dip.", clubs = "mil.", spades = "pol.", diamonds = "com."} local advisor_titles
- do local tbl_21_ = {} local i_22_ = 0 for suit, short_name in pairs(advisors) do
- local val_23_ = build_label(short_name, app["location->position"](app, {"advisor", suit, "label"})) if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end advisor_titles = tbl_21_ end local empty_fields
- do local base = {} for _, _97_ in ipairs({{"kingdom", 8}, {"draw", 1}, {"discard", 1}, {"score", 1}}) do local field = _97_[1] local count = _97_[2]
-
-
-
- local tbl_19_ = base for i = 1, count do local val_20_
- local function _98_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_ = CardComponents.slot(_98_, {field, i, 0}, app["card-style"]) table.insert(tbl_19_, val_20_) end base = tbl_19_ end empty_fields = base end local empty_fields0
-
-
-
- do local tbl_19_ = empty_fields for _, t in ipairs(advisors) do local val_20_
- local function _99_(...) return table.set(app["location->position"](app, ...), "z", app["z-index-for-layer"](app, "base")) end val_20_ = CardComponents.slot(_99_, {"advisor", t, 0}, app["card-style"]) table.insert(tbl_19_, val_20_) end empty_fields0 = tbl_19_ end
-
-
-
- local game_report = CommonComponents["game-report"](app.view.width, app.view.height, app["z-index-for-layer"](app, "report"), {{true, "The land is in concord."}, {false, "The land remains fractured."}}) local guide_text
-
-
-
-
-
- local function _100_(self, text) self["set-content"](self, {{{text, "@playtime.ui.off"}}}) self["set-position"](self, {row = 30, col = math.floor(((app.view.width / 2) - (#text / 2))), z = app["z-index-for-layer"](app, "label")}) return self["set-size"](self, {width = #text, height = 1}) end guide_text = Component.build(_100_):update("Select a kingdom") local win_count
-
-
-
-
-
-
-
- do local _let_101_ = app["fetch-statistics"](app) local wins = _let_101_["wins"]
- win_count = CommonComponents["win-count"](wins, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar", 1)}) end
-
-
- local emissary = build_emissary()
- app["card-id->components"] = card_card_components
- table.merge(app.components, {["empty-fields"] = empty_fields0, menubar = menubar, emissary = emissary, ["guide-text"] = guide_text, ["game-report"] = game_report, ["card-counts"] = card_counts, ["win-count"] = win_count, ["win-needed-labels"] = win_needed_labels, cards = table.values(card_card_components), ["advisor-titles"] = advisor_titles})
-
-
-
-
-
-
-
-
-
-
- return update_card_counts(app) end
-
- M.render = function(app) app.view:render({app.components["empty-fields"], app.components["advisor-titles"], app.components.cards, app.components["win-needed-labels"], {app.components.emissary, app.components["guide-text"], app.components["card-counts"].discard, app.components["card-counts"].draw, app.components["card-counts"].score, app.components["game-report"], app.components["win-count"], app.components.menubar}})
-
-
-
-
-
-
-
-
-
-
-
-
- return app end
-
- M.tick = function(app)
- local now = uv.now() app["process-next-event"](app)
-
- do local _102_ = app.state.module.tick if (nil ~= _102_) then local f = _102_
- f(app) else local _ = _102_
- local adjustment do local t = {}
- for key, vals in pairs((app.state.context.selected or {})) do
- for i, _0 in pairs(vals) do
- table.set(t, string.fmt("%s.%s", key, i), {key, i}) end end
- do local _103_ = app.state.context.selecting if ((_G.type(_103_) == "table") and (nil ~= _103_[1]) and (nil ~= _103_[2])) then local key = _103_[1] local v = _103_[2]
- table.set(t, string.fmt("%s.%s", key, v), {key, v}) else end end
-
- adjustment = table.values(t) end
- for location, card in Logic["iter-cards"](app.game) do
- local comp = app["card-id->components"][card.id] comp:update(location, card)
-
- for _0, marked in ipairs(adjustment) do
- local _105_, _106_ = location, marked if (((_G.type(_105_) == "table") and (nil ~= _105_[1]) and (nil ~= _105_[2])) and ((_G.type(_106_) == "table") and (_105_[1] == _106_[1]) and (_105_[2] == _106_[2]))) then local f = _105_[1] local n = _105_[2] comp["set-position"](comp, {row = (comp.row - 1)}) else end end end end end
-
- update_card_counts(app) return app["request-render"](app) end
-
-
- M["update-statistics"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/the-emissary/app.fnl:548")
- local function update(d)
- local data = table.merge({version = 1, wins = 0, games = {}}, d)
- data.wins = (data.wins + 1)
- data.games = table.insert(data.games, {seed = app.seed, time = ((app["ended-at"] or app["started-at"]) - app["started-at"])})
-
-
- return data end
- return App["update-statistics"](app, update) end
-
- return M
+-- @generated by hotpot.nvim using fennel 1.6.1, edits to this file may be lost
+local _local_1_ = require("playtime.prelude")
+local _2ajit_2a = _local_1_["*jit*"]
+local clone = _local_1_.clone
+local copy = _local_1_.copy
+local eq_all_3f = _local_1_["eq-all?"]
+local eq_any_3f = _local_1_["eq-any?"]
+local math = _local_1_.math
+local string = _local_1_.string
+local table = _local_1_.table
+local type = _local_1_.type
+local Logger = require("playtime.logger")
+local Error = require("playtime.error")
+local App = require("playtime.app")
+local Component = require("playtime.component")
+local CardComponent = require("playtime.component.card")
+local GameReport = require("playtime.component.game-report")
+local _local_2_ = require("playtime.app.state-machine")
+local State = _local_2_.State
+local _local_3_ = require("playtime.app.animation-manager")
+local Animation = _local_3_.Animation
+local AnimationGroup = _local_3_.Group
+local Logic = require("playtime.game.the-emissary.logic")
+local M = App["scaffold-module"]({})
+local DealPhase = State.new({id = "deal-phase"})
+local PickKingdomPhase = State.new({id = "pick-kingdom"})
+local DebateIntermission = State.new({id = "debate-intermission"})
+local DebateRulerTurn = State.new({id = "debate-ruler-turn"})
+local DebateEmissaryTurn = State.new({id = "debate-emissary-turn"})
+local DebateEnded = State.new({id = "debate-ended"})
+local AbilityPolitics = State.new({id = "ability-politics"})
+local AbilityCommerce = State.new({id = "ability-commerce"})
+local AbilityMilitary = State.new({id = "ability-miltary"})
+local AbilityDiplomacy = State.new({id = "ability-diplomacy"})
+local function suit__3eability_2bstate(suit)
+  if (suit == "hearts") then
+    return {"diplomacy", AbilityDiplomacy}
+  elseif (suit == "clubs") then
+    return {"military", AbilityMilitary}
+  elseif (suit == "spades") then
+    return {"politics", AbilityPolitics}
+  elseif (suit == "diamonds") then
+    return {"commerce", AbilityCommerce}
+  else
+    return nil
+  end
+end
+local GameEnded = State.new({id = "game-ended"})
+M.on.app["new-game"] = function(app, cofx, _5_, fx)
+  local _3fseed = _5_.seed
+  local _3fdelay = _5_.delay
+  local game = Logic.build(app["game-config"], _3fseed)
+  app.game = game
+  app.clock:reset()
+  app["build-components"](app)
+  app["synchronise-components-to-game-state"](app)
+  app.components.report = nil
+  fx.state.reset(DealPhase)
+  fx["interaction-lock"]["general-lockout"]()
+  fx.engine.tick()
+  return fx.engine.render()
+end
+DealPhase.on.enter = function(state, _6_, event, fx)
+  local app = _6_.app
+  local next_game, events = Logic.Action.deal(app.game)
+  local on_complete
+  local function _7_()
+    app["synchronise-components-to-game-state"](app)
+    fx["interaction-lock"].unlock()
+    fx.state.transition(PickKingdomPhase)
+    return fx.engine.render()
+  end
+  on_complete = _7_
+  local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+  app.game = next_game
+  app.components["score-label"]:unknown()
+  fx["interaction-lock"]["general-lockout"]()
+  fx.animation.play(animation)
+  return fx.engine.render()
+end
+PickKingdomPhase.on.enter = function(state, _8_, event, fx)
+  local app = _8_.app
+  app.components["guide-text"]["set-text"](app.components["guide-text"], "Select a kingdom to visit...")
+  app.components["advisor-selector"]:disable()
+  app.components["continue-button"]:show()
+  app.components["continue-button"]["set-state"](app.components["continue-button"], "pick-kingdom")
+  return fx.engine.render()
+end
+PickKingdomPhase.on.leave = function(state, _9_, event, fx)
+  local app = _9_.app
+  app.components["continue-button"]:hide()
+  app.components["advisor-selector"]:disable()
+  return fx.engine.render()
+end
+PickKingdomPhase.on.app["select-kingdom"] = function(state, _10_, _11_, fx)
+  local app = _10_.app
+  local location = _11_.location
+  local component = _11_.component
+  local emissary = app.components.emissary
+  local _ = location[1]
+  local kingdom = location[2]
+  local case_12_, case_13_ = Logic.Action["pick-kingdom"](app.game, kingdom)
+  if ((nil ~= case_12_) and true) then
+    local next_game = case_12_
+    local _3fevents = case_13_
+    app.game = next_game
+    emissary.position = app["location->position"](app, {"kingdom", kingdom, "emissary"})
+    emissary.location = location
+    app.components["score-label"]:possible(kingdom)
+    app.components["guide-text"]["set-text"](app.components["guide-text"], "Activate an Advisor, enter the court or select another kingdom.")
+    app.components["advisor-selector"]:enable()
+    app.components["continue-button"]["set-state"](app.components["continue-button"], "enter-the-court")
+    return fx.engine.render()
+  elseif ((case_12_ == nil) and (nil ~= case_13_)) then
+    local err = case_13_
+    return app:notify(err)
+  else
+    return nil
+  end
+end
+PickKingdomPhase.on.app["select-advisor"] = function(state, _15_, _16_, fx)
+  local app = _15_.app
+  local location = _16_.location
+  local component = _16_.component
+  local _ = location[1]
+  local suit = location[2]
+  local n = location[3]
+  local _let_17_ = suit__3eability_2bstate(suit)
+  local action = _let_17_[1]
+  local state0 = _let_17_[2]
+  app.components["score-label"]:actual(0, app.game["at-kingdom"])
+  local case_18_, case_19_ = Logic.Query[action](app.game, n)
+  if (case_18_ == true) then
+    return fx.state.transition(state0, {["advisor-n"] = n, ["next-state"] = DebateRulerTurn})
+  elseif ((case_18_ == nil) and (nil ~= case_19_)) then
+    local err = case_19_
+    return app:notify(err)
+  else
+    return nil
+  end
+end
+PickKingdomPhase.on.app.continue = function(state, _21_, event, fx)
+  local app = _21_.app
+  app.components["score-label"]:actual(0, app.game["at-kingdom"])
+  return fx.state.transition(DebateRulerTurn)
+end
+DebateIntermission.on.enter = function(_state, _22_, _event, fx)
+  local app = _22_.app
+  if Logic.Query["hand-exhausted?"](app.game) then
+    return fx.state.transition(DebateEnded)
+  else
+    app.components["guide-text"]["set-text"](app.components["guide-text"], "Activate an Advisor or continue your debate.")
+    app.components["advisor-selector"]:enable()
+    app.components["continue-button"]:show()
+    app.components["continue-button"]["set-state"](app.components["continue-button"], "continue-debate")
+    return fx.engine.render()
+  end
+end
+DebateIntermission.on.leave = function(_state, _24_, _event, fx)
+  local app = _24_.app
+  app.components["continue-button"]:hide()
+  app.components["advisor-selector"]:disable()
+  return fx.engine.render()
+end
+DebateIntermission.on.app["select-advisor"] = function(state, _25_, _26_, fx)
+  local app = _25_.app
+  local location = _26_.location
+  local component = _26_.component
+  local _ = location[1]
+  local suit = location[2]
+  local n = location[3]
+  local _let_27_ = suit__3eability_2bstate(suit)
+  local action = _let_27_[1]
+  local state0 = _let_27_[2]
+  local case_28_, case_29_ = Logic.Query[action](app.game, n)
+  if (case_28_ == true) then
+    return fx.state.transition(state0, {["advisor-n"] = n, ["next-state"] = DebateRulerTurn})
+  elseif ((case_28_ == nil) and (nil ~= case_29_)) then
+    local err = case_29_
+    return app:notify(err)
+  else
+    return nil
+  end
+end
+DebateIntermission.on.app.continue = function(state, _31_, event, fx)
+  local app = _31_.app
+  return fx.state.transition(DebateRulerTurn)
+end
+DebateEnded.on.enter = function(state, _32_, event, fx)
+  local app = _32_.app
+  local next_game, events = Logic.Action["finish-kingdom"](app.game)
+  local on_complete
+  local function _33_()
+    app["synchronise-components-to-game-state"](app)
+    if Logic.Query["game-ended?"](app.game) then
+      return fx.state.transition(GameEnded)
+    else
+      return fx.state.transition(DealPhase)
+    end
+  end
+  on_complete = _33_
+  local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+  app.game = next_game
+  return fx.animation.play(animation)
+end
+DebateRulerTurn.on.enter = function(state, _35_, event, fx)
+  local app = _35_.app
+  if Logic.Query["hand-exhausted?"](app.game) then
+    return fx.state.transition(DebateEnded)
+  else
+    app.components["guide-text"]["set-text"](app.components["guide-text"], "Ruler is acting..")
+    local case_36_, case_37_ = Logic.Action.draw(app.game)
+    if ((nil ~= case_36_) and (nil ~= case_37_)) then
+      local next_game = case_36_
+      local events = case_37_
+      local on_complete
+      local function _38_()
+        app["synchronise-components-to-game-state"](app)
+        fx.engine.render()
+        fx.state.transition(DebateEmissaryTurn)
+        return fx["interaction-lock"].unlock()
+      end
+      on_complete = _38_
+      local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+      app.game = next_game
+      fx["interaction-lock"]["general-lockout"]()
+      return fx.animation.play(animation)
+    elseif ((case_36_ == nil) and (nil ~= case_37_)) then
+      local err = case_37_
+      return app:notify(err)
+    else
+      return nil
+    end
+  end
+end
+DebateEmissaryTurn.on.enter = function(state, _41_, event, fx)
+  local app = _41_.app
+  app.components["guide-text"]["set-text"](app.components["guide-text"], "Choose card to reply...")
+  return fx.engine.render()
+end
+DebateEmissaryTurn.on.leave = function(state, _42_, event, fx)
+  local app = _42_.app
+  app.components["score-label"]:actual(#app.game.score, app.game["at-kingdom"])
+  return fx.engine.render()
+end
+DebateEmissaryTurn.on.app["select-hand"] = function(state, _43_, _44_, fx)
+  local app = _43_.app
+  local location = _44_.location
+  local component = _44_.component
+  local _ = location[1]
+  local n = location[2]
+  local case_45_, case_46_ = Logic.Action["play-hand"](app.game, n)
+  if ((nil ~= case_45_) and (nil ~= case_46_)) then
+    local next_game = case_45_
+    local events = case_46_
+    local on_complete
+    local function _47_()
+      app.components["score-label"]:actual(#next_game.score, next_game["at-kingdom"])
+      app["synchronise-components-to-game-state"](app)
+      fx.engine.render()
+      fx["interaction-lock"].unlock()
+      return fx.state.transition(DebateIntermission)
+    end
+    on_complete = _47_
+    local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+    app.game = next_game
+    fx["interaction-lock"]["general-lockout"]()
+    return fx.animation.play(animation)
+  elseif ((case_45_ == nil) and (nil ~= case_46_)) then
+    local err = case_46_
+    local debate_card
+    do
+      local c = nil
+      for loc, card in Logic["iter-cards"](app.game) do
+        if c then break end
+        if ((_G.type(loc) == "table") and (loc[1] == "debate") and (loc[2] == 1)) then
+          c = card
+        else
+          c = nil
+        end
+      end
+      debate_card = c
+    end
+    local component0 = app["find-card-component-by-card-id"](app, debate_card.id)
+    local on_complete
+    local function _49_()
+      app:notify(err)
+      return fx["interaction-lock"].unlock()
+    end
+    on_complete = _49_
+    local animation
+    local function _50_(component1, value, _percent)
+      component1.position.col = math.floor(value)
+      return nil
+    end
+    animation = Animation.new({component = component0, apply = _50_, property = "col", from = component0.position.col, to = (component0.position.col + 2), ease = "oscillate-3-dampend", duration = 300, delay = 0, ["on-complete"] = on_complete})
+    return fx.animation.play(animation)
+  else
+    return nil
+  end
+end
+AbilityDiplomacy.on.enter = function(_52_, _53_, _event, fx)
+  local next_state = _52_["next-state"]
+  local advisor_n = _52_["advisor-n"]
+  local app = _53_.app
+  app.components["guide-text"]["set-text"](app.components["guide-text"], "Discarding cards in rulers suit...")
+  local next_game, events = Logic.Action.diplomacy(app.game, advisor_n)
+  local on_complete
+  local function _54_()
+    app["synchronise-components-to-game-state"](app)
+    fx["interaction-lock"].unlock()
+    return fx.state.transition(next_state)
+  end
+  on_complete = _54_
+  local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+  app.game = next_game
+  fx.animation.play(animation)
+  return fx["interaction-lock"]["general-lockout"]()
+end
+AbilityMilitary.on.enter = function(_55_, _56_, event, fx)
+  local next_state = _55_["next-state"]
+  local advisor_n = _55_["advisor-n"]
+  local app = _56_.app
+  app.components["guide-text"]["set-text"](app.components["guide-text"], "Drawing cards for each club in hand...")
+  local next_game, events = Logic.Action.military(app.game, advisor_n)
+  local on_complete
+  local function _57_()
+    app["synchronise-components-to-game-state"](app)
+    fx["interaction-lock"].unlock()
+    return fx.state.transition(next_state)
+  end
+  on_complete = _57_
+  local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+  app.game = next_game
+  fx.animation.play(animation)
+  return fx["interaction-lock"]["general-lockout"]()
+end
+AbilityPolitics.on.enter = function(_58_, _59_, event, fx)
+  local next_state = _58_["next-state"]
+  local advisor_n = _58_["advisor-n"]
+  local app = _59_.app
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/the-emissary/app.fnl:300", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/the-emissary/app.fnl:300", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:300", 2)
+  else
+  end
+  if (nil == advisor_n) then
+    _G.error("Missing argument advisor-n on fnl/playtime/game/the-emissary/app.fnl:300", 2)
+  else
+  end
+  if (nil == next_state) then
+    _G.error("Missing argument next-state on fnl/playtime/game/the-emissary/app.fnl:300", 2)
+  else
+  end
+  return app.components["guide-text"]["set-text"](app.components["guide-text"], "Select kingdom ruler to swap with current ruler...")
+end
+AbilityPolitics.on.app["select-kingdom"] = function(_65_, _66_, _67_, fx)
+  local next_state = _65_["next-state"]
+  local advisor_n = _65_["advisor-n"]
+  local app = _66_.app
+  local location = _67_.location
+  local _ = location[1]
+  local kingdom_n = location[2]
+  local next_game, events = Logic.Action.politics(app.game, advisor_n, kingdom_n)
+  local on_complete
+  local function _68_()
+    app["synchronise-components-to-game-state"](app)
+    fx["interaction-lock"].unlock()
+    return fx.state.transition(next_state)
+  end
+  on_complete = _68_
+  local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+  app.game = next_game
+  fx.animation.play(animation)
+  return fx["interaction-lock"]["general-lockout"]()
+end
+AbilityCommerce.on.enter = function(_69_, _70_, event, fx)
+  local next_state = _69_["next-state"]
+  local advisor_n = _69_["advisor-n"]
+  local state = _69_
+  local app = _70_.app
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/the-emissary/app.fnl:321", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/the-emissary/app.fnl:321", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:321", 2)
+  else
+  end
+  if (nil == state) then
+    _G.error("Missing argument state on fnl/playtime/game/the-emissary/app.fnl:321", 2)
+  else
+  end
+  if (nil == advisor_n) then
+    _G.error("Missing argument advisor-n on fnl/playtime/game/the-emissary/app.fnl:321", 2)
+  else
+  end
+  if (nil == next_state) then
+    _G.error("Missing argument next-state on fnl/playtime/game/the-emissary/app.fnl:321", 2)
+  else
+  end
+  app.components["guide-text"]["set-text"](app.components["guide-text"], "Drawing two cards, select two cards to discard...")
+  state.selection = {}
+  local next_game, events = Logic.Action.commerce(app.game, advisor_n)
+  local on_complete
+  local function _77_()
+    app["synchronise-components-to-game-state"](app)
+    return fx["interaction-lock"].unlock()
+  end
+  on_complete = _77_
+  local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+  app.game = next_game
+  fx.animation.play(animation)
+  return fx["interaction-lock"]["general-lockout"]()
+end
+AbilityCommerce.on.app["select-hand"] = function(_78_, _79_, _80_, fx)
+  local next_state = _78_["next-state"]
+  local advisor_n = _78_["advisor-n"]
+  local selection = _78_.selection
+  local app = _79_.app
+  local location = _80_.location
+  local component = _80_.component
+  local _let_81_ = component.card
+  local id = _let_81_.id
+  local _ = location[1]
+  local hand_n = location[2]
+  do
+    local case_82_ = selection[id]
+    if (case_82_ == nil) then
+      selection[id] = {component = component, ["hand-n"] = hand_n}
+      component:select()
+    elseif ((_G.type(case_82_) == "table") and (nil ~= case_82_.component)) then
+      local component0 = case_82_.component
+      component0:deselect()
+      selection[id] = nil
+    else
+    end
+  end
+  do
+    local case_84_ = table.keys(selection)
+    if ((_G.type(case_84_) == "table") and (nil ~= case_84_[1]) and (nil ~= case_84_[2]) and (case_84_[3] == nil)) then
+      local first = case_84_[1]
+      local second = case_84_[2]
+      local _let_85_ = selection[first]
+      local first_component = _let_85_.component
+      local first_hand_n = _let_85_["hand-n"]
+      local _let_86_ = selection[second]
+      local second_component = _let_86_.component
+      local second_hand_n = _let_86_["hand-n"]
+      first_component:deselect()
+      second_component:deselect()
+      local next_game, events = Logic.Action.commerce(app.game, advisor_n, {first_hand_n, second_hand_n})
+      local on_complete
+      local function _87_()
+        app["synchronise-components-to-game-state"](app)
+        fx["interaction-lock"].unlock()
+        return fx.state.transition(next_state)
+      end
+      on_complete = _87_
+      local animation = app["build-card-animation-from-events"](app, events, on_complete, #next_game.hand)
+      app.game = next_game
+      fx.animation.play(animation)
+      fx["interaction-lock"]["general-lockout"]()
+    else
+    end
+  end
+  return fx.engine.render()
+end
+GameEnded.on.enter = function(state, _89_, event, fx)
+  local app = _89_.app
+  local result = Logic.Query["game-result"](app.game)
+  local other_lines = {string.fmt("Score: %d/16", result.score), string.fmt("Allies: %d/8", result.allies), string.fmt("Unused Advisors: %d/8", result.unused), string.format("Time: %s", app.clock["elapsed-time"](app.clock))}
+  local result0
+  if (16 == result.score) then
+    result0 = "perfect"
+  elseif (8 == result.allies) then
+    result0 = "win"
+  elseif (result.allies < 7) then
+    result0 = "loss"
+  else
+    result0 = nil
+  end
+  local report = GameReport.new({["view-size"] = app.view.size, ["play-again"] = {"Play Again?", {"app", "new-game"}}, result = result0, ["result-lines"] = {{"perfect", "Perfect!"}, {"win", "You gathered the support of everyone."}, {"loss", "Some kingdoms do not support you."}}, ["other-lines"] = other_lines})
+  app.components.report = report
+  fx["interaction-lock"]["general-lockout"]()
+  return fx.engine.render()
+end
+M.start = function(runtime_config, game_config, _3fseed)
+  if (nil == game_config) then
+    _G.error("Missing argument game-config on fnl/playtime/game/the-emissary/app.fnl:390", 2)
+  else
+  end
+  if (nil == runtime_config) then
+    _G.error("Missing argument runtime-config on fnl/playtime/game/the-emissary/app.fnl:390", 2)
+  else
+  end
+  local app = App.new({module = M, name = "The Emissary", ["app-id"] = "the-emissary", view = {width = 83, height = 32}, features = {["save-load"] = false}, menu = {{"The Emissary", {{"New Game", {"app", "new-game"}}}}}}, runtime_config)
+  app["game-config"] = game_config
+  app.view:open()
+  app["queue-event"](app, "app", "new-game", table.merge(game_config, {seed = _3fseed}))
+  app["request-render"](app)
+  return app
+end
+M.on.app.save = function(app, cofx, event, fx)
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/the-emissary/app.fnl:404", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/the-emissary/app.fnl:404", 2)
+  else
+  end
+  if (nil == cofx) then
+    _G.error("Missing argument cofx on fnl/playtime/game/the-emissary/app.fnl:404", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:404", 2)
+  else
+  end
+  return app:save("user-save", app.game)
+end
+M.on.app.load = function(app, cofx, event, fx)
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/the-emissary/app.fnl:407", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/the-emissary/app.fnl:407", 2)
+  else
+  end
+  if (nil == cofx) then
+    _G.error("Missing argument cofx on fnl/playtime/game/the-emissary/app.fnl:407", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:407", 2)
+  else
+  end
+  app.game = app:load("user-save")
+  app["build-components"](app)
+  app["synchronise-components-to-game-state"](app)
+  fx.engine.tick()
+  return fx.engine.render()
+end
+M["synchronise-components-to-game-state"] = function(app)
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:414", 2)
+  else
+  end
+  for location, card in Logic["iter-cards"](app.game) do
+    local component = app["find-card-component-by-card-id"](app, card.id)
+    local position = app["location->position"](app, location)
+    if ((_G.type(card) == "table") and (card.face == "up")) then
+      component["flip-face-up"](component)
+    elseif ((_G.type(card) == "table") and (card.face == "down")) then
+      component["flip-face-down"](component)
+    else
+    end
+    component.location = location
+    component.position = position
+  end
+  for _, label in ipairs(app.components["kingdom-win-requirements"].children) do
+    if ((_G.type(label) == "table") and ((_G.type(label.location) == "table") and (label.location[1] == "kingdom") and (nil ~= label.location[2]))) then
+      local n = label.location[2]
+      local case_103_ = app.game.kingdom[n]
+      if ((_G.type(case_103_) == "table") and ((_G.type(case_103_[1]) == "table") and (case_103_[1].face == "down"))) then
+        label:lost()
+      elseif ((_G.type(case_103_) == "table") and ((_G.type(case_103_[1]) == "table") and (case_103_[1].face == "up"))) then
+        label:available()
+      elseif ((_G.type(case_103_) == "table") and (case_103_[1] == nil)) then
+        label:won()
+      else
+      end
+    else
+    end
+  end
+  return app
+end
+M["find-card-component-by-card-id"] = function(app, card_id)
+  if (nil == card_id) then
+    _G.error("Missing argument card-id on fnl/playtime/game/the-emissary/app.fnl:431", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:431", 2)
+  else
+  end
+  local lookup = (app["__find-card-component-by-card-id-lookup"] or table.set(app, "__find-card-component-by-card-id-lookup", {memo = nil, table = nil}))
+  local root_component = app.components.cards
+  if (root_component ~= lookup.memo) then
+    lookup.memo = root_component
+    local tbl_21_ = {}
+    for _, comp in ipairs(root_component.children) do
+      local k_22_, v_23_ = comp.card.id, comp
+      if ((k_22_ ~= nil) and (v_23_ ~= nil)) then
+        tbl_21_[k_22_] = v_23_
+      else
+      end
+    end
+    lookup.table = tbl_21_
+  else
+  end
+  return lookup.table[card_id]
+end
+M["build-components"] = function(app)
+  local emissary = Component.new({size = {width = 2, height = 1}, position = {row = 7, col = 41, z = 500}, content = {{{"\240\159\174\178\240\159\174\179", "@playtime.ui.on"}}}})
+  local guide_text
+  local function _110_(self, text)
+    local len = #text
+    local pad_left = math.floor(((self.size.width - len) / 2))
+    self.position.col = pad_left
+    self.content = {{{text, "@playtime.ui.off"}}}
+    return nil
+  end
+  guide_text = Component.new({size = {width = app.view.size.width, height = 1}, position = {row = 13, col = 1, z = 100}, ["set-text"] = _110_})
+  local ability_help = Component.new({size = {width = app.view.size.width, height = 4}, position = {row = 27, col = 17, z = 100}, content = {{{"Diplomacy - discard all cards matching current ruler.", "@playtime.ui.off"}}, {{"Military  - draw a card for every club in hand.", "@playtime.ui.off"}}, {{"Politics  - swap the current ruler with an unvisited one.", "@playtime.ui.off"}}, {{"Commerce  - draw 2 cards then discard 2 cards.", "@playtime.ui.off"}}}})
+  local continue_button
+  do
+    local enter_the_court = Component.new({size = {width = 5, height = 3}, position = {row = 9, col = 39, z = 200}, content = {{{"ENTER", "@playtime.ui.on"}}, {{" THE ", "@playtime.ui.on"}}, {{"COURT", "@playtime.ui.on"}}}, ["visible?"] = false})
+    local continue_debate = Component.new({size = {width = 8, height = 2}, position = {row = 9, col = 37, z = 200}, content = {{{"CONTINUE", "@playtime.ui.on"}}, {{" DEBATE ", "@playtime.ui.on"}}}, ["visible?"] = false})
+    local button
+    local function _111_(self, fx)
+      local case_112_ = self.children
+      if ((_G.type(case_112_) == "table") and (nil ~= case_112_[1])) then
+        local child = case_112_[1]
+        if (enter_the_court["visible?"] or continue_debate["visible?"]) then
+          return fx.event.dispatch("app", "continue")
+        else
+          return nil
+        end
+      else
+        return nil
+      end
+    end
+    local function _115_(self, cofx, event, fx)
+      if ((_G.type(event) == "table") and (event.button == "left") and (event.action == "release")) then
+        return self:_continue(fx)
+      else
+        return nil
+      end
+    end
+    local function _117_(self, cofx, event, fx)
+      if ((_G.type(event) == "table") and (event.button == "left") and (event.action == "release")) then
+        return self:_continue(fx)
+      else
+        return nil
+      end
+    end
+    local function _119_()
+      return nil
+    end
+    local function _120_()
+      return nil
+    end
+    local function _121_(self, state)
+      if (state == "pick-kingdom") then
+        enter_the_court["visible?"] = false
+        continue_debate["visible?"] = false
+        return nil
+      elseif (state == "enter-the-court") then
+        enter_the_court["visible?"] = true
+        continue_debate["visible?"] = false
+        return nil
+      elseif (state == "continue-debate") then
+        enter_the_court["visible?"] = false
+        continue_debate["visible?"] = true
+        return nil
+      else
+        local _ = state
+        return error(state)
+      end
+    end
+    local function _123_(self)
+      self["visible?"] = true
+      return nil
+    end
+    local function _124_(self)
+      self["visible?"] = false
+      return nil
+    end
+    button = Component.new({size = {width = 39, height = 11}, position = {row = 8, col = 22, z = 300}, _continue = _111_, on = {click = _115_, drag = _117_}, children = {enter_the_court, continue_debate, Component.new({size = {width = app.view.size.width, height = 5}, position = {row = 14, col = 2, z = 299}, on = {click = _119_, drag = _120_}})}, ["set-state"] = _121_, show = _123_, hide = _124_})
+    continue_button = button
+  end
+  local advisor_selector
+  local function _125_(self)
+    self["visible?"] = false
+    return nil
+  end
+  local function _126_(self)
+    self["visible?"] = true
+    return nil
+  end
+  local function _127_()
+    return nil
+  end
+  local function _128_()
+    return nil
+  end
+  advisor_selector = Component.new({size = {width = 37, height = 9}, position = {row = 20, col = 23, z = 300}, enable = _125_, disable = _126_, on = {click = _127_, drag = _128_}})
+  local kingdom_win_requirements
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for n = 1, 8 do
+      local val_28_
+      local _129_
+      do
+        local tmp_9_ = app["location->position"](app, {"kingdom", n, "requirement"})
+        local function _130_(_241)
+          return (_241 + 4)
+        end
+        table["update-in"](tmp_9_, {"row"}, _130_)
+        local function _131_(_241)
+          return (_241 + 2)
+        end
+        table["update-in"](tmp_9_, {"col"}, _131_)
+        _129_ = tmp_9_
+      end
+      local function _132_(self, hl)
+        self.content = {{{string.fmt(" %d ", n), hl}}}
+        return nil
+      end
+      local function _133_(self)
+        return self:update("@playtime.ui.off")
+      end
+      local function _134_(self)
+        return self:update("@playtime.ui.off")
+      end
+      local function _135_(self)
+        return self:update("@playtime.ui.on")
+      end
+      val_28_ = Component.new({size = {width = 3, height = 1}, location = {"kingdom", n}, position = _129_, update = _132_, lost = _133_, won = _134_, available = _135_, content = {{{string.fmt(" %d ", n), "@playtime.ui.on"}}}})
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    kingdom_win_requirements = tbl_26_
+  end
+  local kingdom_win_scores
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for n = 1, 8 do
+      local val_28_
+      local _137_
+      do
+        local tmp_9_ = app["location->position"](app, {"kingdom", n, "score"})
+        local function _138_(_241)
+          return (_241 + 2)
+        end
+        table["update-in"](tmp_9_, {"row"}, _138_)
+        local function _139_(_241)
+          return (_241 + 2)
+        end
+        table["update-in"](tmp_9_, {"col"}, _139_)
+        _137_ = tmp_9_
+      end
+      val_28_ = Component.new({size = {width = 2, height = 1}, location = {"kingdom", n}, position = _137_, content = {{{string.fmt("+1", n), "@playtime.color.yellow"}}}})
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    kingdom_win_scores = tbl_26_
+  end
+  local advisor_labels
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for suit, name in pairs({hearts = "dip.", clubs = "mil.", spades = "pol.", diamonds = "com."}) do
+      local val_28_ = Component.new({size = {width = 4, height = 1}, location = {"advisor", suit, "label"}, position = app["location->position"](app, {"advisor", suit, "label"}), content = {{{name, "@playtime.ui.off"}}}})
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    advisor_labels = tbl_26_
+  end
+  local score_label
+  local function _142_(self)
+    self.content = {{{"?/?", "@playtime.ui.off"}}}
+    return nil
+  end
+  local function _143_(self, want)
+    self.content = {{{string.format("?/%d", want), "@playtime.ui.off"}}}
+    return nil
+  end
+  local function _144_(self, have, want)
+    local content
+    if (have == want) then
+      content = {{{string.format("%d/%d", have, want), "@playtime.color.green"}}}
+    else
+      content = {{{string.format("%d/%d", have, want), "@playtime.color.red"}}}
+    end
+    self.content = content
+    return nil
+  end
+  score_label = Component.new({size = {width = 3, height = 1}, position = app["location->position"](app, {"score", "label"}), unknown = _142_, possible = _143_, actual = _144_, content = {{{"?/?", "@playtime.ui.off"}}}})
+  local cards
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for location, card in Logic["iter-cards"](app.game) do
+      local val_28_
+      do
+        local position = app["location->position"](app, location)
+        local card_type
+        do
+          local matched_3f_146_, __147_
+          if ((_G.type(card) == "table") and true and (card[2] == "king")) then
+            local _ = card[1]
+            matched_3f_146_, __147_ = true, _
+          elseif ((_G.type(card) == "table") and true and (card[2] == "queen")) then
+            local _ = card[1]
+            matched_3f_146_, __147_ = true, _
+          elseif ((_G.type(card) == "table") and true and (card[2] == "jack")) then
+            local _ = card[1]
+            matched_3f_146_, __147_ = true, _
+          else
+            matched_3f_146_, __147_ = nil
+          end
+          if matched_3f_146_ then
+            local _ = __147_
+            card_type = "ruler"
+          else
+            local _ = card
+            card_type = "regular"
+          end
+        end
+        local stacking_orientation
+        if (card_type == "ruler") then
+          stacking_orientation = "vertical"
+        elseif (card_type == "regular") then
+          stacking_orientation = "horizontal"
+        else
+          stacking_orientation = nil
+        end
+        local on
+        if (card_type == "ruler") then
+          local function _151_(self, cofx, event, fx)
+            if ((_G.type(event) == "table") and (event.action == "press") and (event.button == "left")) then
+              self:hover()
+              return fx.engine.render()
+            elseif ((_G.type(event) == "table") and (event.action == "release") and (event.button == "left")) then
+              self:unhover()
+              fx.engine.render()
+              local case_152_, case_153_ = self.card.face, self.location
+              if ((case_152_ == "up") and ((_G.type(case_153_) == "table") and (case_153_[1] == "kingdom"))) then
+                return fx.event.dispatch("app", "select-kingdom", {location = self.location, component = self})
+              elseif ((case_152_ == "up") and ((_G.type(case_153_) == "table") and (case_153_[1] == "advisor"))) then
+                return fx.event.dispatch("app", "select-advisor", {location = self.location, component = self})
+              else
+                return nil
+              end
+            else
+              return nil
+            end
+          end
+          local function _156_(self, cofx, event, fx)
+            if ((_G.type(event) == "table") and (event.action == "enter") and (event.button == "left")) then
+              self:hover()
+              return fx.engine.render()
+            elseif ((_G.type(event) == "table") and (event.action == "leave") and (event.button == "left")) then
+              self:unhover()
+              return fx.engine.render()
+            elseif ((_G.type(event) == "table") and (event.action == "release") and (event.button == "left")) then
+              self:unhover()
+              fx.engine.render()
+              local case_157_, case_158_ = self.card.face, self.location
+              if ((case_157_ == "up") and ((_G.type(case_158_) == "table") and (case_158_[1] == "kingdom"))) then
+                return fx.event.dispatch("app", "select-kingdom", {location = self.location, component = self})
+              elseif ((case_157_ == "up") and ((_G.type(case_158_) == "table") and (case_158_[1] == "advisor"))) then
+                return fx.event.dispatch("app", "select-advisor", {location = self.location, component = self})
+              else
+                return nil
+              end
+            else
+              return nil
+            end
+          end
+          on = {click = _151_, drag = _156_}
+        elseif (card_type == "regular") then
+          local function _161_(self, cofx, event, fx)
+            local case_162_ = self.location
+            if ((_G.type(case_162_) == "table") and (case_162_[1] == "hand")) then
+              if ((_G.type(event) == "table") and (event.action == "press") and (event.button == "left")) then
+                self:hover()
+                return fx.engine.render()
+              elseif ((_G.type(event) == "table") and (event.action == "release") and (event.button == "left")) then
+                self:unhover()
+                return fx.event.dispatch("app", "select-hand", {location = self.location, component = self})
+              else
+                return nil
+              end
+            else
+              return nil
+            end
+          end
+          local function _165_(self, cofx, event, fx)
+            local case_166_ = self.location
+            if ((_G.type(case_166_) == "table") and (case_166_[1] == "hand")) then
+              if ((_G.type(event) == "table") and (event.action == "enter") and (event.button == "left")) then
+                self:hover()
+                return fx.engine.render()
+              elseif ((_G.type(event) == "table") and (event.action == "leave") and (event.button == "left")) then
+                self:unhover()
+                return fx.engine.render()
+              elseif ((_G.type(event) == "table") and (event.action == "release") and (event.button == "left")) then
+                self:unhover()
+                return fx.event.dispatch("app", "select-hand", {location = self.location, component = self})
+              else
+                return nil
+              end
+            else
+              return nil
+            end
+          end
+          on = {click = _161_, drag = _165_}
+        else
+          on = nil
+        end
+        local function _170_(self)
+          if (nil == self["__select-row"]) then
+            self["__hover-row"] = self.position.row
+            self.position.row = (self.position.row - 1)
+            self.size.height = (self.size.height + 1)
+            return self["invalidate-content-cache"](self)
+          else
+            return nil
+          end
+        end
+        local function _172_(self)
+          if ((nil == self["__select-row"]) and self["__hover-row"]) then
+            self.position.row = self["__hover-row"]
+            self["__hover-row"] = nil
+            self.size.height = (self.size.height - 1)
+            return self["invalidate-content-cache"](self)
+          else
+            return nil
+          end
+        end
+        local function _174_(self)
+          if (nil == self["__select-row"]) then
+            self["__select-row"] = self.position.row
+            self.position.row = (self.position.row - 1)
+            return nil
+          else
+            return nil
+          end
+        end
+        local function _176_(self)
+          if self["__select-row"] then
+            self.position.row = self["__select-row"]
+            self["__select-row"] = nil
+            return nil
+          else
+            return nil
+          end
+        end
+        val_28_ = CardComponent.card({["stacking-orientation"] = stacking_orientation, on = on, hover = _170_, unhover = _172_, select = _174_, deselect = _176_, ["color-count"] = 4, card = card, location = location, position = position})
+      end
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    cards = tbl_26_
+  end
+  local slots
+  do
+    local slots0 = {}
+    for location, count in pairs({kingdom = 8, draw = 1, discard = 1, score = 1}) do
+      local tbl_24_ = slots0
+      for i = 1, count do
+        local val_25_ = CardComponent.slot({location = {location, i}, position = app["location->position"](app, {location, i, 0})})
+        table.insert(tbl_24_, val_25_)
+      end
+      slots0 = tbl_24_
+    end
+    slots = slots0
+  end
+  table.merge(app.components, {emissary = emissary, ["guide-text"] = guide_text, ["advisor-selector"] = advisor_selector, ["score-label"] = score_label, ["continue-button"] = continue_button, ["ability-help"] = ability_help, ["advisor-labels"] = Component.new({children = advisor_labels}), ["kingdom-win-requirements"] = Component.new({children = kingdom_win_requirements}), ["kingdom-win-scores"] = Component.new({children = kingdom_win_scores}), cards = Component.new({children = cards}), slots = Component.new({children = slots})})
+  return app
+end
+M["location->position"] = function(app, location, _3fhand_length)
+  local config = {card = {margin = {row = 1, col = 1}, width = 7, height = 5}}
+  local card_col_step = (config.card.width + config.card.margin.col + 2)
+  local kingdom = {row = 2, col = 3}
+  local draw = {row = 8, col = 38}
+  local discard = {row = 8, col = (draw.col - card_col_step)}
+  local debate = {row = 8, col = draw.col}
+  local score = {row = 8, col = (draw.col + card_col_step)}
+  local hand = {row = 14, col = 28}
+  local advisor = {row = 20, col = 23}
+  local hand_offset
+  do
+    local case_179_ = (_3fhand_length or #app.game.hand)
+    if (case_179_ == 0) then
+      hand.col = draw.col
+      hand_offset = nil
+    elseif (case_179_ == 1) then
+      hand.col = draw.col
+      hand_offset = nil
+    elseif (nil ~= case_179_) then
+      local n = case_179_
+      hand.col = (draw.col - (2 * (n - 1)))
+      hand_offset = nil
+    else
+      hand_offset = nil
+    end
+  end
+  if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == "emissary")) then
+    local n = location[2]
+    return {row = (kingdom.row + 1), col = ((kingdom.col + (card_col_step * (n - 1))) - 2), z = (0 + 101)}
+  elseif ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and true) then
+    local n = location[2]
+    local _3fc = location[3]
+    local _181_
+    if (_3fc == 0) then
+      _181_ = 100
+    elseif (_3fc == "score") then
+      _181_ = 102
+    elseif (_3fc == 1) then
+      _181_ = 103
+    elseif (_3fc == "requirement") then
+      _181_ = 105
+    elseif (nil ~= _3fc) then
+      local c = _3fc
+      _181_ = (100 + c)
+    else
+      _181_ = nil
+    end
+    return {row = kingdom.row, col = (kingdom.col + (card_col_step * (n - 1))), z = _181_}
+  elseif ((_G.type(location) == "table") and (location[1] == "hand") and (nil ~= location[2])) then
+    local n = location[2]
+    return {row = hand.row, col = (hand.col + (4 * (n - 1))), z = (100 + n)}
+  elseif ((_G.type(location) == "table") and (location[1] == "debate") and (nil ~= location[2])) then
+    local c = location[2]
+    local _188_
+    if (c == 1) then
+      _188_ = (debate.col - 2)
+    elseif (c == 2) then
+      _188_ = (debate.col + 2)
+    else
+      local _ = c
+      _188_ = 0
+    end
+    return {row = debate.row, col = _188_, z = (200 + c)}
+  elseif ((_G.type(location) == "table") and (location[1] == "discard") and (nil ~= location[2])) then
+    local c = location[2]
+    return {row = discard.row, col = discard.col, z = (100 + c)}
+  elseif ((_G.type(location) == "table") and (location[1] == "draw") and (nil ~= location[2])) then
+    local c = location[2]
+    return {row = discard.row, col = discard.col, z = (132 + c)}
+  elseif ((_G.type(location) == "table") and (location[1] == "score") and (location[2] == "label")) then
+    return {row = (score.row + config.card.height + -1), col = (score.col + config.card.width + -4), z = 200}
+  elseif ((_G.type(location) == "table") and (location[1] == "score") and (nil ~= location[2])) then
+    local c = location[2]
+    return {row = score.row, col = score.col, z = (100 + c)}
+  elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "hearts") and (location[3] == "label")) then
+    return {row = (advisor.row - 0), col = (advisor.col + 1), z = 101}
+  elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "hearts") and (nil ~= location[3])) then
+    local n = location[3]
+    return {row = (advisor.row + ((n - 1) * 2)), col = advisor.col, z = n}
+  elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "clubs") and (location[3] == "label")) then
+    return {row = (advisor.row - 0), col = (advisor.col + (1 * card_col_step) + 1), z = 101}
+  elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "clubs") and (nil ~= location[3])) then
+    local n = location[3]
+    return {row = (advisor.row + ((n - 1) * 2)), col = (advisor.col + (1 * card_col_step)), z = n}
+  elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "spades") and (location[3] == "label")) then
+    return {row = (advisor.row - 0), col = (advisor.col + 1 + (2 * card_col_step)), z = 101}
+  elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "spades") and (nil ~= location[3])) then
+    local n = location[3]
+    return {row = (advisor.row + ((n - 1) * 2)), col = (advisor.col + (2 * card_col_step)), z = n}
+  elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "diamonds") and (location[3] == "label")) then
+    return {row = (advisor.row - 0), col = (advisor.col + 1 + (3 * card_col_step)), z = 101}
+  elseif ((_G.type(location) == "table") and (location[1] == "advisor") and (location[2] == "diamonds") and (nil ~= location[3])) then
+    local n = location[3]
+    return {row = (advisor.row + ((n - 1) * 2)), col = (advisor.col + (3 * card_col_step)), z = n}
+  else
+    local _ = location
+    return error(Error("Unable to convert location to position, unknown location #{location}", {location = location}))
+  end
+end
+M["build-card-animation-from-events"] = function(app, events, on_complete, _3fhand_length)
+  local _let_194_ = require("playtime.app.animation-manager")
+  local Animation0 = _let_194_.Animation
+  local Group = _let_194_.Group
+  local flip_duration = 1
+  local move_duration = 120
+  local delay_data = {i = 0}
+  local move_delay
+  local function _195_(dont_increment_3f)
+    if not dont_increment_3f then
+      delay_data.i = (delay_data.i + 1)
+    else
+    end
+    return ((delay_data.i - 1) * 50)
+  end
+  move_delay = _195_
+  local flip_delay
+  local function _197_(i)
+    return (move_delay(true) + (move_duration / 1))
+  end
+  flip_delay = _197_
+  local move_location_cache = {}
+  local find_card_by_location
+  local function _198_(location)
+    if ((_G.type(location) == "table") and (nil ~= location[1]) and (nil ~= location[2]) and (nil ~= location[3])) then
+      local f = location[1]
+      local c = location[2]
+      local n = location[3]
+      local _200_
+      do
+        local t_199_ = move_location_cache
+        if (nil ~= t_199_) then
+          t_199_ = t_199_[f]
+        else
+        end
+        if (nil ~= t_199_) then
+          t_199_ = t_199_[c]
+        else
+        end
+        if (nil ~= t_199_) then
+          t_199_ = t_199_[n]
+        else
+        end
+        _200_ = t_199_
+      end
+      return (_200_ or app.game[f][c][n])
+    elseif ((_G.type(location) == "table") and (nil ~= location[1]) and (nil ~= location[2]) and (location[3] == nil)) then
+      local f = location[1]
+      local n = location[2]
+      local _205_
+      do
+        local t_204_ = move_location_cache
+        if (nil ~= t_204_) then
+          t_204_ = t_204_[f]
+        else
+        end
+        if (nil ~= t_204_) then
+          t_204_ = t_204_[n]
+        else
+        end
+        _205_ = t_204_
+      end
+      return (_205_ or app.game[f][n])
+    else
+      return nil
+    end
+  end
+  find_card_by_location = _198_
+  local save_card_move_to_cache
+  local function _209_(card, location)
+    if ((_G.type(location) == "table") and (nil ~= location[1]) and (nil ~= location[2]) and (nil ~= location[3])) then
+      local f = location[1]
+      local c = location[2]
+      local n = location[3]
+      local function _210_(_241)
+        return (_241 or {})
+      end
+      table["update-in"](move_location_cache, {f}, _210_)
+      local function _211_(_241)
+        return (_241 or {})
+      end
+      table["update-in"](move_location_cache, {f, c}, _211_)
+      local function _212_()
+        return card
+      end
+      return table["update-in"](move_location_cache, {f, c, n}, _212_)
+    elseif ((_G.type(location) == "table") and (nil ~= location[1]) and (nil ~= location[2]) and (location[3] == nil)) then
+      local f = location[1]
+      local n = location[2]
+      local function _213_(_241)
+        return (_241 or {})
+      end
+      table["update-in"](move_location_cache, {f}, _213_)
+      local function _214_()
+        return card
+      end
+      return table["update-in"](move_location_cache, {f, n}, _214_)
+    else
+      return nil
+    end
+  end
+  save_card_move_to_cache = _209_
+  local _
+  local function process_events(events0, into, want_shuffle)
+    if ((_G.type(events0) == "table") and ((_G.type(events0[1]) == "table") and (events0[1][1] == "move") and ((_G.type(events0[1][2]) == "table") and (events0[1][2][1] == "discard")) and ((_G.type(events0[1][3]) == "table") and (events0[1][3][1] == "draw"))) and ((_G.type(events0[2]) == "table") and (events0[2][1] == "face-down") and ((_G.type(events0[2][2]) == "table") and (events0[2][2][1] == "draw")))) then
+      local move = events0[1]
+      local flip = events0[2]
+      local rest_events = {select(3, (table.unpack or _G.unpack)(events0))}
+      local _216_
+      do
+        local function _217_()
+          local tmp_9_ = clone(move)
+          table.insert(tmp_9_, "fast")
+          return tmp_9_
+        end
+        table.insert(into, _217_())
+        local function _218_()
+          local tmp_9_ = clone(flip)
+          table.insert(tmp_9_, "fast")
+          return tmp_9_
+        end
+        table.insert(into, _218_())
+        _216_ = into
+      end
+      return process_events(rest_events, _216_, true)
+    elseif ((_G.type(events0) == "table") and ((_G.type(events0[1]) == "table") and (events0[1][1] == "move") and ((_G.type(events0[1][2]) == "table") and (events0[1][2][1] == "score")) and ((_G.type(events0[1][3]) == "table") and (events0[1][3][1] == "draw"))) and ((_G.type(events0[2]) == "table") and (events0[2][1] == "face-down") and ((_G.type(events0[2][2]) == "table") and (events0[2][2][1] == "draw")))) then
+      local move = events0[1]
+      local flip = events0[2]
+      local rest_events = {select(3, (table.unpack or _G.unpack)(events0))}
+      local _219_
+      do
+        table.insert(into, move)
+        table.insert(into, flip)
+        _219_ = into
+      end
+      return process_events(rest_events, _219_, true)
+    elseif ((_G.type(events0) == "table") and (nil ~= events0[1])) then
+      local event = events0[1]
+      local rest_events = {select(2, (table.unpack or _G.unpack)(events0))}
+      if want_shuffle then
+        table.insert(into, {"shuffle"})
+      else
+      end
+      return process_events(rest_events, table.insert(into, event))
+    elseif ((_G.type(events0) == "table") and (events0[1] == nil)) then
+      return into
+    else
+      return nil
+    end
+  end
+  _ = process_events
+  local events0 = process_events(events, {})
+  local shuffle = {delay = 0}
+  local animations
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for i, event in ipairs(events0) do
+      local val_28_
+      do
+        local matched_3f_222_, location_223_
+        if ((_G.type(event) == "table") and (event[1] == "face-up") and (nil ~= event[2])) then
+          local location = event[2]
+          matched_3f_222_, location_223_ = true, location
+        elseif ((_G.type(event) == "table") and (event[1] == "face-down") and (nil ~= event[2])) then
+          local location = event[2]
+          matched_3f_222_, location_223_ = true, location
+        else
+          matched_3f_222_, location_223_ = nil
+        end
+        if matched_3f_222_ then
+          local location = location_223_
+          local card = find_card_by_location(location)
+          local component = app["find-card-component-by-card-id"](app, card.id)
+          local duration, delay
+          if ((_G.type(event) == "table") and true and true and (event[3] == "fast")) then
+            local _face_up_face_down = event[1]
+            local _location = event[2]
+            duration, delay = 1, 0
+          else
+            local _0 = event
+            duration, delay = flip_duration, flip_delay(i)
+          end
+          local function _226_(component0, value, percent)
+            if (1 <= percent) then
+              if ((_G.type(event) == "table") and (event[1] == "face-up") and true) then
+                local _0 = event[2]
+                return component0["flip-face-up"](component0)
+              elseif ((_G.type(event) == "table") and (event[1] == "face-down") and true) then
+                local _0 = event[2]
+                return component0["flip-face-down"](component0)
+              else
+                return nil
+              end
+            else
+              return nil
+            end
+          end
+          val_28_ = Animation0.new({component = component, apply = _226_, property = "visible-face", from = 0, to = 1, ease = "linear", duration = flip_duration, delay = flip_delay(i)})
+        elseif ((_G.type(event) == "table") and (event[1] == "move") and (nil ~= event[2]) and (nil ~= event[3])) then
+          local from = event[2]
+          local to = event[3]
+          local card = find_card_by_location(from)
+          local _0 = save_card_move_to_cache(card, to)
+          local component = app["find-card-component-by-card-id"](app, card.id)
+          local duration, delay
+          if ((_G.type(event) == "table") and (event[1] == "move") and true and true and (event[4] == "fast")) then
+            local _from = event[2]
+            local _to = event[3]
+            duration, delay = 1, 0
+          else
+            local _1 = event
+            duration, delay = move_duration, move_delay()
+          end
+          local _let_230_ = component.position
+          local default_z = _let_230_.z
+          shuffle.delay = (duration + delay)
+          local function _231_(component0, value, percent)
+            component0.position = {row = math.ceil(value.row), col = math.ceil(value.col), z = (200 + app["location->position"](app, to).z)}
+            return nil
+          end
+          val_28_ = Animation0.new({component = component, apply = _231_, property = "position", from = app["location->position"](app, from, _3fhand_length), to = app["location->position"](app, to, _3fhand_length), ease = "ease-out-quad", duration = duration, delay = delay})
+        elseif ((_G.type(event) == "table") and (event[1] == "shuffle")) then
+          local draw_cards
+          do
+            local tbl_26_0 = {}
+            local i_27_0 = 0
+            for i0 = 32, 1, -1 do
+              local val_28_0
+              do
+                local case_232_ = find_card_by_location({"draw", i0})
+                if (nil ~= case_232_) then
+                  local card = case_232_
+                  val_28_0 = {card = card, location = {"draw", i0}}
+                else
+                  val_28_0 = nil
+                end
+              end
+              if (nil ~= val_28_0) then
+                i_27_0 = (i_27_0 + 1)
+                tbl_26_0[i_27_0] = val_28_0
+              else
+              end
+            end
+            draw_cards = tbl_26_0
+          end
+          local animations0
+          do
+            local tbl_26_0 = {}
+            local i_27_0 = 0
+            for i0 = 1, 3 do
+              local val_28_0
+              do
+                local _let_235_ = draw_cards[i0]
+                local card = _let_235_.card
+                local location = _let_235_.location
+                local _let_236_ = app["location->position"](app, location)
+                local col = _let_236_.col
+                local component = app["find-card-component-by-card-id"](app, card.id)
+                local function _237_(component0, value, percent)
+                  component0.position.col = math.floor(value)
+                  return nil
+                end
+                val_28_0 = Animation0.new({component = component, apply = _237_, property = "col", from = col, to = (col + math.random(2, (2 * i0))), ease = "oscillate-3-dampend", duration = (200 + (i0 * 33)), delay = (shuffle.delay + 120)})
+              end
+              if (nil ~= val_28_0) then
+                i_27_0 = (i_27_0 + 1)
+                tbl_26_0[i_27_0] = val_28_0
+              else
+              end
+            end
+            animations0 = tbl_26_0
+          end
+          val_28_ = AnimationGroup.new({animations = animations0})
+        elseif ((_G.type(event) == "table") and (event[1] == "swap") and (nil ~= event[2]) and (nil ~= event[3])) then
+          local from = event[2]
+          local to = event[3]
+          local card_1 = find_card_by_location(from)
+          local card_2 = find_card_by_location(to)
+          local comp_1 = app["find-card-component-by-card-id"](app, card_1.id)
+          local comp_2 = app["find-card-component-by-card-id"](app, card_2.id)
+          local _0 = save_card_move_to_cache(card_1, to)
+          local _1 = save_card_move_to_cache(card_2, from)
+          local _let_239_ = comp_1.position
+          local default_z = _let_239_.z
+          local ani_1
+          local function _240_(component, value, percent)
+            component.position = {row = math.ceil(value.row), col = math.ceil(value.col), z = (200 + app["location->position"](app, to).z)}
+            return nil
+          end
+          ani_1 = Animation0.new({component = comp_1, apply = _240_, property = "position", from = app["location->position"](app, from, _3fhand_length), to = app["location->position"](app, to, _3fhand_length), ease = "ease-out-quad", duration = move_duration, delay = move_delay()})
+          local ani_2
+          local function _241_(component, value, percent)
+            component.position = {row = math.ceil(value.row), col = math.ceil(value.col), z = (200 + app["location->position"](app, to).z)}
+            return nil
+          end
+          ani_2 = Animation0.new({component = comp_2, apply = _241_, property = "position", from = app["location->position"](app, to, _3fhand_length), to = app["location->position"](app, from, _3fhand_length), ease = "ease-out-quad", duration = move_duration, delay = move_delay()})
+          val_28_ = Group.new({animations = {ani_1, ani_2}})
+        else
+          val_28_ = nil
+        end
+      end
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    animations = tbl_26_
+  end
+  return Group.new({animations = animations, ["on-complete"] = on_complete})
+end
+return M

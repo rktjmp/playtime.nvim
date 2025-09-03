@@ -1,234 +1,707 @@
-
- local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
-
- local Id = require("playtime.common.id")
- local Logger = require("playtime.logger")
- local Error = require("playtime.error")
- local Highlight = require("playtime.highlight")
- local Component = require("playtime.component")
- local api = vim["api"]
- local M = {}
-
- local function position__3ecomponent_tags(_2_, row, col) local buf = _2_["buf"] local ns = _2_["ns"] local win = _2_["win"] local extmark_tags = _2_["extmark-tags"] local view = _2_
- local all_extmarks = vim.api.nvim_buf_get_extmarks(buf, ns, {row, 0}, {row, col}, {details = true}) local between_extmarks
-
-
-
- do local between = {} for i = #all_extmarks, 1, -1 do
- local _let_3_ = all_extmarks[i] local id = _let_3_[1] local _row = _let_3_[2] local extmark_col_start = _let_3_[3] local details = _let_3_[4]
- local extmark_col_end = details["end_col"] local z = details["priority"]
- local is_between_3f = ((extmark_col_start <= col) and (col < extmark_col_end))
- local function _4_() if is_between_3f then return {id = id, z = z} else return nil end end between = table.insert(between, _4_()) end between_extmarks = between end local sorted_extmarks
- local function _7_(_5_, _6_) local a = _5_["z"] local b = _6_["z"] return (a > b) end sorted_extmarks = table.sort(between_extmarks, _7_)
- local tbl_21_ = {} local i_22_ = 0 for _, _8_ in ipairs(sorted_extmarks) do local id = _8_["id"]
- local val_23_ = extmark_tags[id] if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end return tbl_21_ end
-
- local function mouse_defaults()
- local bindings = {}
- for _, side in ipairs({"Left", "Right"}) do
- for _0, sub in ipairs({"Mouse", "Drag", "Release"}) do
- local function _10_() return nil end table.set(bindings, ("<" .. side .. sub .. ">"), _10_) end end
- for _, count in ipairs({"2-", "3-", "4-"}) do
- local function _11_() return nil end table.set(bindings, ("<" .. count .. "LeftMouse" .. ">"), _11_) end
- for _, count in ipairs({"2-", "3-", "4-"}) do
- local function _12_() return nil end table.set(bindings, ("<" .. count .. "RightMouse" .. ">"), _12_) end
- return bindings end
-
- local function bind_mouse(_13_, lhs, desc, callback) local win = _13_["win"] local buf = _13_["buf"] local view = _13_ _G.assert((nil ~= callback), "Missing argument callback on fnl/playtime/app/window.fnl:37") _G.assert((nil ~= desc), "Missing argument desc on fnl/playtime/app/window.fnl:37") _G.assert((nil ~= lhs), "Missing argument lhs on fnl/playtime/app/window.fnl:37") _G.assert((nil ~= view), "Missing argument view on fnl/playtime/app/window.fnl:37") _G.assert((nil ~= buf), "Missing argument buf on fnl/playtime/app/window.fnl:37") _G.assert((nil ~= win), "Missing argument win on fnl/playtime/app/window.fnl:37")
- local cb
- local function _14_() local _15_ = vim.fn.getmousepos() if ((_G.type(_15_) == "table") and (_15_.winid == win) and (nil ~= _15_.line) and (nil ~= _15_.column)) then local line = _15_.line local column = _15_.column
-
- local row = (line - 1)
- local col = (column - 1)
- local tags = position__3ecomponent_tags(view, (line - 1), (column - 1))
- return callback(lhs, tags, {row = row, col = col}) else local _ = _15_
-
- return vim.cmd.exec(string.format("\"normal! \\%s\"", lhs)) end end cb = vim.schedule_wrap(_14_)
- return api.nvim_buf_set_keymap(buf, "n", lhs, "", {callback = cb, desc = desc}) end
-
- local function bind_key(_17_, lhs, desc, callback) local buf = _17_["buf"]
- return api.nvim_buf_set_keymap(buf, "n", lhs, "", {callback = callback, desc = desc}) end
-
- M.open = function(filetype, dispatch, _18_) local width = _18_["width"] local height = _18_["height"] local _3fwindow_border = _18_["window-border"] local window_position = _18_["window-position"] local minimise_position = _18_["minimise-position"] _G.assert((nil ~= minimise_position), "Missing argument minimise-position on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= window_position), "Missing argument window-position on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= height), "Missing argument height on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= width), "Missing argument width on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= dispatch), "Missing argument dispatch on fnl/playtime/app/window.fnl:52") _G.assert((nil ~= filetype), "Missing argument filetype on fnl/playtime/app/window.fnl:52")
- local function mutate_configs_to_geometry_21(max_config, min_config) _G.assert((nil ~= min_config), "Missing argument min-config on fnl/playtime/app/window.fnl:53") _G.assert((nil ~= max_config), "Missing argument max-config on fnl/playtime/app/window.fnl:53")
- local max_pos local function _19_(...) local _20_ = ... if ((_G.type(_20_) == "table") and (nil ~= _20_.row) and (nil ~= _20_.col)) then local row = _20_.row local col = _20_.col
-
-
-
-
-
-
- return {row = row, col = col} else local _3fpos = _20_
-
- local function _28_(...) local data_5_auto = {["?pos"] = _3fpos} local resolve_6_auto local function _21_(name_7_auto) local _22_ = data_5_auto[name_7_auto] local and_23_ = (nil ~= _22_) if and_23_ then local t_8_auto = _22_ and_23_ = ("table" == type(t_8_auto)) end if and_23_ then local t_8_auto = _22_ local _25_ = getmetatable(t_8_auto) if ((_G.type(_25_) == "table") and (nil ~= _25_.__tostring)) then local f_9_auto = _25_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _25_ return vim.inspect(t_8_auto) end elseif (nil ~= _22_) then local v_11_auto = _22_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _21_ return string.gsub("Unsupported window position: #{?pos}", "#{(.-)}", resolve_6_auto) end return error(_28_(...)) end end local function _32_() if (window_position == "center") then return {row = 1, col = ((vim.o.columns / 2) - (width / 2))} elseif (window_position == "ne") then return {row = 1, col = (vim.o.columns - width)} elseif (window_position == "nw") then return {row = 1, col = 1} elseif ((_G.type(window_position) == "table") and (nil ~= window_position.row) and (nil ~= window_position.col)) then local row = window_position.row local col = window_position.col return {row = row, col = col} else local and_30_ = (nil ~= window_position) if and_30_ then local f = window_position and_30_ = type["function?"](f) end if and_30_ then local f = window_position return f() else return nil end end end max_pos = _19_(_32_()) local min_pos
- local function _33_(...) local _34_ = ... if ((_G.type(_34_) == "table") and (nil ~= _34_.row) and (nil ~= _34_.col)) then local row = _34_.row local col = _34_.col
-
-
-
-
-
-
-
-
-
- return {row = row, col = col} else local _3fpos = _34_
-
- local function _42_(...) local data_5_auto = {["?pos"] = _3fpos} local resolve_6_auto local function _35_(name_7_auto) local _36_ = data_5_auto[name_7_auto] local and_37_ = (nil ~= _36_) if and_37_ then local t_8_auto = _36_ and_37_ = ("table" == type(t_8_auto)) end if and_37_ then local t_8_auto = _36_ local _39_ = getmetatable(t_8_auto) if ((_G.type(_39_) == "table") and (nil ~= _39_.__tostring)) then local f_9_auto = _39_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _39_ return vim.inspect(t_8_auto) end elseif (nil ~= _36_) then local v_11_auto = _36_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _35_ return string.gsub("Unsupported minimise position: #{?pos}", "#{(.-)}", resolve_6_auto) end return error(_42_(...)) end end local function _46_() if (minimise_position == "ne") then return {row = 0, col = (vim.o.columns - 18)} elseif (minimise_position == "nw") then return {row = 0, col = 0} elseif (minimise_position == "sw") then return {row = (vim.o.lines - (2 + vim.o.cmdheight)), col = 0} elseif (minimise_position == "se") then return {row = (vim.o.lines - (2 + vim.o.cmdheight)), col = (vim.o.columns - 18)} elseif ((_G.type(minimise_position) == "table") and (nil ~= minimise_position.row) and (nil ~= minimise_position.col)) then local row = minimise_position.row local col = minimise_position.col return {row = row, col = col} else local and_44_ = (nil ~= minimise_position) if and_44_ then local f = minimise_position and_44_ = type["function?"](f) end if and_44_ then local f = minimise_position return f() else return nil end end end min_pos = _33_(_46_())
- max_config.height = math.min(height, (vim.o.lines - 4))
- max_config.row = max_pos.row
- max_config.col = max_pos.col
- min_config.row = min_pos.row
- min_config.col = min_pos.col return nil end
-
- local win_maxi_config
-
-
-
- local _48_ do local _47_ = (_3fwindow_border or vim.opt.winborder:get()) if ((_47_ == nil) or (_47_ == "")) then _48_ = "shadow" elseif (nil ~= _47_) then local border = _47_
-
- _48_ = border else _48_ = nil end end win_maxi_config = {relative = "editor", width = width, height = height, style = "minimal", border = _48_}
- local win_mini_config = {relative = "editor", width = 18, height = 1, style = "minimal", border = "none"}
-
-
-
-
- local _ = mutate_configs_to_geometry_21(win_maxi_config, win_mini_config)
- local buf = api.nvim_create_buf(false, true)
- local win = api.nvim_open_win(buf, true, win_maxi_config)
- local internal_name = string.format("%s-%s", filetype, Id.new())
- local ns = api.nvim_create_namespace((internal_name .. "-ns"))
- local augroup = api.nvim_create_augroup((internal_name .. "-augroup"), {clear = true})
- local user_guicursor_value = vim.o.guicursor
- local logo_component = Component["set-content"](Component["set-size"](Component["set-position"](Component.build(), {row = 0, col = 1, z = 500}), {width = string["col-width"]("\240\159\133\191 \240\159\133\187 \240\159\133\176 \240\159\134\136 \240\159\134\131i\240\159\133\184 \240\159\133\188 \240\159\133\180 "), height = 1}), {{{"\240\159\132\191 \240\159\132\187 \240\159\132\176 \240\159\133\136 \240\159\133\131 \240\159\132\184 \240\159\132\188 \240\159\132\180 ", "@playtime.ui.menu"}}})
-
-
-
- local view = {width = width, height = height, buf = buf, win = win, ns = ns, augroup = augroup, ["logo-component"] = logo_component}
-
-
-
-
-
- local function _52_() local tbl_21_ = {} local i_22_ = 0 for row = 1, (height * 2) do local val_23_ = string.rep(" ", width) if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end return tbl_21_ end api.nvim_buf_set_lines(buf, 0, -1, false, _52_())
- api.nvim_buf_set_option(buf, "modifiable", false)
- api.nvim_buf_set_option(buf, "filetype", ("playtime." .. filetype))
- api.nvim_win_set_option(win, "wrap", false)
- Highlight["define-highlights"]()
- vim.wo[win]["winhighlight"] = "NormalFloat:PlaytimeBackground" vim.o.guicursor = "a:PlaytimeHiddenCursor"
-
-
- local _55_ do local t_54_ = dispatch if (nil ~= t_54_) then t_54_ = t_54_.window else end if (nil ~= t_54_) then t_54_ = t_54_.via else end _55_ = t_54_ end assert(_55_, "Must provide dispatch.window.via function")
-
-
- local function _59_(_58_) local winid = _58_["match"]
- if (winid == tostring(win)) then
- dispatch.window.via("quit")
- api.nvim_del_augroup_by_id(augroup) return true else return nil end end api.nvim_create_autocmd("WinClosed", {group = augroup, callback = _59_})
-
-
-
- local function _61_()
- mutate_configs_to_geometry_21(win_maxi_config, win_mini_config)
- if view["minimised?"] then
- api.nvim_win_set_config(win, win_mini_config) else
- api.nvim_win_set_config(win, win_maxi_config) end return false end api.nvim_create_autocmd("VimResized", {group = augroup, callback = _61_})
-
-
-
- local function _63_()
- Highlight["define-highlights"]()
- vim.wo[win]["winhighlight"] = "NormalFloat:PlaytimeBackground" return false end api.nvim_create_autocmd("ColorScheme", {group = augroup, callback = _63_})
-
-
-
-
-
- local function _64_()
- vim.o.guicursor = user_guicursor_value view["minimised?"] = true
-
- api.nvim_win_set_cursor(win, {1, 0})
- api.nvim_win_set_config(win, win_mini_config) view:render({{logo_component}}) return false end api.nvim_create_autocmd("BufLeave", {group = augroup, buffer = buf, callback = _64_})
-
-
-
-
-
- local function _65_() vim.o.guicursor = "a:PlaytimeHiddenCursor" view["minimised?"] = false
-
-
- api.nvim_win_set_cursor(win, {1, 0})
- api.nvim_win_set_config(win, win_maxi_config)
-
- dispatch.window.via("noop") return false end api.nvim_create_autocmd("BufEnter", {group = augroup, buffer = buf, callback = _65_})
-
-
- do local _66_ = dispatch.mouse if ((_G.type(_66_) == "table") and (nil ~= _66_.via) and (nil ~= _66_.events)) then local via = _66_.via local events = _66_.events
-
- local bindings local function _67_() local tbl_16_ = {} for _0, event in ipairs(events) do
- local k_17_, v_18_ = event, via if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end return tbl_16_ end bindings = table.merge(mouse_defaults(), _67_())
- for key, cb in pairs(bindings) do
- local _69_ do local data_5_auto = {filetype = filetype} local resolve_6_auto local function _70_(name_7_auto) local _71_ = data_5_auto[name_7_auto] local and_72_ = (nil ~= _71_) if and_72_ then local t_8_auto = _71_ and_72_ = ("table" == type(t_8_auto)) end if and_72_ then local t_8_auto = _71_ local _74_ = getmetatable(t_8_auto) if ((_G.type(_74_) == "table") and (nil ~= _74_.__tostring)) then local f_9_auto = _74_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _74_ return vim.inspect(t_8_auto) end elseif (nil ~= _71_) then local v_11_auto = _71_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _70_ _69_ = string.gsub("playtime #{filetype} dispatch", "#{(.-)}", resolve_6_auto) end bind_mouse(view, key, _69_, cb) end else local _0 = _66_
- for key, cb in pairs(mouse_defaults) do
- local _77_ do local data_5_auto = {filetype = filetype} local resolve_6_auto local function _78_(name_7_auto) local _79_ = data_5_auto[name_7_auto] local and_80_ = (nil ~= _79_) if and_80_ then local t_8_auto = _79_ and_80_ = ("table" == type(t_8_auto)) end if and_80_ then local t_8_auto = _79_ local _82_ = getmetatable(t_8_auto) if ((_G.type(_82_) == "table") and (nil ~= _82_.__tostring)) then local f_9_auto = _82_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _82_ return vim.inspect(t_8_auto) end elseif (nil ~= _79_) then local v_11_auto = _79_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _78_ _77_ = string.gsub("playtime #{filetype} dispatch", "#{(.-)}", resolve_6_auto) end bind_mouse(view, key, _77_, cb) end end end
- return setmetatable(view, {__index = M}) end
-
- M.render = function(view, component_layers)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- local component_layers0 if view["minimised?"] then
- component_layers0 = {{view["logo-component"]}} else
- component_layers0 = component_layers end
- local frame_width = view["width"] local frame_height = view["height"] local ns = view["ns"] local buf = view["buf"] local win = view["win"]
- local nvim_buf_set_extmark = vim.api["nvim_buf_set_extmark"]
- local extmark_tags = {}
- local overflow_height = (frame_height * 2)
- local function draw(component)
- if component["visible?"] then
- do local row = component["row"] local col = component["col"] local width = component["width"] local height = component["height"] local _3ftag = component["tag"] local z = component["z"]
- for line = 1, height do
-
-
-
-
-
-
-
- if ((row + (line - 1)) <= (overflow_height - 1)) then
- local _let_87_ = component["content-at"](component, line) local extmark_id = _let_87_["extmark-id"] local content = _let_87_["content"]
- nvim_buf_set_extmark(buf, ns, (row + line + -1), col, {id = extmark_id, virt_text = content, virt_text_pos = "overlay", priority = z, end_col = math.clamp((col + width), 0, (frame_width - 1))})
-
-
-
-
-
-
-
- extmark_tags[extmark_id] = _3ftag else end end end
- for _, child in ipairs((component.children or {})) do
- draw(child) end return nil else return nil end end
-
- api.nvim_buf_clear_namespace(buf, ns, 0, -1)
- for _, layer in ipairs(component_layers0) do
- for _0, comp in ipairs(layer) do
- local and_90_ = ((_G.type(comp) == "table") and (nil ~= comp.row) and (nil ~= comp.col)) if and_90_ then local row = comp.row local col = comp.col local comp0 = comp and_90_ = (((0 <= col) and (col <= frame_width)) and ((0 <= row) and (row <= (overflow_height - 1)))) end if and_90_ then local row = comp.row local col = comp.col local comp0 = comp
-
-
- draw(comp0) else end end end
-
- view["extmark-tags"] = extmark_tags return nil end
-
- return M
+-- @generated by hotpot.nvim using fennel 1.6.1, edits to this file may be lost
+local _local_1_ = require("playtime.prelude")
+local _2ajit_2a = _local_1_["*jit*"]
+local clone = _local_1_.clone
+local copy = _local_1_.copy
+local eq_all_3f = _local_1_["eq-all?"]
+local eq_any_3f = _local_1_["eq-any?"]
+local math = _local_1_.math
+local string = _local_1_.string
+local table = _local_1_.table
+local type = _local_1_.type
+local Id = require("playtime.id")
+local Logger = require("playtime.logger")
+local Error = require("playtime.error")
+local Highlight = require("playtime.highlight")
+local api = vim.api
+local M = {}
+local m = {}
+m["generate-unpositioned-window-configs"] = function(_2_, border_style)
+  local width = _2_.width
+  local height = _2_.height
+  local border_style0
+  do
+    local case_3_ = (border_style or vim.o.winborder)
+    if ((case_3_ == nil) or (case_3_ == "")) then
+      border_style0 = "shadow"
+    elseif (nil ~= case_3_) then
+      local border = case_3_
+      border_style0 = border
+    else
+      border_style0 = nil
+    end
+  end
+  local max = {relative = "editor", width = width, height = height, row = 1, col = 1, style = "minimal", border = border_style0}
+  local min = {relative = "editor", width = 18, height = 1, row = 1, col = 1, style = "minimal", border = "none"}
+  return {max = max, min = min}
+end
+m["position->components"] = function(_5_, row, col)
+  local buf = _5_.buf
+  local ns = _5_.ns
+  local win = _5_.win
+  local extmark_tags = _5_["extmark-tags"]
+  local view = _5_
+  local all_extmarks = vim.api.nvim_buf_get_extmarks(buf, ns, {row, 0}, {row, col}, {details = true})
+  local between_extmarks
+  do
+    local between = {}
+    for i = #all_extmarks, 1, -1 do
+      local _let_6_ = all_extmarks[i]
+      local id = _let_6_[1]
+      local _row = _let_6_[2]
+      local extmark_col_start = _let_6_[3]
+      local details = _let_6_[4]
+      local extmark_col_end = details.end_col
+      local z = details.priority
+      local is_between_3f = ((extmark_col_start <= col) and (col < extmark_col_end))
+      local function _7_()
+        if is_between_3f then
+          return {id = id, z = z}
+        else
+          return nil
+        end
+      end
+      between = table.insert(between, _7_())
+    end
+    between_extmarks = between
+  end
+  local sorted_extmarks
+  local function _10_(_8_, _9_)
+    local a = _8_.z
+    local b = _9_.z
+    return (a > b)
+  end
+  sorted_extmarks = table.sort(between_extmarks, _10_)
+  local tbl_26_ = {}
+  local i_27_ = 0
+  for _, _11_ in ipairs(sorted_extmarks) do
+    local id = _11_.id
+    local val_28_ = extmark_tags[id]
+    if (nil ~= val_28_) then
+      i_27_ = (i_27_ + 1)
+      tbl_26_[i_27_] = val_28_
+    else
+    end
+  end
+  return tbl_26_
+end
+m["create-window-and-buffer"] = function(window_config, filetype)
+  local width = window_config.width
+  local height = window_config.height
+  local buf = api.nvim_create_buf(false, true)
+  local win = api.nvim_open_win(buf, true, window_config)
+  local function _13_()
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _row = 1, (height * 2) do
+      local val_28_ = string.rep(" ", width)
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    return tbl_26_
+  end
+  api.nvim_buf_set_lines(buf, 0, -1, false, _13_())
+  api.nvim_buf_set_option(buf, "modifiable", false)
+  api.nvim_buf_set_option(buf, "filetype", filetype)
+  api.nvim_win_set_option(win, "wrap", false)
+  return win, buf
+end
+m["make-raw-event-adapter-dispatch"] = function(dispatch)
+  local function raw_input(lhs, data)
+    local ns = "input"
+    local function _15_()
+      if (lhs == "<LeftMouse>") then
+        return {"click", "left", "press"}
+      elseif (lhs == "<LeftRelease>") then
+        return {"click", "left", "release"}
+      elseif (lhs == "<LeftDrag>") then
+        return {"drag", "left", "raw"}
+      elseif (lhs == "<RightMouse>") then
+        return {"click", "right", "press"}
+      elseif (lhs == "<RightRelease>") then
+        return {"click", "right", "release"}
+      elseif (lhs == "<RightDrag>") then
+        return {"drag", "right", "raw"}
+      elseif (nil ~= lhs) then
+        local unknown = lhs
+        return {"window", "input", unknown}
+      else
+        return nil
+      end
+    end
+    local _let_16_ = _15_()
+    local name = _let_16_[1]
+    local button = _let_16_[2]
+    local action = _let_16_[3]
+    local data0 = {action = action, button = button, row = data.row, col = data.col, target = data.components[1], targets = data.components}
+    return {ns = ns, name = name, data = data0}
+  end
+  local function _17_(ns, name, data)
+    local function _18_()
+      if (ns == "window") then
+        return {ns = ns, name = name, data = data}
+      elseif (ns == "input") then
+        return raw_input(name, data)
+      else
+        return nil
+      end
+    end
+    local _let_19_ = _18_()
+    local ns0 = _let_19_.ns
+    local name0 = _let_19_.name
+    local data0 = _let_19_.data
+    return dispatch(ns0, name0, data0)
+  end
+  return _17_
+end
+M.new = function(_20_)
+  local filetype = _20_.filetype
+  local size = _20_.size
+  local position = _20_.position
+  local _3fstyle = _20_.style
+  local dispatch_event = _20_["dispatch-event"]
+  if (nil == dispatch_event) then
+    _G.error("Missing argument dispatch-event on fnl/playtime/app/window.fnl:85", 2)
+  else
+  end
+  if (nil == position) then
+    _G.error("Missing argument position on fnl/playtime/app/window.fnl:85", 2)
+  else
+  end
+  if (nil == size) then
+    _G.error("Missing argument size on fnl/playtime/app/window.fnl:85", 2)
+  else
+  end
+  if (nil == filetype) then
+    _G.error("Missing argument filetype on fnl/playtime/app/window.fnl:85", 2)
+  else
+  end
+  local filetype0 = ("playtime-" .. filetype)
+  local id = Id.new()
+  local default_window_configs = m["generate-unpositioned-window-configs"](size, _3fstyle)
+  local ns = api.nvim_create_namespace(string.format("playtime-%s-%s-ns", filetype0, id))
+  local window_data = {id = id, filetype = filetype0, ns = ns, position = {["when-maximised"] = position["when-maximised"], ["when-minimised"] = position["when-minimised"]}, size = size, style = _3fstyle, config = default_window_configs, ["dispatch-event"] = m["make-raw-event-adapter-dispatch"](dispatch_event), ["minimised?"] = false, ["open?"] = false}
+  local instance = setmetatable(window_data, {__index = M})
+  return instance
+end
+M.open = function(self)
+  if (nil == self) then
+    _G.error("Missing argument self on fnl/playtime/app/window.fnl:100", 2)
+  else
+  end
+  assert(not self["open?"], Error("Window #{id} already open!", self))
+  local win, buf = m["create-window-and-buffer"](self.config.max, self.filetype)
+  table.merge(self, {["open?"] = true, win = win, buf = buf})
+  self["update-window-size"](self)
+  self["update-window-position"](self)
+  self["update-highlights"](self)
+  self["attach-autocmds"](self)
+  self["bind-mouse"](self, {"<LeftMouse>", "<LeftDrag>", "<LeftRelease>", "<RightMouse>", "<RightDrag>", "<RightRelease>"})
+  vim.o.guicursor = "a:PlaytimeHiddenCursor"
+  return self
+end
+local _2amouse_binding_names_2a
+do
+  local bindings = {"<MouseMove>"}
+  for _, side in ipairs({"Left", "Right"}) do
+    for _0, sub in ipairs({"Mouse", "Drag", "Release"}) do
+      for _1, count in ipairs({"", "2-", "3-", "4-"}) do
+        table.insert(bindings, ("<" .. count .. side .. sub .. ">"))
+      end
+    end
+  end
+  _2amouse_binding_names_2a = bindings
+end
+m["unbind-all-mouse"] = function(window)
+  if (nil == window) then
+    _G.error("Missing argument window on fnl/playtime/app/window.fnl:128", 2)
+  else
+  end
+  local bindings = api.nvim_buf_get_keymap(window.buf, "n")
+  local by_lhs
+  do
+    local tbl_21_ = {}
+    for _, _27_ in ipairs(bindings) do
+      local lhs = _27_.lhs
+      local binding = _27_
+      local k_22_, v_23_ = lhs, binding
+      if ((k_22_ ~= nil) and (v_23_ ~= nil)) then
+        tbl_21_[k_22_] = v_23_
+      else
+      end
+    end
+    by_lhs = tbl_21_
+  end
+  local bound
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _, binding_name in ipairs(_2amouse_binding_names_2a) do
+      local val_28_ = by_lhs[binding_name]
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    bound = tbl_26_
+  end
+  for _, _30_ in ipairs(bound) do
+    local mode = _30_.mode
+    local lhs = _30_.lhs
+    api.nvim_buf_del_keymap(window.buf, mode, lhs)
+  end
+  return nil
+end
+M["bind-mouse"] = function(window, buttons)
+  if (nil == buttons) then
+    _G.error("Missing argument buttons on fnl/playtime/app/window.fnl:140", 2)
+  else
+  end
+  if (nil == window) then
+    _G.error("Missing argument window on fnl/playtime/app/window.fnl:140", 2)
+  else
+  end
+  assert(window["open?"], "cannot bind mouse before opening window")
+  m["unbind-all-mouse"](window)
+  do
+    local win = window.win
+    local buf = window.buf
+    local dispatch_event = window["dispatch-event"]
+    local mouse_bindings
+    do
+      local tbl_21_ = {}
+      for _, b in pairs(_2amouse_binding_names_2a) do
+        local k_22_, v_23_
+        local function _33_()
+          return nil
+        end
+        k_22_, v_23_ = b, _33_
+        if ((k_22_ ~= nil) and (v_23_ ~= nil)) then
+          tbl_21_[k_22_] = v_23_
+        else
+        end
+      end
+      mouse_bindings = tbl_21_
+    end
+    local _
+    for _0, button in ipairs(buttons) do
+      local function _35_(...)
+        return dispatch_event(...)
+      end
+      mouse_bindings[button] = _35_
+    end
+    _ = nil
+    local bind_mouse_lhs
+    local function _36_(lhs, callback, desc)
+      local cb
+      local function _37_()
+        local case_38_ = vim.fn.getmousepos()
+        if ((_G.type(case_38_) == "table") and (case_38_.winid == win) and (nil ~= case_38_.line) and (nil ~= case_38_.column)) then
+          local line = case_38_.line
+          local column = case_38_.column
+          local row = (line - 1)
+          local col = (column - 1)
+          local components = m["position->components"](window, row, col)
+          local case_39_, case_40_ = row, col
+          if ((case_39_ == -1) and (case_40_ == -1)) then
+            return nil
+          else
+            local _0 = case_39_
+            return callback("input", lhs, {row = row, col = col, components = components})
+          end
+        else
+          local _0 = case_38_
+          return vim.cmd.exec(string.format("\"normal! \\%s\"", lhs))
+        end
+      end
+      cb = vim.schedule_wrap(_37_)
+      return api.nvim_buf_set_keymap(buf, "n", lhs, "", {callback = cb, desc = desc})
+    end
+    bind_mouse_lhs = _36_
+    for button, callback in pairs(mouse_bindings) do
+      bind_mouse_lhs(button, callback, string.format("%s-%s", window.filetype, button))
+    end
+  end
+  return window
+end
+M.minimise = function(window)
+  if (nil == window) then
+    _G.error("Missing argument window on fnl/playtime/app/window.fnl:189", 2)
+  else
+  end
+  window["minimised?"] = true
+  window["update-window-size"](window)
+  return window["update-window-position"](window)
+end
+M.maximise = function(window)
+  if (nil == window) then
+    _G.error("Missing argument window on fnl/playtime/app/window.fnl:194", 2)
+  else
+  end
+  window["minimised?"] = false
+  window["update-window-size"](window)
+  return window["update-window-position"](window)
+end
+M["update-highlights"] = function(window)
+  if (nil == window) then
+    _G.error("Missing argument window on fnl/playtime/app/window.fnl:199", 2)
+  else
+  end
+  Highlight["define-highlights"]()
+  vim.wo[window.win]["winhighlight"] = "NormalFloat:PlaytimeBackground"
+  return window
+end
+M["attach-autocmds"] = function(window)
+  if (nil == window) then
+    _G.error("Missing argument window on fnl/playtime/app/window.fnl:204", 2)
+  else
+  end
+  local filetype = window.filetype
+  local id = window.id
+  local win = window.win
+  local buf = window.buf
+  local dispatch_event = window["dispatch-event"]
+  local user_guicursor_value = vim.o.guicursor
+  local augroup = api.nvim_create_augroup(("playtime-" .. filetype .. "-" .. id .. "-augroup"), {clear = true})
+  local function _48_(_47_)
+    local winid = _47_.match
+    if (winid == tostring(win)) then
+      dispatch_event("window", "closed", {window = window})
+      api.nvim_del_augroup_by_id(augroup)
+      return true
+    else
+      return nil
+    end
+  end
+  api.nvim_create_autocmd("WinClosed", {group = augroup, callback = _48_})
+  local function _50_()
+    window["update-window-position"](window)
+    return false
+  end
+  api.nvim_create_autocmd("VimResized", {group = augroup, callback = _50_})
+  local function _51_()
+    window["update-highlights"](window)
+    return false
+  end
+  api.nvim_create_autocmd("ColorScheme", {group = augroup, callback = _51_})
+  local function _52_()
+    window["focused?"] = false
+    vim.o.guicursor = user_guicursor_value
+    dispatch_event("window", "unfocused", {window = window})
+    return false
+  end
+  api.nvim_create_autocmd("BufLeave", {group = augroup, buffer = buf, callback = _52_})
+  local function _53_()
+    window["focused?"] = true
+    vim.o.guicursor = "a:PlaytimeHiddenCursor"
+    dispatch_event("window", "focused", {window = window})
+    return false
+  end
+  return api.nvim_create_autocmd("BufEnter", {group = augroup, buffer = buf, callback = _53_})
+end
+M["update-window-position"] = function(window)
+  local min = window.config.min
+  local max = window.config.max
+  local function _55_()
+    local case_54_ = window["minimised?"]
+    if (case_54_ == true) then
+      local case_56_ = window.position["when-minimised"]
+      if (case_56_ == "ne") then
+        return {row = 0, col = (vim.o.columns - min.width)}
+      elseif (case_56_ == "nw") then
+        return {row = 0, col = 0}
+      elseif (case_56_ == "sw") then
+        return {row = (vim.o.lines - (2 + vim.o.cmdheight)), col = 0}
+      elseif (case_56_ == "se") then
+        return {row = (vim.o.lines - (2 + vim.o.cmdheight)), col = (vim.o.columns - min.width)}
+      elseif ((_G.type(case_56_) == "table") and (nil ~= case_56_.row) and (nil ~= case_56_.col)) then
+        local row = case_56_.row
+        local col = case_56_.col
+        return {row = row, col = col}
+      else
+        local and_57_ = (nil ~= case_56_)
+        if and_57_ then
+          local f = case_56_
+          and_57_ = type["function?"](f)
+        end
+        if and_57_ then
+          local f = case_56_
+          local case_59_ = f()
+          if ((_G.type(case_59_) == "table") and (nil ~= case_59_.row) and (nil ~= case_59_.col)) then
+            local row = case_59_.row
+            local col = case_59_.col
+            return {row = row, col = col}
+          else
+            local _ = case_59_
+            return error("minimise-position function returned invalid value, must be {:row r :col c}")
+          end
+        else
+          local _3fv = case_56_
+          local function _68_()
+            local data_5_auto = {["?v"] = _3fv}
+            local resolve_6_auto
+            local function _61_(name_7_auto)
+              local case_62_ = data_5_auto[name_7_auto]
+              local and_63_ = (nil ~= case_62_)
+              if and_63_ then
+                local t_8_auto = case_62_
+                and_63_ = ("table" == type(t_8_auto))
+              end
+              if and_63_ then
+                local t_8_auto = case_62_
+                local case_65_ = getmetatable(t_8_auto)
+                if ((_G.type(case_65_) == "table") and (nil ~= case_65_.__tostring)) then
+                  local f_9_auto = case_65_.__tostring
+                  return f_9_auto(t_8_auto)
+                else
+                  local __10_auto = case_65_
+                  return vim.inspect(t_8_auto)
+                end
+              elseif (nil ~= case_62_) then
+                local v_11_auto = case_62_
+                return tostring(v_11_auto)
+              else
+                return nil
+              end
+            end
+            resolve_6_auto = _61_
+            return string.gsub("invalid minimise-position: #{?v}", "#{(.-)}", resolve_6_auto)
+          end
+          return error(_68_())
+        end
+      end
+    elseif (case_54_ == false) then
+      local case_70_ = window.position["when-maximised"]
+      if (case_70_ == "center") then
+        return {row = 1, col = ((vim.o.columns / 2) - (max.width / 2))}
+      elseif (case_70_ == "ne") then
+        return {row = 1, col = (vim.o.columns - max.width)}
+      elseif (case_70_ == "nw") then
+        return {row = 1, col = 1}
+      elseif ((_G.type(case_70_) == "table") and (nil ~= case_70_.row) and (nil ~= case_70_.col)) then
+        local row = case_70_.row
+        local col = case_70_.col
+        return {row = row, col = col}
+      else
+        local and_71_ = (nil ~= case_70_)
+        if and_71_ then
+          local f = case_70_
+          and_71_ = type["function?"](f)
+        end
+        if and_71_ then
+          local f = case_70_
+          local case_73_ = f()
+          if ((_G.type(case_73_) == "table") and (nil ~= case_73_.row) and (nil ~= case_73_.col)) then
+            local row = case_73_.row
+            local col = case_73_.col
+            return {row = row, col = col}
+          else
+            local _ = case_73_
+            return error("maximise-position function returned invalid value, must be {:row r :col c}")
+          end
+        else
+          local _3fv = case_70_
+          local function _82_()
+            local data_5_auto = {["?v"] = _3fv}
+            local resolve_6_auto
+            local function _75_(name_7_auto)
+              local case_76_ = data_5_auto[name_7_auto]
+              local and_77_ = (nil ~= case_76_)
+              if and_77_ then
+                local t_8_auto = case_76_
+                and_77_ = ("table" == type(t_8_auto))
+              end
+              if and_77_ then
+                local t_8_auto = case_76_
+                local case_79_ = getmetatable(t_8_auto)
+                if ((_G.type(case_79_) == "table") and (nil ~= case_79_.__tostring)) then
+                  local f_9_auto = case_79_.__tostring
+                  return f_9_auto(t_8_auto)
+                else
+                  local __10_auto = case_79_
+                  return vim.inspect(t_8_auto)
+                end
+              elseif (nil ~= case_76_) then
+                local v_11_auto = case_76_
+                return tostring(v_11_auto)
+              else
+                return nil
+              end
+            end
+            resolve_6_auto = _75_
+            return string.gsub("invalid maximise-position: #{?v}", "#{(.-)}", resolve_6_auto)
+          end
+          return error(_82_())
+        end
+      end
+    else
+      return nil
+    end
+  end
+  local _let_85_ = _55_()
+  local row = _let_85_.row
+  local col = _let_85_.col
+  local config
+  do
+    local case_86_ = window["minimised?"]
+    if (case_86_ == true) then
+      config = table.merge(min, {row = row, col = col})
+    elseif (case_86_ == false) then
+      config = table.merge(max, {row = row, col = col})
+    else
+      config = nil
+    end
+  end
+  api.nvim_win_set_config(window.win, config)
+  return window
+end
+M["update-window-size"] = function(window)
+  local buf = window.buf
+  local win = window.win
+  local min = window.config.min
+  local max = window.config.max
+  local _let_88_, fill
+  do
+    local case_89_ = window["minimised?"]
+    if (case_89_ == true) then
+      _let_88_, fill = {width = window["logo-component"].size.width, height = 1}, {string.rep(" ", window["logo-component"].size.width)}
+    elseif (case_89_ == false) then
+      local function _90_()
+        local tbl_26_ = {}
+        local i_27_ = 0
+        for _row = 1, (max.height * 2) do
+          local val_28_ = string.rep(" ", max.width)
+          if (nil ~= val_28_) then
+            i_27_ = (i_27_ + 1)
+            tbl_26_[i_27_] = val_28_
+          else
+          end
+        end
+        return tbl_26_
+      end
+      _let_88_, fill = {width = max.width, height = math.min(max.height, (vim.o.lines - 4))}, _90_()
+    else
+      _let_88_, fill = nil
+    end
+  end
+  local _let_93_ = _let_88_
+  local width = _let_93_.width
+  local height = _let_93_.height
+  local config
+  do
+    local case_94_ = window["minimised?"]
+    if (case_94_ == true) then
+      config = table.merge(min, {width = width, height = height})
+    elseif (case_94_ == false) then
+      config = table.merge(max, {width = width, height = height})
+    else
+      config = nil
+    end
+  end
+  api.nvim_buf_set_option(buf, "modifiable", true)
+  api.nvim_buf_set_lines(buf, 0, -1, false, fill)
+  api.nvim_buf_set_option(buf, "modifiable", false)
+  api.nvim_win_set_config(win, config)
+  return window
+end
+M.render = function(view, component_trees)
+  local component_trees0
+  if view["minimised?"] then
+    component_trees0 = {view["logo-component"]}
+  else
+    component_trees0 = component_trees
+  end
+  local _let_97_ = view.size
+  local frame_width = _let_97_.width
+  local frame_height = _let_97_.height
+  local ns = view.ns
+  local buf = view.buf
+  local win = view.win
+  local nvim_buf_set_extmark = vim.api.nvim_buf_set_extmark
+  local extmark_tags = {}
+  local overflow_height = (frame_height * 2)
+  local function draw(component)
+    if component["visible?"] then
+      do
+        local case_98_ = component["content-to-renderable"](component)
+        if (nil ~= case_98_) then
+          local render_lines = case_98_
+          local _let_99_ = component.size
+          local width = _let_99_.width
+          local height = _let_99_.height
+          local _let_100_ = component.position
+          local col = _let_100_.col
+          local row = _let_100_.row
+          local z = _let_100_.z
+          for line = 1, height do
+            local render_row = (row + (line - 1))
+            if (((0 <= render_row) and (render_row <= (overflow_height - 1))) and ((0 <= col) and (col <= frame_width))) then
+              local case_101_ = render_lines[line]
+              if ((_G.type(case_101_) == "table") and (nil ~= case_101_["extmark-id"]) and (nil ~= case_101_.line)) then
+                local extmark_id = case_101_["extmark-id"]
+                local line0 = case_101_.line
+                local test = nvim_buf_set_extmark(buf, ns, render_row, col, {id = extmark_id, virt_text = line0, virt_text_pos = "overlay", priority = z, end_col = math.clamp((col + width), 0, (frame_width - 1))})
+                if (component.tag or next(component.on)) then
+                  extmark_tags[extmark_id] = component
+                else
+                end
+              elseif (case_101_ == nil) then
+                local function _110_()
+                  local data_5_auto = {height = component.size.height, id = component.id, line = line, tag = vim.inspect(component.tag)}
+                  local resolve_6_auto
+                  local function _103_(name_7_auto)
+                    local case_104_ = data_5_auto[name_7_auto]
+                    local and_105_ = (nil ~= case_104_)
+                    if and_105_ then
+                      local t_8_auto = case_104_
+                      and_105_ = ("table" == type(t_8_auto))
+                    end
+                    if and_105_ then
+                      local t_8_auto = case_104_
+                      local case_107_ = getmetatable(t_8_auto)
+                      if ((_G.type(case_107_) == "table") and (nil ~= case_107_.__tostring)) then
+                        local f_9_auto = case_107_.__tostring
+                        return f_9_auto(t_8_auto)
+                      else
+                        local __10_auto = case_107_
+                        return vim.inspect(t_8_auto)
+                      end
+                    elseif (nil ~= case_104_) then
+                      local v_11_auto = case_104_
+                      return tostring(v_11_auto)
+                    else
+                      return nil
+                    end
+                  end
+                  resolve_6_auto = _103_
+                  return string.gsub("Component #{id}/#{tag} of height #{height} did not have content for line #{line}", "#{(.-)}", resolve_6_auto)
+                end
+                error(_110_())
+              else
+              end
+            else
+            end
+          end
+        else
+        end
+      end
+      for _, child in ipairs((component.children or {})) do
+        draw(child)
+      end
+      return nil
+    else
+      return nil
+    end
+  end
+  api.nvim_buf_clear_namespace(buf, ns, 0, -1)
+  for _, root in ipairs(component_trees0) do
+    draw(root)
+  end
+  view["extmark-tags"] = extmark_tags
+  return nil
+end
+return M

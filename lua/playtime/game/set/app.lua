@@ -1,274 +1,832 @@
-
- local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
-
- local Logger = require("playtime.logger")
- local Error = require("playtime.error")
-
- local CommonComponents = require("playtime.common.components")
- local CardComponents = require("playtime.common.card.components")
- local SetComponents = require("playtime.game.set.components")
- local CardUtils = require("playtime.common.card.utils")
- local App = require("playtime.app")
- local Window = require("playtime.app.window")
-
- local M = setmetatable({}, {__index = App})
- local Logic = require("playtime.game.set.logic")
-
-
-
-
-
- local RegularAppState = {}
-
- RegularAppState.Default = App.State.build("Default", {delegate = {app = App.State.DefaultAppState}})
- RegularAppState.SubmitSet = App.State.build("SubmitSet", {delegate = {app = RegularAppState.Default}})
- RegularAppState.GameEnded = App.State.build("GameEnded", {delegate = {app = RegularAppState.Default}})
- RegularAppState.Animating = clone(App.State.DefaultAnimatingState)
-
- RegularAppState.Default.activated = function(app, _3fcontext)
- if ((_G.type(_3fcontext) == "table") and (_3fcontext.selected == nil)) then
- app.state.context.selected = {} return nil else return nil end end
-
- RegularAppState.Default.OnEvent.app["new-game"] = function(app) app["setup-new-game"](app, app["game-config"], nil)
-
- local function _3_() return app["queue-event"](app, "app", "deal") end return vim.defer_fn(_3_, 300) end
-
- RegularAppState.Default.OnEvent.app["restart-game"] = function(app) app["setup-new-game"](app, app["game-config"], app.seed)
-
- local function _4_() return app["queue-event"](app, "app", "deal") end return vim.defer_fn(_4_, 300) end
-
- RegularAppState.Default.OnEvent.app["hint-random-set"] = function(app)
- local _5_ = Logic.Query["find-sets"](app.game) if ((_G.type(_5_) == "table") and (_5_[1] == nil)) then return app:notify("No sets to hint!") elseif (nil ~= _5_) then local sets = _5_
-
- local _let_6_ = table.shuffle(sets) local a_set = _let_6_[1]
- local logic_hint = Logic.Query["hint-for-set"](app.game, a_set)
- local function _7_() local h = {same = {}, diff = {}} for k, v in pairs(logic_hint) do
-
- h = table.set(h, v, table.insert(h[v], k)) end return h end local _let_8_ = _7_() local same = _let_8_["same"] local diff = _let_8_["diff"] local single_hint
- do local _9_, _10_ = same, diff if (((_G.type(_9_) == "table") and (_9_[1] == nil)) and true) then local _ = _10_ single_hint = "everything different" elseif (true and ((_G.type(_10_) == "table") and (_10_[1] == nil))) then local _ = _9_ single_hint = "everything identical" elseif ((nil ~= _9_) and (nil ~= _10_)) then local sames = _9_ local diffs = _10_
-
-
- single_hint = string.fmt("identical %s and different %s", table.concat(sames, ", "), table.concat(diffs, ", ")) else single_hint = nil end end
-
-
- local function _13_() local _12_ = #sets if (_12_ == 1) then
- return {"is", "it", 1, "set"} elseif (nil ~= _12_) then local n = _12_
- return {"are", "One", n, "sets"} else return nil end end local _let_15_ = _13_() local verb_1 = _let_15_[1] local verb_2 = _let_15_[2] local count = _let_15_[3] local noun = _let_15_[4] local msg
- do local data_5_auto = {count = count, noun = noun, ["single-hint"] = single_hint, ["verb-1"] = verb_1, ["verb-2"] = verb_2} local resolve_6_auto local function _16_(name_7_auto) local _17_ = data_5_auto[name_7_auto] local and_18_ = (nil ~= _17_) if and_18_ then local t_8_auto = _17_ and_18_ = ("table" == type(t_8_auto)) end if and_18_ then local t_8_auto = _17_ local _20_ = getmetatable(t_8_auto) if ((_G.type(_20_) == "table") and (nil ~= _20_.__tostring)) then local f_9_auto = _20_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _20_ return vim.inspect(t_8_auto) end elseif (nil ~= _17_) then local v_11_auto = _17_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _16_ msg = string.gsub("There #{verb-1} #{count} possible #{noun}. #{verb-2} has #{single-hint}.", "#{(.-)}", resolve_6_auto) end return app:notify(msg) else return nil end end
-
-
- RegularAppState.Default.OnEvent.app["deal-more"] = function(app)
- local function _24_(...) local _25_, _26_ = ... if ((nil ~= _25_) and (nil ~= _26_)) then local next_game = _25_ local moves = _26_
-
- local after local function _27_() app["update-game"](app, next_game, {"deal-more"})
-
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, RegularAppState.GameEnded) else app["switch-state"](app, RegularAppState.Default) app["queue-event"](app, "app", "noop")
-
-
-
-
- if table["empty?"](Logic.Query["find-sets"](app.game)) then return app["queue-event"](app, "app", "deal-more") else return nil end end end after = _27_ local timeline = app["build-event-animation"](app, moves, after, {["stagger-ms"] = 50, ["duration-ms"] = 120}) return app["switch-state"](app, RegularAppState.Animating, timeline) elseif ((_25_ == nil) and (nil ~= _26_)) then local e = _26_ return app:notify(e) else return nil end end return _24_(Logic.Action["deal-more"](app.game)) end
-
-
-
-
-
-
- RegularAppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _31_, _pos) local location = _31_[1]
- if ((_G.type(location) == "table") and (location[1] == "menu") and true and (location[3] == nil)) then local _idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) elseif ((_G.type(location) == "table") and (location[1] == "draw") and true) then local _ = location[2] return app["queue-event"](app, "app", "deal-more") elseif ((_G.type(location) == "table") and (location[1] == "deal") and (nil ~= location[2])) then local n = location[2]
-
-
-
- local selected = app.state.context["selected"] local _3findex
- do local found = nil for i, deal_n in ipairs(selected) do if found then break end
- if (n == deal_n) then found = i else found = nil end end _3findex = found end
- if (_3findex == nil) then
- table.insert(selected, n) elseif (nil ~= _3findex) then local i = _3findex
- table.remove(selected, i) else end
- if (3 == #selected) then return app["switch-state"](app, RegularAppState.SubmitSet, {selected = selected}) else return nil end else return nil end end
-
-
- RegularAppState.Default.OnEvent.input["<RightMouse>"] = function(app, _location, _pos)
- app.state.context.selected = {} return nil end
-
- RegularAppState.Default.OnEvent.app.deal = function(app)
- local next_game, moves = Logic.Action.deal(app.game) local after
- local function _36_() app["switch-state"](app, RegularAppState.Default, {selected = {}}) app["update-game"](app, next_game, {"deal"}) app["queue-event"](app, "app", "noop")
-
-
-
-
-
-
-
-
- if table["empty?"](Logic.Query["find-sets"](app.game)) then return app["queue-event"](app, "app", "deal-more") else return nil end end after = _36_ local timeline = app["build-event-animation"](app, moves, after, {["stagger-ms"] = 50, ["duration-ms"] = 120}) return app["switch-state"](app, RegularAppState.Animating, timeline) end
-
-
-
-
- RegularAppState.Default.tick = function(app)
- local selected = app.state.context["selected"] app.components["set-count"]:update((#app.game.discard / 3)) app.components["draw-count"]:update(#app.game.draw)
-
-
- for location, card in Logic["iter-cards"](app.game) do
- local comp = app["card-id->components"][card.id] local selected_3f
- if ((_G.type(location) == "table") and (location[1] == "deal") and (nil ~= location[2])) then local n = location[2] local found = false
- for i, deal_n in ipairs(selected) do if found then break end
- found = (n == deal_n) end selected_3f = found else local _ = location selected_3f = false end comp:update(location, card, selected_3f) end return nil end
-
-
-
- RegularAppState.SubmitSet.activated = function(app, _context)
-
- local function _39_() return app["queue-event"](app, "app", "submit") end return vim.defer_fn(_39_, 180) end
-
- RegularAppState.SubmitSet.tick = function(...)
-
- return RegularAppState.Default.tick(...) end
-
- RegularAppState.SubmitSet.OnEvent.app.submit = function(app)
- local selected = app.state.context["selected"]
- local function _40_(...) local _41_, _42_ = ... if ((nil ~= _41_) and (nil ~= _42_)) then local next_game = _41_ local moves = _42_
-
- local after local function _43_() app["update-game"](app, next_game, {"submit-set", selected})
-
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, RegularAppState.GameEnded) else app["switch-state"](app, RegularAppState.Default)
-
-
-
- if table["empty?"](Logic.Query["find-sets"](app.game)) then return app["queue-event"](app, "app", "deal-more") else return nil end end end after = _43_ local timeline = app["build-event-animation"](app, moves, after, {["stagger-ms"] = 50, ["duration-ms"] = 120}) return app["switch-state"](app, RegularAppState.Animating, timeline) elseif ((_41_ == nil) and (nil ~= _42_)) then local e = _42_ app:notify(e) return app["switch-state"](app, RegularAppState.Default, {selected = {}}) else return nil end end return _40_(Logic.Action["submit-set"](app.game, selected)) end
-
-
-
-
-
-
-
-
- RegularAppState.GameEnded.activated = function(app)
- app["ended-at"] = os.time()
- local _let_47_ = Logic.Query["game-result"](app.game) local sets = _let_47_["sets"] local remaining = _let_47_["remaining"]
- local other = {string.fmt("Sets found: %d", sets), string.fmt("Remaining cards: %d", remaining), string.fmt("Time: %ds", (app["ended-at"] - app["started-at"]))} return app.components["game-report"]:update("won", other) end
-
-
-
-
- RegularAppState.GameEnded.OnEvent.input["<LeftMouse>"] = function(app, _48_, pos) local location = _48_[1]
- if ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
-
-
-
- M["build-event-animation"] = function(app, moves, after, _3fopts) _G.assert((nil ~= after), "Missing argument after on fnl/playtime/game/set/app.fnl:162") _G.assert((nil ~= moves), "Missing argument moves on fnl/playtime/game/set/app.fnl:162") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:162")
- return CardUtils["build-event-animation"](app, moves, after, _3fopts) end
-
- M["location->position"] = function(app, location)
- local card_width = app["card-style"]["width"]
- local deal_start_col = (4 + card_width) local deal_start_row = 2
-
- if ((_G.type(location) == "table") and (location[1] == "draw") and (nil ~= location[2])) then local n = location[2]
- return {row = deal_start_row, col = (deal_start_col - (card_width + 2)), z = n} elseif ((_G.type(location) == "table") and (location[1] == "discard") and (nil ~= location[2])) then local n = location[2]
-
-
- return {row = deal_start_row, col = (((card_width + 1) * 5) + 4), z = n} elseif ((_G.type(location) == "table") and (location[1] == "deal") and (nil ~= location[2])) then local n = location[2]
-
-
- local row = (1 + math.modf(((n - 1) / 4)))
- local col = (1 + ((n - 1) % 4))
- return {row = (2 + ((row - 1) * 5)), col = (deal_start_col + ((col - 1) * (card_width + 1))), z = 1} else local _ = location
-
-
- local function _57_() local data_5_auto = {location = location} local resolve_6_auto local function _50_(name_7_auto) local _51_ = data_5_auto[name_7_auto] local and_52_ = (nil ~= _51_) if and_52_ then local t_8_auto = _51_ and_52_ = ("table" == type(t_8_auto)) end if and_52_ then local t_8_auto = _51_ local _54_ = getmetatable(t_8_auto) if ((_G.type(_54_) == "table") and (nil ~= _54_.__tostring)) then local f_9_auto = _54_.__tostring return f_9_auto(t_8_auto) else local __10_auto = _54_ return vim.inspect(t_8_auto) end elseif (nil ~= _51_) then local v_11_auto = _51_ return tostring(v_11_auto) else return nil end end resolve_6_auto = _50_ return string.gsub("Unable to convert location to position, unknown location #{location}", "#{(.-)}", resolve_6_auto) end return error(Error(_57_())) end end
-
- M.start = function(app_config, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/set/app.fnl:183") _G.assert((nil ~= app_config), "Missing argument app-config on fnl/playtime/game/set/app.fnl:183")
- local app = setmetatable(App.build("SET", "set", app_config, game_config), {__index = M})
-
- local game_set_glyph_width = app_config["__beta-game-set-font-glyph-width"] local card_style
-
-
- local _59_ if ("wide" == game_set_glyph_width) then _59_ = 10 else _59_ = 9 end card_style = {height = 5, ["glyph-width"] = game_set_glyph_width, width = _59_} local view
-
-
- local _61_ if (game_set_glyph_width == "wide") then _61_ = 71 else _61_ = 65 end view = Window.open("set", App["build-default-window-dispatch-options"](app), {width = _61_, height = 25, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
-
-
-
-
- local _ = table.merge(app["z-layers"], {cards = 25, report = 120, animation = 200})
- app.view = view
- app["card-style"] = card_style app["setup-new-game"](app, app["game-config"], _3fseed)
-
- local function _63_() return app["queue-event"](app, "app", "deal") end vim.defer_fn(_63_, 300) return app:render() end
-
-
- M["setup-new-game"] = function(app, game_config, _3fseed) _G.assert((nil ~= game_config), "Missing argument game-config on fnl/playtime/game/set/app.fnl:204") _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:204") app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, RegularAppState.Default, {selected = {}})
-
-
-
- return app end
-
- M["build-components"] = function(app) _G.assert((nil ~= app), "Missing argument app on fnl/playtime/game/set/app.fnl:210")
- local card_style = app["card-style"] local card_card_components
- do local tbl_16_ = {} for location, card in Logic["iter-cards"](app.game) do local k_17_, v_18_ = nil, nil
- do local comp
- local function _64_(_241) return app["location->position"](app, _241) end comp = SetComponents.card(_64_, location, card, card_style)
-
-
-
- k_17_, v_18_ = card.id, comp end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end card_card_components = tbl_16_ end
- local game_report = CommonComponents["game-report"](app.view.width, app.view.height, app["z-index-for-layer"](app, "report"), {{"won", "You did it!"}}) local slots
-
-
-
- local function _66_(_241) return app["location->position"](app, _241) end
-
-
- local function _67_(_241) return app["location->position"](app, _241) end slots = {SetComponents.slot(_66_, {"draw", 0}, card_style), SetComponents.slot(_67_, {"discard", 0}, card_style)}
-
-
- local draw_count = CardComponents.count(app["location->position"](app, {"draw", 100}), card_style):update(81)
-
- local set_count = CardComponents.count(app["location->position"](app, {"discard", 100}), card_style)
- local menubar = CommonComponents.menubar({{"SET", {"file"}, {{"", nil}, {"New Game", {"new-game"}}, {"Restart Game", {"restart-game"}}, {"", nil}, {"Undo", {"undo"}}, {"", nil}, {"Hint", {"hint-random-set"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}, {string.format("Seed: %s", app.seed), nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- app["card-id->components"] = card_card_components
- return table.merge(app.components, {menubar = menubar, slots = slots, ["draw-count"] = draw_count, ["set-count"] = set_count, ["game-report"] = game_report, cards = table.values(card_card_components)}) end
-
-
-
-
-
-
- M.render = function(app) app.view:render({{app.components.menubar}, app.components.slots, {app.components["draw-count"], app.components["set-count"]}, app.components.cards, {app.components["game-report"]}})
-
-
-
-
-
- return app end
-
- M.tick = function(app) app["process-next-event"](app)
-
- do local _68_ = app.state.module.tick if (nil ~= _68_) then local f = _68_
- f(app) else local _ = _68_
- for location, card in Logic["iter-cards"](app.game) do
- local comp = app["card-id->components"][card.id] comp:update(location, card) end end end return app["request-render"](app) end
-
-
-
- return M
+-- @generated by hotpot.nvim using fennel 1.6.1, edits to this file may be lost
+local _local_1_ = require("playtime.prelude")
+local _2ajit_2a = _local_1_["*jit*"]
+local clone = _local_1_.clone
+local copy = _local_1_.copy
+local eq_all_3f = _local_1_["eq-all?"]
+local eq_any_3f = _local_1_["eq-any?"]
+local math = _local_1_.math
+local string = _local_1_.string
+local table = _local_1_.table
+local type = _local_1_.type
+local Logger = require("playtime.logger")
+local Error = require("playtime.error")
+local App = require("playtime.app")
+local Component = require("playtime.component")
+local GameReport = require("playtime.component.game-report")
+local _local_2_ = require("playtime.app.state-machine")
+local State = _local_2_.State
+local _local_3_ = require("playtime.app.animation-manager")
+local Animation = _local_3_.Animation
+local AnimationGroup = _local_3_.Group
+local Components = require("playtime.game.set.components")
+local Logic = require("playtime.game.set.logic")
+local M = App["scaffold-module"]({})
+local Playing = State.new({id = "playing"})
+local GameEnded = State.new({id = "game-ended"})
+Playing.on.enter = function(state, cofx, event, fx)
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/set/app.fnl:21", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/set/app.fnl:21", 2)
+  else
+  end
+  if (nil == cofx) then
+    _G.error("Missing argument cofx on fnl/playtime/game/set/app.fnl:21", 2)
+  else
+  end
+  if (nil == state) then
+    _G.error("Missing argument state on fnl/playtime/game/set/app.fnl:21", 2)
+  else
+  end
+  state.selection = {}
+  return nil
+end
+local function do_deal(action, state, _8_, event, fx)
+  local app = _8_.app
+  local case_9_, case_10_ = Logic.Action[action](app.game)
+  if ((nil ~= case_9_) and (nil ~= case_10_)) then
+    local next_game = case_9_
+    local events = case_10_
+    local on_complete
+    local function _11_()
+      app["synchronise-components-to-game-state"](app)
+      fx["interaction-lock"].unlock()
+      fx.engine.tick()
+      return fx.engine.render()
+    end
+    on_complete = _11_
+    local deal_animation = app["build-card-animation-from-events"](app, events, on_complete)
+    local duration
+    do
+      local sum = 0
+      for _, animation in ipairs(deal_animation.animations) do
+        sum = (sum + (animation.delay or 0) + (animation.duration or 0))
+      end
+      duration = sum
+    end
+    local count_anmiation
+    local function _12_(comp, value, t)
+      local _13_
+      do
+        local tbl_26_ = {}
+        local i_27_ = 0
+        for _ = 1, value do
+          local val_28_ = true
+          if (nil ~= val_28_) then
+            i_27_ = (i_27_ + 1)
+            tbl_26_[i_27_] = val_28_
+          else
+          end
+        end
+        _13_ = tbl_26_
+      end
+      return comp["update-count"](comp, {draw = _13_})
+    end
+    count_anmiation = Animation.new({ease = "linear", duration = duration, component = app.components["draw-count"], from = #app.game.draw, to = #next_game.draw, property = "text", apply = _12_})
+    app.game = next_game
+    fx["interaction-lock"]["general-lockout"]()
+    fx.animation.play(deal_animation)
+    return fx.animation.play(count_anmiation)
+  elseif ((case_9_ == nil) and (nil ~= case_10_)) then
+    local err = case_10_
+    return app:notify(err)
+  else
+    return nil
+  end
+end
+Playing.on.app.deal = function(state, cofx, event, fx)
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/set/app.fnl:51", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/set/app.fnl:51", 2)
+  else
+  end
+  if (nil == cofx) then
+    _G.error("Missing argument cofx on fnl/playtime/game/set/app.fnl:51", 2)
+  else
+  end
+  if (nil == state) then
+    _G.error("Missing argument state on fnl/playtime/game/set/app.fnl:51", 2)
+  else
+  end
+  return do_deal("deal", state, cofx, event, fx)
+end
+Playing.on.app["deal-more"] = function(state, cofx, event, fx)
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/set/app.fnl:54", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/set/app.fnl:54", 2)
+  else
+  end
+  if (nil == cofx) then
+    _G.error("Missing argument cofx on fnl/playtime/game/set/app.fnl:54", 2)
+  else
+  end
+  if (nil == state) then
+    _G.error("Missing argument state on fnl/playtime/game/set/app.fnl:54", 2)
+  else
+  end
+  return do_deal("deal-more", state, cofx, event, fx)
+end
+Playing.on.app["auto-select"] = function(state, _24_, event, fx)
+  local app = _24_.app
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/set/app.fnl:57", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/set/app.fnl:57", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/set/app.fnl:57", 2)
+  else
+  end
+  if (nil == state) then
+    _G.error("Missing argument state on fnl/playtime/game/set/app.fnl:57", 2)
+  else
+  end
+  if ((_G.type(event) == "table") and (event.action == "press")) then
+    local _let_29_ = Logic.Query["find-sets"](app.game)
+    local _let_30_ = _let_29_[1]
+    local a = _let_30_[1]
+    local b = _let_30_[2]
+    local c = _let_30_[3]
+    local _ = _let_29_[2]
+    local events
+    do
+      local tbl_26_ = {}
+      local i_27_ = 0
+      for _0, component in ipairs(app.components.cards.children) do
+        local val_28_
+        do
+          local case_31_ = component.location
+          if ((_G.type(case_31_) == "table") and (case_31_[1] == "deal") and (nil ~= case_31_[2])) then
+            local x = case_31_[2]
+            if ((a == x) or (b == x) or (c == x)) then
+              val_28_ = component
+            else
+              val_28_ = nil
+            end
+          else
+            val_28_ = nil
+          end
+        end
+        if (nil ~= val_28_) then
+          i_27_ = (i_27_ + 1)
+          tbl_26_[i_27_] = val_28_
+        else
+        end
+      end
+      events = tbl_26_
+    end
+    for i, component in ipairs(events) do
+      fx.event["dispatch-after"]((1 * 120), "app", "click-card", {component = component, card = component.card, location = component.location})
+    end
+    return nil
+  else
+    return nil
+  end
+end
+Playing.on.app["maybe-deal-more"] = function(state, _36_, event, fx)
+  local app = _36_.app
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/set/app.fnl:70", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/set/app.fnl:70", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/set/app.fnl:70", 2)
+  else
+  end
+  if (nil == state) then
+    _G.error("Missing argument state on fnl/playtime/game/set/app.fnl:70", 2)
+  else
+  end
+  local found_sets = Logic.Query["find-sets"](app.game)
+  local can_deal_3f = Logic.Query["can-deal-more?"](app.game)
+  local case_41_, case_42_ = can_deal_3f, found_sets
+  if ((case_41_ == true) and ((_G.type(case_42_) == "table") and (case_42_[1] == nil))) then
+    return fx.event.dispatch("app", "deal-more")
+  elseif ((case_41_ == false) and ((_G.type(case_42_) == "table") and (case_42_[1] == nil))) then
+    return fx.state.transition(GameEnded)
+  else
+    local _ = case_41_
+    fx["interaction-lock"].unlock()
+    fx.engine.tick()
+    return fx.engine.render()
+  end
+end
+Playing.on.app["click-card"] = function(state, _44_, _45_, fx)
+  local app = _44_.app
+  local location = _45_.location
+  local card = _45_.card
+  local component = _45_.component
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/set/app.fnl:81", 2)
+  else
+  end
+  if (nil == component) then
+    _G.error("Missing argument component on fnl/playtime/game/set/app.fnl:81", 2)
+  else
+  end
+  if (nil == card) then
+    _G.error("Missing argument card on fnl/playtime/game/set/app.fnl:81", 2)
+  else
+  end
+  if (nil == location) then
+    _G.error("Missing argument location on fnl/playtime/game/set/app.fnl:81", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/set/app.fnl:81", 2)
+  else
+  end
+  if (nil == state) then
+    _G.error("Missing argument state on fnl/playtime/game/set/app.fnl:81", 2)
+  else
+  end
+  do
+    local _ = location[1]
+    local deal_index = location[2]
+    local case_52_ = state.selection[deal_index]
+    if (case_52_ == nil) then
+      state.selection[deal_index] = {component = component, ["deal-index"] = deal_index}
+      component:select()
+    elseif (nil ~= case_52_) then
+      local existing = case_52_
+      state.selection[deal_index] = nil
+      component:deselect()
+    else
+    end
+  end
+  do
+    local selected_indexes = table.keys(state.selection)
+    if (3 == #selected_indexes) then
+      local case_54_, case_55_ = Logic.Action["submit-set"](app.game, selected_indexes)
+      if ((nil ~= case_54_) and (nil ~= case_55_)) then
+        local next_game = case_54_
+        local events = case_55_
+        local on_complete
+        local function _56_()
+          for _, _57_ in pairs(state.selection) do
+            local component0 = _57_.component
+            component0:deselect()
+          end
+          state.selection = {}
+          app["synchronise-components-to-game-state"](app)
+          return fx.event.dispatch("app", "maybe-deal-more")
+        end
+        on_complete = _56_
+        local animation = app["build-card-animation-from-events"](app, events, on_complete)
+        app.game = next_game
+        fx["interaction-lock"]["general-lockout"]()
+        fx.animation.play(animation)
+      elseif ((case_54_ == nil) and (nil ~= case_55_)) then
+        local err = case_55_
+        local _let_58_ = require("playtime.app.animation-manager")
+        local Animation0 = _let_58_.Animation
+        local Group = _let_58_.Group
+        local animations
+        do
+          local tbl_26_ = {}
+          local i_27_ = 0
+          for _, _59_ in pairs(state.selection) do
+            local component0 = _59_.component
+            local val_28_
+            local function _60_(component1, value, percent)
+              component1.position.col = math.floor(value)
+              return nil
+            end
+            val_28_ = Animation0.new({component = component0, apply = _60_, property = "col", from = component0.position.col, to = (component0.position.col + 2), ease = "oscillate-3-dampend", duration = 300, delay = 0})
+            if (nil ~= val_28_) then
+              i_27_ = (i_27_ + 1)
+              tbl_26_[i_27_] = val_28_
+            else
+            end
+          end
+          animations = tbl_26_
+        end
+        local on_complete
+        local function _62_()
+          for _, _63_ in pairs(state.selection) do
+            local component0 = _63_.component
+            component0:deselect()
+          end
+          state.selection = {}
+          app["synchronise-components-to-game-state"](app)
+          fx["interaction-lock"].unlock()
+          fx.engine.tick()
+          return fx.engine.render()
+        end
+        on_complete = _62_
+        fx.animation.play(Group.new({animations = animations, ["on-complete"] = on_complete}), fx["interaction-lock"]["general-lockout"](), app:notify(err))
+      else
+      end
+    else
+    end
+  end
+  fx.engine.tick()
+  return fx.engine.render()
+end
+GameEnded.on.enter = function(state, _66_, event, fx)
+  local app = _66_.app
+  local result = Logic.Query["game-result"](app.game)
+  local top_line_result
+  if ((_G.type(result) == "table") and (result.remaining == 0)) then
+    top_line_result = "perfect"
+  else
+    local _ = result
+    top_line_result = "great-job"
+  end
+  local other_lines = {string.fmt("Sets found: %d", result.sets), string.fmt("Remaining cards: %d", result.remaining), string.format("Time: %s", app.clock["elapsed-time"](app.clock))}
+  local report
+  local _68_
+  if (top_line_result == "perfect") then
+    _68_ = {{"perfect", "Perfect!"}}
+  elseif (top_line_result == "great-job") then
+    _68_ = {{"great-job", "Great Job!"}}
+  else
+    _68_ = nil
+  end
+  report = GameReport.new({["view-size"] = app.view.size, ["play-again"] = {"Play Again?", {"app", "new-game"}}, result = top_line_result, ["result-lines"] = _68_, ["other-lines"] = other_lines})
+  app.components.report = report
+  fx["interaction-lock"]["general-lockout"]()
+  return fx.engine.render()
+end
+M["location->position"] = function(app, location)
+  local _let_72_ = app["glyph-config"]
+  local card_width = _let_72_["card-width"]
+  local card_height = 5
+  local deal_start_col = (4 + card_width)
+  local deal_start_row = 2
+  if ((_G.type(location) == "table") and (location[1] == "draw") and (location[2] == "count")) then
+    return {row = (deal_start_row + (card_height - 1)), col = (deal_start_col - 2 - 3), z = 500}
+  elseif ((_G.type(location) == "table") and (location[1] == "draw") and (nil ~= location[2])) then
+    local n = location[2]
+    return {row = deal_start_row, col = (deal_start_col - (card_width + 2)), z = n}
+  elseif ((_G.type(location) == "table") and (location[1] == "discard") and (location[2] == "count")) then
+    return {row = (deal_start_row + card_height + -1), col = (deal_start_col + (1 + ((5 - 1) * (card_width + 1))) + (card_width - 3)), z = 500}
+  elseif ((_G.type(location) == "table") and (location[1] == "discard") and (nil ~= location[2])) then
+    local n = location[2]
+    return {row = deal_start_row, col = (((card_width + 1) * 5) + 4), z = n}
+  elseif ((_G.type(location) == "table") and (location[1] == "deal") and (nil ~= location[2])) then
+    local n = location[2]
+    local row = (1 + math.modf(((n - 1) / 4)))
+    local col = (1 + ((n - 1) % 4))
+    return {row = (2 + ((row - 1) * 5)), col = (deal_start_col + ((col - 1) * (card_width + 1))), z = 1}
+  else
+    local _ = location
+    local function _80_()
+      local data_5_auto = {location = location}
+      local resolve_6_auto
+      local function _73_(name_7_auto)
+        local case_74_ = data_5_auto[name_7_auto]
+        local and_75_ = (nil ~= case_74_)
+        if and_75_ then
+          local t_8_auto = case_74_
+          and_75_ = ("table" == type(t_8_auto))
+        end
+        if and_75_ then
+          local t_8_auto = case_74_
+          local case_77_ = getmetatable(t_8_auto)
+          if ((_G.type(case_77_) == "table") and (nil ~= case_77_.__tostring)) then
+            local f_9_auto = case_77_.__tostring
+            return f_9_auto(t_8_auto)
+          else
+            local __10_auto = case_77_
+            return vim.inspect(t_8_auto)
+          end
+        elseif (nil ~= case_74_) then
+          local v_11_auto = case_74_
+          return tostring(v_11_auto)
+        else
+          return nil
+        end
+      end
+      resolve_6_auto = _73_
+      return string.gsub("Unable to convert location to position, unknown location #{location}", "#{(.-)}", resolve_6_auto)
+    end
+    return error(Error(_80_()))
+  end
+end
+M["build-components"] = function(app)
+  local _let_82_ = app["glyph-config"]
+  local card_width = _let_82_["card-width"]
+  local cards
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for location, card in Logic["iter-cards"](app.game) do
+      local val_28_
+      do
+        local position = app["location->position"](app, location)
+        val_28_ = Components.card({card = card, ["card-width"] = card_width, location = location, position = position})
+      end
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    cards = tbl_26_
+  end
+  local slots
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _, location in ipairs({{"discard", 0}, {"draw", 0}}) do
+      local val_28_ = Components.slot({position = app["location->position"](app, location), ["card-width"] = card_width})
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    slots = tbl_26_
+  end
+  local discard_count
+  local function _85_(self, game)
+    self.content = {{{string.format("%02d", (#game.discard / 3)), "@playtime.ui.off"}}}
+    return nil
+  end
+  discard_count = Component.new({position = app["location->position"](app, {"discard", "count"}), size = {width = 3, height = 1}, ["update-count"] = _85_})
+  local draw_count
+  local function _86_(self, game)
+    self.content = {{{string.format("%02d", #game.draw), "@playtime.ui.off"}}}
+    return nil
+  end
+  draw_count = Component.new({position = app["location->position"](app, {"draw", "count"}), size = {width = 3, height = 1}, ["update-count"] = _86_})
+  local deal_more_button
+  do
+    local position = app["location->position"](app, {"draw", 200})
+    local size = {width = card_width, height = 5}
+    local click
+    local function _87_(self, cofx, event, fx)
+      if ((_G.type(event) == "table") and (event.button == "left") and (event.action == "press")) then
+        return fx.event.dispatch("app", "deal-more")
+      else
+        return nil
+      end
+    end
+    click = _87_
+    deal_more_button = Component.new({position = position, size = size, on = {click = click}})
+  end
+  local discard_trap_button
+  do
+    local position = app["location->position"](app, {"discard", 200})
+    local size = {width = card_width, height = 5}
+    local click
+    local function _89_(self, cofx, event, fx)
+    end
+    click = _89_
+    discard_trap_button = Component.new({position = position, size = size, on = {click = click}})
+  end
+  draw_count["update-count"](draw_count, app.game)
+  discard_count["update-count"](discard_count, app.game)
+  return table.merge(app.components, {["deal-more-button"] = deal_more_button, ["discard-trap-button"] = discard_trap_button, ["discard-count"] = discard_count, ["draw-count"] = draw_count, slots = Component.new({children = slots}), cards = Component.new({children = cards})})
+end
+M["synchronise-components-to-game-state"] = function(app)
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/set/app.fnl:226", 2)
+  else
+  end
+  app.components["deal-more-button"]["visible?"] = Logic.Query["can-deal-more?"](app.game)
+  for location, card in Logic["iter-cards"](app.game) do
+    local comp = app["find-card-component-by-card-id"](app, card.id)
+    local position = app["location->position"](app, location)
+    if ((_G.type(card) == "table") and (card.face == "up")) then
+      comp["flip-face-up"](comp)
+    elseif ((_G.type(card) == "table") and (card.face == "down")) then
+      comp["flip-face-down"](comp)
+    else
+    end
+    comp.location = location
+    comp.position = position
+  end
+  app.components["draw-count"]["update-count"](app.components["draw-count"], app.game)
+  app.components["discard-count"]["update-count"](app.components["discard-count"], app.game)
+  return app
+end
+M.start = function(runtime_config, _game_config, _3fseed)
+  if (nil == runtime_config) then
+    _G.error("Missing argument runtime-config on fnl/playtime/game/set/app.fnl:240", 2)
+  else
+  end
+  local _let_93_ = runtime_config.game
+  local _let_94_ = _let_93_.set
+  local font_glyph_width = _let_94_["font-glyph-width"]
+  local view_width
+  if (font_glyph_width == "wide") then
+    view_width = 71
+  else
+    local _ = font_glyph_width
+    view_width = 65
+  end
+  local glyph_config
+  local _96_
+  if (font_glyph_width == "wide") then
+    _96_ = 10
+  else
+    local _ = font_glyph_width
+    _96_ = 9
+  end
+  glyph_config = {["glyph-width"] = font_glyph_width, ["card-width"] = _96_}
+  local app = App.new({module = M, name = "SET", ["app-id"] = "set", view = {width = view_width, height = 25}, menu = {{"SET", {{"New Game", {"app", "new-game"}}, {"Hint", {"app", "hint"}}}}}}, runtime_config)
+  app["glyph-config"] = glyph_config
+  app.view:open()
+  app["queue-event"](app, "app", "new-game", {delay = 200, seed = _3fseed})
+  app["request-tick"](app)
+  app["request-render"](app)
+  return app
+end
+M.on.app["new-game"] = function(app, cofx, _100_, fx)
+  local _3fseed = _100_.seed
+  local _3fdelay = _100_.delay
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/set/app.fnl:264", 2)
+  else
+  end
+  if (nil == cofx) then
+    _G.error("Missing argument cofx on fnl/playtime/game/set/app.fnl:264", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/set/app.fnl:264", 2)
+  else
+  end
+  local game = Logic.build({}, _3fseed)
+  app.clock:reset()
+  app.game = game
+  app["build-components"](app)
+  app.components.report = nil
+  fx.state.reset(Playing)
+  fx.event["dispatch-after"]((_3fdelay or 1), "app", "deal")
+  fx["interaction-lock"]["general-lockout"]()
+  fx.engine.render()
+  return fx.engine.tick()
+end
+M.on.app.hint = function(app, cofx, event, fx)
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/set/app.fnl:276", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/set/app.fnl:276", 2)
+  else
+  end
+  if (nil == cofx) then
+    _G.error("Missing argument cofx on fnl/playtime/game/set/app.fnl:276", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/set/app.fnl:276", 2)
+  else
+  end
+  local case_108_ = Logic.Query["find-sets"](app.game)
+  if ((_G.type(case_108_) == "table") and (case_108_[1] == nil)) then
+    return app:notify("No sets to hint!")
+  elseif (nil ~= case_108_) then
+    local sets = case_108_
+    local _let_109_ = table.shuffle(sets)
+    local a_set = _let_109_[1]
+    local logic_hint = Logic.Query["hint-for-set"](app.game, a_set)
+    local function _110_()
+      local h = {same = {}, diff = {}}
+      for k, v in pairs(logic_hint) do
+        h = table.set(h, v, table.insert(h[v], k))
+      end
+      return h
+    end
+    local _let_111_ = _110_()
+    local same = _let_111_.same
+    local diff = _let_111_.diff
+    local single_hint
+    do
+      local case_112_, case_113_ = same, diff
+      if (((_G.type(case_112_) == "table") and (case_112_[1] == nil)) and true) then
+        local _ = case_113_
+        single_hint = "everything different"
+      elseif (true and ((_G.type(case_113_) == "table") and (case_113_[1] == nil))) then
+        local _ = case_112_
+        single_hint = "everything identical"
+      elseif ((nil ~= case_112_) and (nil ~= case_113_)) then
+        local sames = case_112_
+        local diffs = case_113_
+        single_hint = string.fmt("identical %s and different %s", table.concat(sames, ", "), table.concat(diffs, ", "))
+      else
+        single_hint = nil
+      end
+    end
+    local function _116_()
+      local case_115_ = #sets
+      if (case_115_ == 1) then
+        return {"is", "it", 1, "set"}
+      elseif (nil ~= case_115_) then
+        local n = case_115_
+        return {"are", "One", n, "sets"}
+      else
+        return nil
+      end
+    end
+    local _let_118_ = _116_()
+    local verb_1 = _let_118_[1]
+    local verb_2 = _let_118_[2]
+    local count = _let_118_[3]
+    local noun = _let_118_[4]
+    local msg
+    do
+      local data_5_auto = {count = count, noun = noun, ["single-hint"] = single_hint, ["verb-1"] = verb_1, ["verb-2"] = verb_2}
+      local resolve_6_auto
+      local function _119_(name_7_auto)
+        local case_120_ = data_5_auto[name_7_auto]
+        local and_121_ = (nil ~= case_120_)
+        if and_121_ then
+          local t_8_auto = case_120_
+          and_121_ = ("table" == type(t_8_auto))
+        end
+        if and_121_ then
+          local t_8_auto = case_120_
+          local case_123_ = getmetatable(t_8_auto)
+          if ((_G.type(case_123_) == "table") and (nil ~= case_123_.__tostring)) then
+            local f_9_auto = case_123_.__tostring
+            return f_9_auto(t_8_auto)
+          else
+            local __10_auto = case_123_
+            return vim.inspect(t_8_auto)
+          end
+        elseif (nil ~= case_120_) then
+          local v_11_auto = case_120_
+          return tostring(v_11_auto)
+        else
+          return nil
+        end
+      end
+      resolve_6_auto = _119_
+      msg = string.gsub("There #{verb-1} #{count} possible #{noun}. #{verb-2} has #{single-hint}.", "#{(.-)}", resolve_6_auto)
+    end
+    return app:notify(msg)
+  else
+    return nil
+  end
+end
+M["find-card-component-by-card-id"] = function(app, card_id)
+  if (nil == card_id) then
+    _G.error("Missing argument card-id on fnl/playtime/game/set/app.fnl:296", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/set/app.fnl:296", 2)
+  else
+  end
+  local lookup = (app["__find-card-component-by-card-id-lookup"] or table.set(app, "__find-card-component-by-card-id-lookup", {memo = nil, table = nil}))
+  local root_component = app.components.cards
+  if (root_component ~= lookup.memo) then
+    lookup.memo = root_component
+    local tbl_21_ = {}
+    for _, comp in ipairs(root_component.children) do
+      local k_22_, v_23_ = comp.card.id, comp
+      if ((k_22_ ~= nil) and (v_23_ ~= nil)) then
+        tbl_21_[k_22_] = v_23_
+      else
+      end
+    end
+    lookup.table = tbl_21_
+  else
+  end
+  return lookup.table[card_id]
+end
+M["build-card-animation-from-events"] = function(app, events, on_complete)
+  local _let_131_ = require("playtime.app.animation-manager")
+  local Animation0 = _let_131_.Animation
+  local Group = _let_131_.Group
+  local flip_duration = 1
+  local move_duration = 120
+  local move_delay
+  local function _132_(i)
+    return ((i - 1) * 50)
+  end
+  move_delay = _132_
+  local flip_delay
+  local function _133_(i)
+    return (move_delay(i) + (move_duration / 1))
+  end
+  flip_delay = _133_
+  local move_location_cache = {}
+  local find_card_by_location
+  local function _135_(_134_)
+    local f = _134_[1]
+    local n = _134_[2]
+    local case_136_
+    do
+      local t_137_ = move_location_cache
+      if (nil ~= t_137_) then
+        t_137_ = t_137_[f]
+      else
+      end
+      if (nil ~= t_137_) then
+        t_137_ = t_137_[n]
+      else
+      end
+      case_136_ = t_137_
+    end
+    if (nil ~= case_136_) then
+      local card = case_136_
+      return card
+    elseif (case_136_ == nil) then
+      return app.game[f][n]
+    else
+      return nil
+    end
+  end
+  find_card_by_location = _135_
+  local save_card_move_to_cache
+  local function _142_(card, _141_)
+    local f = _141_[1]
+    local n = _141_[2]
+    do
+      local case_143_ = move_location_cache[f]
+      if (case_143_ == nil) then
+        move_location_cache[f] = {}
+      else
+      end
+    end
+    move_location_cache[f][n] = card
+    return nil
+  end
+  save_card_move_to_cache = _142_
+  local animations
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for i, event in ipairs(events) do
+      local val_28_
+      do
+        local matched_3f_145_, location_146_
+        if ((_G.type(event) == "table") and (event[1] == "face-up") and (nil ~= event[2])) then
+          local location = event[2]
+          matched_3f_145_, location_146_ = true, location
+        elseif ((_G.type(event) == "table") and (event[1] == "face-down") and (nil ~= event[2])) then
+          local location = event[2]
+          matched_3f_145_, location_146_ = true, location
+        else
+          matched_3f_145_, location_146_ = nil
+        end
+        if matched_3f_145_ then
+          local location = location_146_
+          local card = find_card_by_location(location)
+          local component = app["find-card-component-by-card-id"](app, card.id)
+          local function _148_(component0, _value, percent)
+            if (1 <= percent) then
+              if ((_G.type(event) == "table") and (event[1] == "face-up") and true) then
+                local _ = event[2]
+                return component0["flip-face-up"](component0)
+              elseif ((_G.type(event) == "table") and (event[1] == "face-down") and true) then
+                local _ = event[2]
+                return component0["flip-face-down"](component0)
+              else
+                return nil
+              end
+            else
+              return nil
+            end
+          end
+          val_28_ = Animation0.new({component = component, apply = _148_, property = "visible-face", from = 0, to = 1, ease = "linear", duration = flip_duration, delay = flip_delay(i)})
+        elseif ((_G.type(event) == "table") and (event[1] == "move") and (nil ~= event[2]) and (nil ~= event[3])) then
+          local from = event[2]
+          local to = event[3]
+          local card = find_card_by_location(from)
+          local _ = save_card_move_to_cache(card, to)
+          local component = app["find-card-component-by-card-id"](app, card.id)
+          local _let_151_ = component.position
+          local _default_z = _let_151_.z
+          local function _152_(component0, value, _percent)
+            component0.position = {row = math.ceil(value.row), col = math.ceil(value.col), z = (200 + app["location->position"](app, to).z)}
+            return nil
+          end
+          val_28_ = Animation0.new({component = component, apply = _152_, property = "position", from = app["location->position"](app, from), to = app["location->position"](app, to), ease = "ease-out-quad", duration = move_duration, delay = move_delay(i)})
+        else
+          val_28_ = nil
+        end
+      end
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    animations = tbl_26_
+  end
+  return Group.new({animations = animations, ["on-complete"] = on_complete})
+end
+return M

@@ -1,265 +1,215 @@
-
- local _local_1_ = require("playtime.prelude") local clone = _local_1_["clone"] local eq_all_3f = _local_1_["eq-all?"] local eq_any_3f = _local_1_["eq-any?"] local math = _local_1_["math"] local string = _local_1_["string"] local table = _local_1_["table"] local type = _local_1_["type"]
-
- local Logger = require("playtime.logger")
- local Error = require("playtime.error")
- local Animate = require("playtime.animate")
- local CommonComponents = require("playtime.common.components")
- local Component = require("playtime.component")
- local App = require("playtime.app")
- local Window = require("playtime.app.window")
-
- local api = vim["api"]
- local uv = (vim.loop or vim.uv)
-
- local Logic = require("playtime.game.sweeper.logic")
- local UI = require("playtime.game.sweeper.ui")
- local M = setmetatable({}, {__index = App})
-
- local AppState = {}
- AppState.Default = App.State.build("Default", {delegate = {app = App.State.DefaultAppState}})
- AppState.PickingCell = App.State.build("PickingCell", {delegate = {app = AppState.Default}})
- AppState.MarkingCell = App.State.build("MarkingCell", {delegate = {app = AppState.Default}})
- AppState.GameEnded = App.State.build("GameEnded", {delegate = {app = AppState.Default}})
-
-
-
-
-
- AppState.Default.activated = function(app) return app.components.smile:update("smile") end
-
-
- AppState.GameEnded.activated = function(app)
- app["ended-at"] = os.time()
- local other = {string.fmt("Time: %ds", (app["ended-at"] - app["started-at"]))}
- local result = Logic.Query["game-result"](app.game) local face
- if (result == "won") then face = "bruh" elseif (result == "lost") then face = "sad" else face = nil end app.components["game-report"]:update(result, other) return app.components.smile:update(face) end
-
-
-
-
-
- AppState.PickingCell.activated = function(app) return app.components.smile:update("scare") end
-
-
- AppState.Default.OnEvent.input["<LeftMouse>"] = function(app, _3_, pos) local location = _3_[1]
- if ((_G.type(location) == "table") and (location[1] == "face")) then return app["queue-event"](app, "app", "restart-game") elseif ((_G.type(location) == "table") and (location[1] == "grid")) then return app["push-state"](app, AppState.PickingCell, {picking = location}) elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
-
-
-
-
-
-
-
-
-
- AppState.Default.OnEvent.input["<RightMouse>"] = function(app, _5_, pos) local location = _5_[1]
- if ((_G.type(location) == "table") and (location[1] == "grid")) then return app["push-state"](app, AppState.MarkingCell, {picking = location}) else return nil end end
-
-
-
- AppState.GameEnded.OnEvent.input["<LeftMouse>"] = function(app, _7_) local location = _7_[1]
- if ((_G.type(location) == "table") and (location[1] == "face")) then return app["queue-event"](app, "app", "restart-game") elseif ((_G.type(location) == "table") and (location[1] == "menu") and (nil ~= location[2]) and (location[3] == nil)) then local idx = location[2] local menu_item = location return app["push-state"](app, App.State.DefaultInMenuState, {["menu-item"] = menu_item}) else return nil end end
-
-
-
-
- AppState.PickingCell.OnEvent.input["<LeftDrag>"] = function(app, _9_, pos) local location = _9_[1]
- if ((_G.type(location) == "table") and (location[1] == "grid")) then
- app.state.context.picking = location return nil else local _ = location
- app.state.context.picking = nil return nil end end
-
- AppState.PickingCell.OnEvent.input["<LeftRelease>"] = function(app, _11_, pos) local location = _11_[1]
- if ((_G.type(location) == "table") and (location[1] == "face")) then return app["queue-event"](app, "app", "restart-game") elseif ((_G.type(location) == "table") and (location[1] == "grid") and ((_G.type(location[2]) == "table") and (nil ~= location[2].x) and (nil ~= location[2].y))) then local x = location[2].x local y = location[2].y
-
-
- local function _12_(...) local _13_ = ... if (nil ~= _13_) then local next_game = _13_ app["update-game"](app, next_game, {"reveal-location", {x = x, y = y}})
-
-
-
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __44_ = _13_ return ... end end return _12_(Logic.Action["reveal-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
-
-
-
-
- AppState.MarkingCell.OnEvent.input["<RightDrag>"] = function(app, _17_, pos) local location = _17_[1]
- if ((_G.type(location) == "table") and (location[1] == "grid")) then
- app.state.context.picking = location return nil else local _ = location
- app.state.context.picking = nil return nil end end
-
- AppState.MarkingCell.OnEvent.input["<RightRelease>"] = function(app, _19_, pos) local location = _19_[1]
- if ((_G.type(location) == "table") and (location[1] == "grid") and ((_G.type(location[2]) == "table") and (nil ~= location[2].x) and (nil ~= location[2].y))) then local x = location[2].x local y = location[2].y
-
- local function _20_(...) local _21_ = ... if (nil ~= _21_) then local next_game = _21_ app["update-game"](app, next_game, {"mark-location", {x = x, y = y}})
-
-
-
- if Logic.Query["game-ended?"](app.game) then return app["switch-state"](app, AppState.GameEnded) else return app["switch-state"](app, AppState.Default) end else local __44_ = _21_ return ... end end return _20_(Logic.Action["mark-location"](app.game, {x = x, y = y})) else local _ = location return app["switch-state"](app, AppState.Default) end end
-
-
-
-
- AppState.Default.OnEvent.app["restart-game"] = function(app)
- return AppState.Default.OnEvent.app["new-game"](app, {app["game-config"].width, app["game-config"].height, app["game-config"]["n-mines"]}) end
-
-
-
- AppState.Default.OnEvent.app["new-game"] = function(app, _25_) local width = _25_[1] local height = _25_[2] local n_mines = _25_[3] app["queue-event"](app, "app", "quit")
-
- local function _26_() return M.start(app["app-config"], {width = width, height = height, ["n-mines"] = n_mines}, nil) end return vim.schedule(_26_) end
-
- local function dim_hover(app)
- for loc, cell in Logic["iter-cells"](app.game) do
- local comp = app["cell-id->cell-component"][cell.id]
- local _27_, _28_ = loc, app.state.context.picking if (((_G.type(_27_) == "table") and (nil ~= _27_.x) and (nil ~= _27_.y)) and ((_G.type(_28_) == "table") and (_28_[1] == "grid") and ((_G.type(_28_[2]) == "table") and (_27_.x == _28_[2].x) and (_27_.y == _28_[2].y)))) then local x = _27_.x local y = _27_.y
-
- local pressed_3f do local _29_, _30_ = cell, app.state.module if (((_G.type(_29_) == "table") and (_29_.mark == nil)) and (_30_ == AppState.PickingCell)) then pressed_3f = true elseif (((_G.type(_29_) == "table") and (nil ~= _29_.mark)) and (_30_ == AppState.MarkingCell)) then local mark = _29_.mark pressed_3f = true else local _ = _29_ pressed_3f = false end end comp:update(cell, {["pressed?"] = pressed_3f}) else local _ = _27_ comp:update(cell) end end return nil end
-
-
-
-
-
-
- AppState.PickingCell.tick = function(app)
- return dim_hover(app) end
-
- AppState.MarkingCell.tick = function(app)
- return dim_hover(app) end
-
- AppState.Default.tick = function(app)
- for loc, cell in Logic["iter-cells"](app.game) do
- local comp = app["cell-id->cell-component"][cell.id] comp:update(cell) end return nil end
-
-
- M["setup-new-game"] = function(app, game_config, _3fseed) app["new-game"](app, Logic.build, game_config, _3fseed) app["build-components"](app) app["switch-state"](app, AppState.Default)
-
-
-
- return app end
-
- M["build-components"] = function(app)
- local function build_grid_component(game, offset)
- local _let_33_ = game["size"] local width = _let_33_["width"] local height = _let_33_["height"]
- local row = offset["row"] local col = offset["col"] local cell_height = 3 local cell_width = 5 local t
-
-
- do local tbl_16_ = {} for _34_, cell in Logic["iter-cells"](game) do local x = _34_["x"] local y = _34_["y"] local k_17_, v_18_ = nil, nil
- do local tag = {x = x, y = y} local f
- do local _35_, _36_ = x, y if ((_35_ == 1) and (_36_ == 1)) then
- f = UI["nw-cell"] elseif ((_35_ == width) and (_36_ == 1)) then
- f = UI["ne-cell"] elseif ((_35_ == 1) and (_36_ == height)) then
- f = UI["sw-cell"] elseif ((_35_ == width) and (_36_ == height)) then
- f = UI["se-cell"] elseif ((_35_ == 1) and true) then local _ = _36_
- f = UI["w-cell"] elseif ((_35_ == width) and true) then local _ = _36_
- f = UI["e-cell"] elseif (true and (_36_ == 1)) then local _ = _35_
- f = UI["n-cell"] elseif (true and (_36_ == height)) then local _ = _35_
- f = UI["s-cell"] else local _ = _35_
- f = UI["mid-cell"] end end
- k_17_, v_18_ = cell.id, f(cell, tag, {row = (row + ((cell_height - 1) * (y - 1))), col = (col + ((cell_width - 1) * (x - 1))), z = app["z-index-for-layer"](app, "grid")}) end if ((k_17_ ~= nil) and (v_18_ ~= nil)) then tbl_16_[k_17_] = v_18_ else end end t = tbl_16_ end local components
-
-
-
-
-
- do local tbl_21_ = {} local i_22_ = 0 for _, _39_ in Logic["iter-cells"](game) do local id = _39_["id"] local val_23_ = t[id] if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end components = tbl_21_ end
- return components, t end
-
- local grid, cell_id__3ecell_component = build_grid_component(app.game, {row = 5, col = 3})
- local menubar = CommonComponents.menubar({{"Sweeper", {"file"}, {{"", nil}, {"New Classic 8x8, 10", {"new-game", {8, 8, 10}}}, {"New Easy 9x9, 10", {"new-game", {9, 9, 10}}}, {"New Medium 16x16, 40", {"new-game", {16, 16, 40}}}, {"New Expert 30x16, 99", {"new-game", {30, 16, 99}}}, {"", nil}, {"Restart game", {"restart-game"}}, {"", nil}, {"Undo", {"undo"}}, {"", nil}, {"Quit", {"quit"}}, {"", nil}, {string.format("Seed: %s", app.seed), nil}}}}, {width = app.view.width, z = app["z-index-for-layer"](app, "menubar")}) local remaining
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- local function _41_(self, count)
- local s = string.format("%03d", count) self["set-content"](self, {{{s, "@playtime.color.red"}}}) return self["set-size"](self, {width = #s, height = 1}) end remaining = Component["set-position"](Component.build(_41_), {row = 3, col = 4, z = 10}):update(app.game["n-mines"]) local timer
-
-
-
-
-
- local function _42_(self, count)
- local s = string.format("%03d", count) self["set-content"](self, {{{s, "@playtime.color.red"}}}) return self["set-size"](self, {width = #s, height = 1}) end timer = Component["set-position"](Component.build(_42_), {row = 3, col = (app.view.width - 8), z = 10}):update(0) local smile
-
-
-
-
-
- local function _43_(self, what)
- local lines if (what == "smile") then
- lines = {" \226\160\182 \226\160\182 ", "\226\160\160\226\163\128\226\163\128\226\163\128\226\160\132"} elseif (what == "scare") then
-
- lines = {" \226\160\182 \226\160\182 ", "  \226\163\164  "} elseif (what == "sad") then
-
- lines = {" \226\160\182 \226\160\182 ", "\226\162\128\226\160\164\226\160\164\226\160\164\226\161\128"} elseif (what == "bruh") then
-
- lines = {" \226\160\182\226\160\146\226\160\182 ", "\226\160\160\226\163\164\226\163\164\226\163\164\226\160\132"} else lines = nil end local content
-
- do local tbl_21_ = {} local i_22_ = 0 for _, l in ipairs(lines) do
- local val_23_ = {{l, "@playtime.color.yellow"}} if (nil ~= val_23_) then i_22_ = (i_22_ + 1) tbl_21_[i_22_] = val_23_ else end end content = tbl_21_ end return self["set-content"](self, content) end smile = Component["set-position"](Component["set-tag"](Component["set-size"](Component.build(_43_), {width = 5, height = 2}), {"face"}), {row = 2, col = (math.floor((app.view.width / 2)) - 3), z = 100}):update("smile")
-
-
-
-
-
- local game_report = CommonComponents["game-report"](app.view.width, app.view.height, app["z-index-for-layer"](app, "report"), {{"won", "Won"}, {"lost", "Lost"}})
-
-
-
- for _46_, cell in Logic["iter-cells"](app.game) do local i = _46_["i"]
- local comp = grid[i] comp:update(cell) end
-
- app["cell-id->cell-component"] = cell_id__3ecell_component
- table.merge(app.components, {smile = smile, remaining = remaining, timer = timer, grid = grid, menubar = menubar, ["game-report"] = game_report})
-
- return app end
-
- M.start = function(app_config, game_config, _3fseed)
- local app = setmetatable(App.build("Sweeper", "sweeper", app_config, game_config, _3fseed), {__index = M})
-
- local view_width = (7 + (4 * game_config.width))
- local view_height = (8 + (2 * game_config.height))
- local view = Window.open("sweeper", App["build-default-window-dispatch-options"](app), {width = view_width, height = view_height, ["window-border"] = app_config["window-border"], ["window-position"] = app_config["window-position"], ["minimise-position"] = app_config["minimise-position"]})
-
-
-
-
-
-
- local _ = table.merge(app["z-layers"], {grid = 25})
- app.view = view app["setup-new-game"](app, app["game-config"], _3fseed) return app:render() end
-
-
-
- M.render = function(app) app.view:render({app.components.grid, {app.components.smile, app.components.remaining, app.components.timer}, {app.components["game-report"], app.components.menubar, app.components.cheating}})
-
-
-
-
-
- return app end
-
- M.tick = function(app)
- local now = uv.now() app["process-next-event"](app) app.components.remaining:update(app.game.remaining) app.components.timer:update(((app["ended-at"] or os.time()) - app["started-at"]))
-
-
-
- do local _47_ = app.state.module.tick if (nil ~= _47_) then local f = _47_
- f(app) else local _ = _47_
- for loc, cell in Logic["iter-cells"](app.game) do
- local comp = app["cell-id->cell-component"][cell.id] comp:update(cell) end end end return app["request-render"](app) end
-
-
-
- return M
+-- @generated by hotpot.nvim using fennel 1.6.1, edits to this file may be lost
+local _local_1_ = require("playtime.prelude")
+local _2ajit_2a = _local_1_["*jit*"]
+local clone = _local_1_.clone
+local copy = _local_1_.copy
+local eq_all_3f = _local_1_["eq-all?"]
+local eq_any_3f = _local_1_["eq-any?"]
+local math = _local_1_.math
+local string = _local_1_.string
+local table = _local_1_.table
+local type = _local_1_.type
+local Logger = require("playtime.logger")
+local Error = require("playtime.error")
+local App = require("playtime.app")
+local Component = require("playtime.component")
+local GameReport = require("playtime.component.game-report")
+local _local_2_ = require("playtime.app.state-machine")
+local State = _local_2_.State
+local Logic = require("playtime.game.sweeper.logic")
+local Components = require("playtime.game.sweeper.components")
+local PlayingGame = State.new({id = "playing-game"})
+local GameEnded = State.new({id = "game-ended"})
+local M = App["scaffold-module"]({})
+local m = {}
+PlayingGame.on.enter = function(state, _3_, event, fx)
+  local app = _3_.app
+  app.engine["set-idle-behaviour"](app.engine, {"interval", 1000})
+  app.components.face:emote("smile")
+  fx["interaction-lock"].unlock()
+  return fx.engine.render()
+end
+PlayingGame.on.app.emote = function(state, _4_, event, fx)
+  local app = _4_.app
+  app.components.face:emote(event.emote)
+  return fx.engine.render()
+end
+PlayingGame.on.app.reveal = function(state, _5_, _6_, fx)
+  local app = _5_.app
+  local x = _6_.x
+  local y = _6_.y
+  local function _7_(...)
+    local case_8_ = ...
+    if (nil ~= case_8_) then
+      local next_game = case_8_
+      app.game = next_game
+      app["synchronise-components-to-game-state"](app)
+      fx.engine.render()
+      if Logic.Query["game-ended?"](next_game) then
+        return fx.state.transition(GameEnded)
+      else
+        return nil
+      end
+    else
+      local __43_ = case_8_
+      return ...
+    end
+  end
+  return _7_(Logic.Action["reveal-location"](app.game, {x = x, y = y}))
+end
+PlayingGame.on.app.mark = function(state, _11_, _12_, fx)
+  local app = _11_.app
+  local x = _12_.x
+  local y = _12_.y
+  local function _13_(...)
+    local case_14_ = ...
+    if (nil ~= case_14_) then
+      local next_game = case_14_
+      app.game = next_game
+      app["synchronise-components-to-game-state"](app)
+      fx.engine.render()
+      if Logic.Query["game-ended?"](next_game) then
+        return fx.state.transition(GameEnded)
+      else
+        return nil
+      end
+    else
+      local __43_ = case_14_
+      return ...
+    end
+  end
+  return _13_(Logic.Action["mark-location"](app.game, {x = x, y = y}))
+end
+GameEnded.on.enter = function(state, _17_, event, fx)
+  local app = _17_.app
+  local _let_18_ = Logic.Query["game-result"](app.game)
+  local result = _let_18_.result
+  local correct = _let_18_.correct
+  local incorrect = _let_18_.incorrect
+  local total = _let_18_.total
+  local other = {string.format("Swept: %d/%d", correct, total), string.format("Time: %s", app.clock["elapsed-time"](app.clock))}
+  local _
+  if (0 < incorrect) then
+    _ = table.insert(other, 2, string.format("Incorrect: %d", incorrect))
+  else
+    _ = nil
+  end
+  local function _20_()
+    if (result == "won") then
+      return {"bruh", "won"}
+    elseif (result == "lost") then
+      return {"sad", "lost"}
+    else
+      return nil
+    end
+  end
+  local _let_21_ = _20_()
+  local face = _let_21_[1]
+  local won_3f = _let_21_[2]
+  local report = GameReport.new({["view-size"] = app.view.size, ["play-again"] = {"Play Again?", {"app", "new-game", app["game-config"]}}, result = result, ["result-lines"] = {{"won", "Clean Sweep!"}, {"lost", "Oh no!"}}, ["other-lines"] = other})
+  table.merge(app.components, {report = report})
+  app.components.face:emote(face)
+  fx["interaction-lock"]["general-lockout"]()
+  app.engine["set-idle-behaviour"](app.engine, "sleep")
+  return fx.engine.render()
+end
+M["build-components"] = function(app)
+  local grid
+  local function _22_()
+    return Logic["iter-cells"](app.game)
+  end
+  grid = Components.grid({grid = {width = app.game.size.width, height = app.game.size.height}, position = {row = 5, col = 3}}, _22_)
+  local remaining_mine_count = Components["remaining-mine-count"](app.view.size)
+  local timer = Components.timer(app.view.size)
+  local face = Components.face(app.view.size)
+  return {["remaining-mine-count"] = remaining_mine_count, timer = timer, grid = grid, face = face}
+end
+M.start = function(runtime_config, game_config, _3fseed)
+  if (nil == game_config) then
+    _G.error("Missing argument game-config on fnl/playtime/game/sweeper/app.fnl:82", 2)
+  else
+  end
+  if (nil == runtime_config) then
+    _G.error("Missing argument runtime-config on fnl/playtime/game/sweeper/app.fnl:82", 2)
+  else
+  end
+  local game_config0 = table.merge({width = 9, height = 9, ["n-mines"] = 10}, game_config)
+  local app = App.new({module = M, name = "Sweeper", ["app-id"] = "sweeper", view = {width = (7 + (4 * game_config0.width)), height = (7 + (2 * game_config0.height))}, menu = {{"Sweeper", {{"New Classic 8x8, 10", {"app", "restart-app", {width = 8, height = 8, ["n-mines"] = 10}}}, {"New Easy 9x9, 10", {"app", "restart-app", {width = 9, height = 9, ["n-mines"] = 10}}}, {"New Medium 16x16, 40", {"app", "restart-app", {width = 16, height = 16, ["n-mines"] = 40}}}, {"New Expert 30x16, 99", {"app", "restart-app", {width = 30, height = 16, ["n-mines"] = 99}}}}}}}, runtime_config)
+  app["game-config"] = game_config0
+  app.view:open()
+  app["queue-event"](app, "app", "new-game", table.merge(game_config0, {seed = _3fseed}))
+  return app
+end
+local default_unfocused = M.on.window.unfocused
+local default_focused = M.on.window.focused
+M.on.window.unfocused = function(app, cofx, event, fx)
+  app.engine["set-idle-behaviour"](app.engine, "sleep")
+  return default_unfocused(app, cofx, event, fx)
+end
+M.on.window.focused = function(app, cofx, event, fx)
+  app.engine["set-idle-behaviour"](app.engine, {"interval", 1000})
+  return default_focused(app, cofx, event, fx)
+end
+M.on.app["restart-app"] = function(app, cofx, _25_, fx)
+  local seed = _25_.seed
+  local width = _25_.width
+  local height = _25_.height
+  local n_mines = _25_["n-mines"]
+  local function _26_()
+    return M.start(app["runtime-config"], {width = width, height = height, ["n-mines"] = n_mines}, seed)
+  end
+  vim.schedule(_26_)
+  return app:quit()
+end
+M.on.app["new-game"] = function(app, cofx, _27_, fx)
+  local seed = _27_.seed
+  local width = _27_.width
+  local height = _27_.height
+  local n_mines = _27_["n-mines"]
+  local new_config = {width = width, height = height, ["n-mines"] = n_mines}
+  local game = Logic.build(new_config, seed)
+  app["game-config"] = new_config
+  app.game = game
+  app.clock:reset()
+  table.merge(app.components, app["build-components"](app))
+  app.components.report = nil
+  app["cell-id->component"] = app.components.grid.lookup
+  app["synchronise-components-to-game-state"](app)
+  fx.state.reset(PlayingGame)
+  fx["interaction-lock"]["general-lockout"]()
+  app["request-tick"](app)
+  return app["request-render"](app)
+end
+M.on.app["restart-game"] = function(app, cofx, event, fx)
+  return M.on.app["new-game"](app, cofx, app["game-config"], fx)
+end
+M["synchronise-components-to-game-state"] = function(app)
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/sweeper/app.fnl:134", 2)
+  else
+  end
+  for _29_, cell in Logic["iter-cells"](app.game) do
+    local x = _29_.x
+    local y = _29_.y
+    local comp = app["cell-id->component"][cell.id]
+    comp["update-content-for-cell"](comp, cell)
+  end
+  return app.components["remaining-mine-count"]["update-count"](app.components["remaining-mine-count"], app.game.remaining)
+end
+M.tick = function(app, dt)
+  if (nil == dt) then
+    _G.error("Missing argument dt on fnl/playtime/game/sweeper/app.fnl:140", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/sweeper/app.fnl:140", 2)
+  else
+  end
+  app.components.timer["update-time"](app.components.timer, app.clock["elapsed-time"](app.clock))
+  if not app.view["minimised?"] then
+    return app["request-render"](app)
+  else
+    return nil
+  end
+end
+return M
