@@ -4,40 +4,276 @@
 (local Logger (require :playtime.logger))
 (local Error (require :playtime.error))
 
-(local CommonComponents (require :playtime.common.components))
-(local CardComponents (require :playtime.common.card.components))
-(local SetComponents (require :playtime.game.set.components))
-(local CardUtils (require :playtime.common.card.utils))
 (local App (require :playtime.app))
-(local Window (require :playtime.app.window))
+(local Component (require :playtime.component))
+(local GameReport (require :playtime.component.game-report))
+(local {: State} (require :playtime.app.state-machine))
+(local {: Animation :Group AnimationGroup} (require :playtime.app.animation-manager))
 
-(local M (setmetatable {} {:__index App}))
+(local Components (require :playtime.game.set.components))
 (local Logic (require :playtime.game.set.logic))
 
-;;
-;; Regular SET game, find sets in a deal and progress through the deck.
-;;
+(local M (App.scaffold-module {}))
 
-(local RegularAppState {})
+(local Playing (State.new {:id :playing}))
+(local GameEnded (State.new {:id :game-ended}))
 
-(set RegularAppState.Default (App.State.build :Default {:delegate {:app App.State.DefaultAppState}}))
-(set RegularAppState.SubmitSet (App.State.build :SubmitSet {:delegate {:app RegularAppState.Default}}))
-(set RegularAppState.GameEnded (App.State.build :GameEnded {:delegate {:app RegularAppState.Default}}))
-(set RegularAppState.Animating (clone App.State.DefaultAnimatingState))
+(λ Playing.on.enter [state cofx event fx]
+  (set state.selection []))
 
-(fn RegularAppState.Default.activated [app ?context]
-  (case ?context
-    {:selected nil} (set app.state.context.selected [])))
+(fn do-deal [action state {: app} event fx]
+  (case ((. Logic.Action action) app.game)
+    (next-game events) (let [on-complete (fn []
+                                           (app:synchronise-components-to-game-state)
+                                           (fx.interaction-lock.unlock)
+                                           (fx.engine.tick)
+                                           (fx.engine.render))
+                             deal-animation (app:build-card-animation-from-events events on-complete)
+                             duration (accumulate [sum 0 _ animation (ipairs deal-animation.animations)]
+                                        (+ sum
+                                           (or animation.delay 0)
+                                           (or animation.duration 0)))
+                             count-anmiation (Animation.new {:ease :linear
+                                                             :duration duration
+                                                             :component app.components.draw-count
+                                                             :from (length app.game.draw)
+                                                             :to (length next-game.draw)
+                                                             :property :text
+                                                             :apply (fn [comp value t]
+                                                                      (comp:update-count
+                                                                        {:draw (fcollect [_ 1 value] true)}))})]
+                         (set app.game next-game)
+                         (fx.interaction-lock.general-lockout)
+                         (fx.animation.play deal-animation)
+                         (fx.animation.play count-anmiation))
+    (nil err) (app:notify err)))
 
-(fn RegularAppState.Default.OnEvent.app.new-game [app]
-  (app:setup-new-game app.game-config nil)
-  (vim.defer_fn #(app:queue-event :app :deal) 300))
+(λ Playing.on.app.deal [state cofx event fx]
+  (do-deal :deal state cofx event fx))
 
-(fn RegularAppState.Default.OnEvent.app.restart-game [app]
-  (app:setup-new-game app.game-config app.seed)
-  (vim.defer_fn #(app:queue-event :app :deal) 300))
+(λ Playing.on.app.deal-more [state cofx event fx]
+  (do-deal :deal-more state cofx event fx))
 
-(fn RegularAppState.Default.OnEvent.app.hint-random-set [app]
+(λ Playing.on.app.auto-select [state {: app} event fx]
+  (case event
+    {:action :press}
+    (let [[[a b c] _] (Logic.Query.find-sets app.game)
+          events (icollect [_ component (ipairs app.components.cards.children)]
+                   (case component.location
+                     [:deal x] (when (or (= a x) (= b x) (= c x))
+                                 component)))]
+      (each [i component (ipairs events)]
+        (fx.event.dispatch-after (* 120) :app :click-card {:component component
+                                                           :card component.card
+                                                           :location component.location})))))
+
+(λ Playing.on.app.maybe-deal-more [state {: app} event fx]
+  (let [found-sets (Logic.Query.find-sets app.game)
+        can-deal? (Logic.Query.can-deal-more? app.game)]
+    (case (values can-deal? found-sets)
+      (true [nil]) (fx.event.dispatch :app :deal-more)
+      (false [nil]) (fx.state.transition GameEnded)
+      _ (do
+          (fx.interaction-lock.unlock)
+          (fx.engine.tick)
+          (fx.engine.render)))))
+
+(λ Playing.on.app.click-card [state {: app} {: location : card : component} fx]
+  ;; Toggle selection
+  (let [[_ deal-index] location]
+    (case (. state.selection deal-index)
+      nil (do
+            (set (. state.selection deal-index) {: component : deal-index})
+            (component:select))
+      existing (do
+                 (set (. state.selection deal-index) nil)
+                 (component:deselect))))
+  ;; Submit selection at 3
+  (let [selected-indexes (table.keys state.selection)]
+    (when (= 3 (length selected-indexes))
+      (case (Logic.Action.submit-set app.game selected-indexes)
+        (next-game events)
+        (let [on-complete (fn []
+                            (each [_ {: component} (pairs state.selection)]
+                              (component:deselect))
+                            (set state.selection {})
+                            (app:synchronise-components-to-game-state)
+                            (fx.event.dispatch :app :maybe-deal-more))
+              animation (app:build-card-animation-from-events events on-complete)]
+          (set app.game next-game)
+          (fx.interaction-lock.general-lockout)
+          (fx.animation.play animation))
+        (nil err)
+        (let [{: Animation : Group} (require :playtime.app.animation-manager)
+              animations (icollect [_ {: component} (pairs state.selection)]
+                           (Animation.new
+                             {: component
+                              :apply (fn [component value percent]
+                                       (set component.position.col (math.floor value)))
+                              :property :col
+                              :from component.position.col
+                              :to (+ component.position.col 2)
+                              :ease :oscillate-3-dampend
+                              :duration 300
+                              :delay 0}))
+              on-complete (fn []
+                            (each [_ {: component} (pairs state.selection)]
+                              (component:deselect))
+                            (set state.selection {})
+                            (app:synchronise-components-to-game-state)
+                            (fx.interaction-lock.unlock)
+                            (fx.engine.tick)
+                            (fx.engine.render))]
+          (fx.animation.play (Group.new {: animations : on-complete})
+          (fx.interaction-lock.general-lockout)
+          (app:notify err))))))
+  (fx.engine.tick)
+  (fx.engine.render))
+
+(fn GameEnded.on.enter [state {: app} event fx]
+  (let [result (Logic.Query.game-result app.game)
+        top-line-result (case result
+                          {:remaining 0} :perfect
+                          _ :great-job)
+        other-lines [(string.fmt "Sets found: %d" result.sets)
+                     (string.fmt "Remaining cards: %d" result.remaining)
+                     (string.format "Time: %s" (app.clock:elapsed-time))]
+        report (GameReport.new {:view-size app.view.size
+                                :play-again ["Play Again?" [:app :new-game]]
+                                :result top-line-result
+                                :result-lines (case top-line-result
+                                                :perfect [[:perfect "Perfect!"]]
+                                                :great-job [[:great-job "Great Job!"]])
+                                : other-lines})]
+    (set app.components.report report)
+    (fx.interaction-lock.general-lockout)
+    (fx.engine.render)))
+
+(fn M.location->position [app location]
+  (let [{:glyph-config {: card-width}} app
+        card-height 5
+        deal-start-col (+ 4 card-width)
+        deal-start-row 2]
+    (case location
+      [:draw :count] {:row (+ deal-start-row (- card-height 1))
+                      :col (- deal-start-col 2 3)
+                      :z 500}
+      [:draw n] {:row deal-start-row
+                 :col (- deal-start-col (+ card-width 2))
+                 :z n}
+      [:discard :count] {:row (+ deal-start-row card-height -1)
+                         :col (+ deal-start-col
+                                 (+ 1 (* (- 5 1) (+ card-width 1)))
+                                 (- card-width 3))
+                         :z 500}
+      [:discard n] {:row deal-start-row
+                    :col (+ (* (+ card-width 1) 5) 4)
+                    :z n}
+      [:deal n] (let [row (+ 1 (math.modf (/ (- n 1) 4)))
+                      col (+ 1 (% (- n 1) 4))]
+                  {:row (+ 2 (* (- row 1) 5))
+                   :col (+ deal-start-col (* (- col 1) (+ card-width 1)))
+                   :z 1})
+      _ (error (Error (<s> "Unable to convert location to position, unknown location #{location}"))))))
+
+(fn M.build-components [app]
+  (let [{:glyph-config {: card-width}} app
+        cards (icollect [location card (Logic.iter-cards app.game)]
+                (let [position (app:location->position location)]
+                  (Components.card {: card
+                                    : card-width
+                                    : location
+                                    : position})))
+        slots (icollect [_ location (ipairs [[:discard 0] [:draw 0]])]
+                (Components.slot {:position (app:location->position location)
+                                  : card-width}))
+        discard-count (Component.new {:position (app:location->position [:discard :count])
+                                      :size {:width 3 :height 1}
+                                      :update-count (fn [self game]
+                                                      (set self.content
+                                                           [[[(string.format "%02d" (/ (length game.discard) 3))
+                                                             "@playtime.ui.off"]]]))})
+        draw-count (Component.new {:position (app:location->position [:draw :count])
+                                   :size {:width 3 :height 1}
+                                   :update-count (fn [self game]
+                                                      (set self.content
+                                                           [[[(string.format "%02d" (length game.draw))
+                                                             "@playtime.ui.off"]]]))})
+        deal-more-button (let [position (app:location->position [:draw 200])
+                               size {:width card-width :height 5}
+                               click (fn [self cofx event fx]
+                                       (case event
+                                         {:button :left :action :press}
+                                         (fx.event.dispatch :app :deal-more)))]
+                           (Component.new {: position
+                                           : size
+                                           :on {: click}}))
+        discard-trap-button (let [position (app:location->position [:discard 200])
+                                  size {:width card-width :height 5}
+                                  click (fn [self cofx event fx])]
+                              (Component.new {: position
+                                              : size
+                                              :on {: click}}))]
+    (draw-count:update-count app.game)
+    (discard-count:update-count app.game)
+    (table.merge app.components {: deal-more-button
+                                 : discard-trap-button
+                                 : discard-count
+                                 : draw-count
+                                 :slots (Component.new {:children slots})
+                                 :cards (Component.new {:children cards})})))
+
+(λ M.synchronise-components-to-game-state [app]
+  (set app.components.deal-more-button.visible? (Logic.Query.can-deal-more? app.game))
+  (each [location card (Logic.iter-cards app.game)]
+    (let [comp (app:find-card-component-by-card-id card.id)
+          position (app:location->position location)]
+      (case card
+        {:face :up} (comp:flip-face-up)
+        {:face :down} (comp:flip-face-down))
+      (set comp.location location)
+      (set comp.position position)))
+    (app.components.draw-count:update-count app.game)
+    (app.components.discard-count:update-count app.game)
+  app)
+
+(λ M.start [runtime-config _game-config ?seed]
+  (let [{:game {:set {:font-glyph-width font-glyph-width}}} runtime-config
+        view-width (case font-glyph-width
+                     :wide 71
+                     _ 65)
+        glyph-config {:glyph-width font-glyph-width
+                      :card-width (case font-glyph-width
+                                    :wide 10
+                                    _ 9)}
+        app (App.new {:module M
+                      :name "SET"
+                      :app-id :set
+                      :view {:width view-width :height 25}
+                      :menu [["SET"
+                              [["New Game" [:app :new-game]]
+                               ["Hint" [:app :hint]]]]]}
+                     runtime-config)]
+    (set app.glyph-config glyph-config)
+    (app.view:open)
+    (app:queue-event :app :new-game {:delay 200 :seed ?seed})
+    (app:request-tick)
+    (app:request-render)
+    app))
+
+(λ M.on.app.new-game [app cofx {:seed ?seed :delay ?delay} fx]
+  (let [game (Logic.build {} ?seed)]
+    (app.clock:reset)
+    (set app.game game)
+    (app:build-components)
+    (set app.components.report nil)
+    (fx.state.reset Playing)
+    (fx.event.dispatch-after (or ?delay 1) :app :deal)
+    (fx.interaction-lock.general-lockout)
+    (fx.engine.render)
+    (fx.engine.tick)))
+
+(λ M.on.app.hint [app cofx event fx]
   (case (Logic.Query.find-sets app.game)
     [nil] (app:notify "No sets to hint!")
     sets (let [[a-set] (table.shuffle sets)
@@ -57,218 +293,74 @@
                msg (<s> "There #{verb-1} #{count} possible #{noun}. #{verb-2} has #{single-hint}.")]
            (app:notify msg))))
 
-(fn RegularAppState.Default.OnEvent.app.deal-more [app]
-  (case-try
-    (Logic.Action.deal-more app.game) (next-game moves)
-    (let [after #(do
-                   (app:update-game next-game [:deal-more])
-                   (if (Logic.Query.game-ended? app.game)
-                     (app:switch-state RegularAppState.GameEnded)
-                     (do
-                       (app:switch-state RegularAppState.Default)
-                       (app:queue-event :app :noop)
-                       (if (table.empty? (Logic.Query.find-sets app.game))
-                         (app:queue-event :app :deal-more)))))
-          timeline (app:build-event-animation moves after {:stagger-ms 50 :duration-ms 120})]
-      (app:switch-state RegularAppState.Animating timeline))
-    (catch
-      (nil e) (app:notify e))))
+(λ M.find-card-component-by-card-id [app card-id]
+  (let [lookup (or app.__find-card-component-by-card-id-lookup
+                   (table.set app :__find-card-component-by-card-id-lookup {:memo nil :table nil}))
+        root-component app.components.cards]
+    (when (~= root-component lookup.memo)
+      (set lookup.memo root-component)
+      (set lookup.table
+           (collect [_ comp (ipairs root-component.children)]
+             (values comp.card.id comp))))
+    (. lookup.table card-id)))
 
-(fn RegularAppState.Default.OnEvent.input.<LeftMouse> [app [location] _pos]
-  (case location
-    [:menu _idx nil &as menu-item]
-    (app:push-state App.State.DefaultInMenuState {: menu-item})
-    [:draw _] (app:queue-event :app :deal-more)
-    [:deal n] (let [{: selected} app.state.context
-                    ?index (accumulate [found nil i deal-n (ipairs selected) &until found]
-                             (if (= n deal-n) i))]
-                (case ?index
-                  nil (table.insert selected n)
-                  i (table.remove selected i))
-                (when (= 3 (length selected))
-                  (app:switch-state RegularAppState.SubmitSet {: selected})))))
-
-(fn RegularAppState.Default.OnEvent.input.<RightMouse> [app _location _pos]
-  (set app.state.context.selected []))
-
-(fn RegularAppState.Default.OnEvent.app.deal [app]
-  (let [(next-game moves) (Logic.Action.deal app.game)
-        after #(do
-                 (app:switch-state RegularAppState.Default {:selected []})
-                 (app:update-game next-game [:deal])
-                 ;; We need the "not animating, update components" tick to run
-                 ;; to lower the z-index for the just animated cards, otherwise
-                 ;; the automoves move *under* the tableau.
-                 ;; So force it to run once for noop, then run the automove TODO: icky hack..
-                 (app:queue-event :app :noop)
-                 ;; Ensure there is a set
-                 (when (table.empty? (Logic.Query.find-sets app.game))
-                   (app:queue-event :app :deal-more)))
-        timeline (app:build-event-animation moves after {:stagger-ms 50 :duration-ms 120})]
-    (app:switch-state RegularAppState.Animating timeline)))
-
-(fn RegularAppState.Default.tick [app]
-  (let [{: selected} app.state.context]
-    (app.components.set-count:update (/ (length app.game.discard) 3))
-    (app.components.draw-count:update (length app.game.draw))
-    (each [location card (Logic.iter-cards app.game)]
-      (let [comp (. app.card-id->components card.id)
-            selected? (case location
-                        [:deal n] (accumulate [found false i deal-n (ipairs selected) &until found]
-                                    (= n deal-n))
-                        _ false)]
-        (comp:update location card selected?)))))
-
-(fn RegularAppState.SubmitSet.activated [app _context]
-  ;; for better feel, delay submitting the set for a few frames
-  (vim.defer_fn #(app:queue-event :app :submit) 180))
-
-(fn RegularAppState.SubmitSet.tick [...]
-  ;; TODO Hack reroute tick to default for select highlighting
-  (RegularAppState.Default.tick ...))
-
-(fn RegularAppState.SubmitSet.OnEvent.app.submit [app]
-  (let [{: selected} app.state.context]
-    (case-try
-      (Logic.Action.submit-set app.game selected) (next-game moves)
-      (let [after #(do
-                     (app:update-game next-game [:submit-set selected])
-                     (if (Logic.Query.game-ended? app.game)
-                       (app:switch-state RegularAppState.GameEnded)
-                       (do
-                         (app:switch-state RegularAppState.Default)
-                         (if (table.empty? (Logic.Query.find-sets app.game))
-                           (app:queue-event :app :deal-more)))))
-            timeline (app:build-event-animation moves after {:stagger-ms 50 :duration-ms 120})]
-        (app:switch-state RegularAppState.Animating timeline))
-      (catch
-        (nil e) (do
-                  (app:notify e)
-                  (app:switch-state RegularAppState.Default {:selected []}))))))
-
-(fn RegularAppState.GameEnded.activated [app]
-  (set app.ended-at (os.time))
-  (let [{: sets : remaining} (Logic.Query.game-result app.game)
-        other [(string.fmt "Sets found: %d" sets)
-               (string.fmt "Remaining cards: %d" remaining)
-               (string.fmt "Time: %ds" (- app.ended-at app.started-at))]]
-    (app.components.game-report:update :won other)))
-
-(fn RegularAppState.GameEnded.OnEvent.input.<LeftMouse> [app [location] pos]
-  (case location
-    [:menu idx nil &as menu-item]
-    (app:push-state App.State.DefaultInMenuState {: menu-item})))
-
-(λ M.build-event-animation [app moves after ?opts]
-  (CardUtils.build-event-animation app moves after ?opts))
-
-(fn M.location->position [app location]
-  (let [{:width card-width} app.card-style
-        deal-start-col (+ 4 card-width)
-        deal-start-row 2]
-    (case location
-      [:draw n] {:row deal-start-row
-                 :col (- deal-start-col (+ card-width 2))
-                 :z n}
-      [:discard n] {:row deal-start-row
-                    :col (+ (* (+ card-width 1) 5) 4)
-                    :z n}
-      [:deal n] (let [row (+ 1 (math.modf (/ (- n 1) 4)))
-                      col (+ 1 (% (- n 1) 4))]
-                  {:row (+ 2 (* (- row 1) 5))
-                   :col (+ deal-start-col (* (- col 1) (+ card-width 1)))
-                   :z 1})
-      _ (error (Error (<s> "Unable to convert location to position, unknown location #{location}"))))))
-
-(λ M.start [app-config game-config ?seed]
-  (let [app (-> (App.build "SET" :set app-config game-config)
-                (setmetatable {:__index M}))
-        game-set-glyph-width app-config.__beta-game-set-font-glyph-width
-        card-style {:height 5
-                    :glyph-width game-set-glyph-width
-                    :width (if (= :wide game-set-glyph-width) 10 9)}
-        view (Window.open :set
-                          (App.build-default-window-dispatch-options app)
-                          {:width (if (= game-set-glyph-width :wide) 71 65)
-                           :height 25
-                           :window-border app-config.window-border
-                           :window-position app-config.window-position
-                           :minimise-position app-config.minimise-position})
-        _ (table.merge app.z-layers {:cards 25 :report 120 :animation 200})]
-    (set app.view view)
-    (set app.card-style card-style)
-    (app:setup-new-game app.game-config ?seed)
-    (vim.defer_fn #(app:queue-event :app :deal) 300)
-    (app:render)))
-
-(λ M.setup-new-game [app game-config ?seed]
-  (app:new-game Logic.build game-config ?seed)
-  (app:build-components)
-  (app:switch-state RegularAppState.Default {:selected []})
-  app)
-
-(λ M.build-components [app]
-  (let [card-style app.card-style
-        card-card-components (collect [location card (Logic.iter-cards app.game)]
-                               (let [comp (SetComponents.card
-                                            #(app:location->position $1)
-                                            location
-                                            card
-                                            card-style)]
-                                 (values card.id comp)))
-        game-report (CommonComponents.game-report app.view.width
-                                                  app.view.height
-                                                  (app:z-index-for-layer :report)
-                                                  [[:won "You did it!"]])
-        slots [(SetComponents.slot #(app:location->position $1)
-                                   [:draw 0]
-                                   card-style)
-               (SetComponents.slot #(app:location->position $1)
-                                   [:discard 0]
-                                   card-style)]
-        draw-count (-> (CardComponents.count (app:location->position [:draw 100]) card-style)
-                       (: :update 81))
-        set-count (CardComponents.count (app:location->position [:discard 100]) card-style)
-        menubar (CommonComponents.menubar [["SET" [:file]
-                                            [["" nil]
-                                             ["New Game" [:new-game]]
-                                             ["Restart Game" [:restart-game]]
-                                             ["" nil]
-                                             ["Undo" [:undo]]
-                                             ["" nil]
-                                             ["Hint" [:hint-random-set]]
-                                             ; ["" nil]
-                                             ; ["Save current game" [:save]]
-                                             ; ["Load last save" [:load]]
-                                             ["" nil]
-                                             ["Quit" [:quit]]
-                                             ["" nil]
-                                             [(string.format "Seed: %s" app.seed) nil]]]]
-                                          {:width app.view.width
-                                           :z (app:z-index-for-layer :menubar)})]
-    (set app.card-id->components card-card-components)
-    (table.merge app.components {: menubar
-                                 : slots
-                                 : draw-count
-                                 : set-count
-                                 : game-report
-                                 :cards (table.values card-card-components)})))
-
-(fn M.render [app]
-  (app.view:render [[app.components.menubar]
-                    app.components.slots
-                    [app.components.draw-count app.components.set-count]
-                    app.components.cards
-                    [app.components.game-report]])
-  app)
-
-(fn M.tick [app]
-  (app:process-next-event)
-  (case (. app.state.module.tick)
-    f (f app)
-    _ (each [location card (Logic.iter-cards app.game)]
-        (let [comp (. app.card-id->components card.id)]
-          (comp:update location card))))
-  (app:request-render))
+(fn M.build-card-animation-from-events [app events on-complete]
+  (let [{: Animation : Group} (require :playtime.app.animation-manager)
+        flip-duration 1
+        move-duration 120
+        move-delay (fn [i] (* (- i 1) 50))
+        flip-delay (fn [i] (+ (move-delay i) (/ move-duration 1)))
+        ;; Event locations may include "transient" card locations, eg
+        ;; a card is moved from discard -> deck -> hand, but our current state
+        ;; only has the card in discard, and the future state has it in hand.
+        ;; So we maintain a cache of the location -> cards during the event
+        ;; stream so we can resolve transient locations to cards.
+        move-location-cache {}
+        find-card-by-location (fn [[f n]]
+                                (case (?. move-location-cache f n)
+                                  card card
+                                  nil (. app.game f n)))
+        save-card-move-to-cache (fn [card [f n]]
+                                  (case (. move-location-cache f)
+                                    nil (set (. move-location-cache f) {}))
+                                  (set (. move-location-cache f n) card))
+        animations (icollect [i event (ipairs events)]
+                     (case event
+                       (where (or [:face-up location] [:face-down location]))
+                       (let [card (find-card-by-location location)
+                             component (app:find-card-component-by-card-id card.id)]
+                             (Animation.new
+                                    {: component
+                                     :apply (fn [component _value percent]
+                                              (when (<= 1 percent)
+                                                (case event
+                                                  [:face-up _] (component:flip-face-up)
+                                                  [:face-down _] (component:flip-face-down))))
+                                     :property :visible-face
+                                     :from 0
+                                     :to 1
+                                     :ease :linear
+                                     :duration flip-duration
+                                     :delay (flip-delay i)}))
+                       [:move from to]
+                       (let [card (find-card-by-location from)
+                             _ (save-card-move-to-cache card to)
+                             component (app:find-card-component-by-card-id card.id)
+                             {:position {:z _default-z}} component]
+                             (Animation.new
+                                    {: component
+                                     :apply (fn [component value _percent]
+                                              (set component.position {:row (math.ceil value.row)
+                                                                       :col (math.ceil value.col)
+                                                                       ;; TODO: deal specific z setting, have two animation fs
+                                                                       ;; move & deal.
+                                                                       :z (+ 200 (. (app:location->position to) :z))}))
+                                     :property :position
+                                     :from (app:location->position from)
+                                     :to (app:location->position to)
+                                     :ease :ease-out-quad
+                                     :duration move-duration
+                                     :delay (move-delay i)}))))]
+    (Group.new {: animations : on-complete})))
 
 M

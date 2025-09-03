@@ -5,12 +5,10 @@
 (local Logger (require :playtime.logger))
 (local Deck (require :playtime.game.set.deck))
 
-(local CardGameUtils (require :playtime.common.card.utils))
+(local CardGameUtils (require :playtime.game.shared.card-utils))
 (local {: apply-events} CardGameUtils)
 
-(local M {:Action {}
-          :Plan {}
-          :Query {}})
+(local M {:Action {} :Query {}})
 
 (fn card->vector [card]
   (let [vals {:color {:red 0 :green 1 :blue 2}
@@ -77,20 +75,6 @@
       (coroutine.yield [:discard i] card)))
   (coroutine.wrap iter))
 
-(λ M.Action.generate-puzzle [state]
-  (Logger.info "generate-puzzle")
-  (faccumulate [cards nil _ 1 100 &until cards]
-    (let [indexes (-> (table.keys state.draw)
-                      (table.shuffle))
-          cards (fcollect [i 1 12]
-                  (. state.draw (. indexes i)))
-          sets (find-sets cards)]
-      (if (<= 6 (length sets))
-        (do
-          (Logger.info "Found 6 in  #{sets}" {: sets})
-          cards)
-        (Logger.info [:found (length sets)])))))
-
 (λ M.Action.deal [state]
   (let [moves (faccumulate [moves [] _ 1 12]
                 (-> moves
@@ -119,16 +103,22 @@
                        (where n-dealt (< 12 n-dealt))
                        ;; Over 12 cards, fill created gaps with any extra cards,
                        ;; dont deal any new cards.
-                       (let [hole-indexes (icollect [_ i (ipairs deal-indexes)]
-                                            (if (<= i 12) i))
-                             shift-indexes (let [discarding (table.invert deal-indexes)]
-                                             (fcollect [i 13 n-dealt]
-                                               (if (nil? (. discarding i))
-                                                 i)))]
-                         (accumulate [moves moves i _ (ipairs shift-indexes)]
-                           (table.insert moves [:move
-                                                [:deal (. shift-indexes i)]
-                                                [:deal (. hole-indexes i)]])))
+                       ;;
+                       ;; Move the highest index card (that is not being removed)
+                       ;; into the lowest index hole if the new index is lower.
+                       ;; This should fill with the minimal re-shuffle.
+                       (let [hole-indexes (table.sort deal-indexes)
+                             availiable-indexes (-> (icollect [i _ (ipairs state.deal)]
+                                                      (when (not (eq-any? i hole-indexes))
+                                                        i))
+                                                    (table.sort #(< $2 $1)))
+                             [h1 h2 h3] hole-indexes
+                             [a1 a2 a3] availiable-indexes
+                             zip [[h1 a1] [h2 a2] [h3 a3]]]
+                         (accumulate [moves moves
+                                      _ [to from] (ipairs zip)]
+                           (table.insert moves (when (< to from)
+                                           [:move [:deal from] [:deal to]]))))
                        ;; Otherwise fill gaps with new cards if possible
                        _ (case (length state.draw)
                            0 moves
@@ -165,6 +155,9 @@
                      [a a a] :same
                      _ :diff)]
         (values key result)))))
+
+(λ M.Query.can-deal-more? [state]
+  (< 0 (length state.draw)))
 
 (λ M.Query.game-ended? [state]
   (let [sets (M.Query.find-sets state)]

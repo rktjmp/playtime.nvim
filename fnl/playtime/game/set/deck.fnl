@@ -1,8 +1,8 @@
 (require-macros :playtime.prelude)
 (prelude)
 
-(local Id (require :playtime.common.id))
-(local Deck (require :playtime.common.card.deck))
+(local Id (require :playtime.id))
+(local Deck (require :playtime.game.shared.french-deck))
 (local M (setmetatable {:Set {}} {:__index Deck}))
 
 (fn M.Set.build []
