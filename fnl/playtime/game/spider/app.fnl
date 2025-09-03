@@ -3,12 +3,13 @@
 
 (local Logger (require :playtime.logger))
 (local Error (require :playtime.error))
-(local PatienceApp (require :playtime.app.patience))
-(local PatienceState (require :playtime.app.patience.state))
 
-(local M (setmetatable {} {:__index PatienceApp}))
+(local PatienceApp (require :playtime.patience))
+(local PatienceComponent (require :playtime.patience.component))
+(local Component (require :playtime.component))
 (local Logic (require :playtime.game.spider.logic))
-(local AppState (PatienceState.build Logic))
+
+(local M (PatienceApp.scaffold-module {}))
 
 (fn M.location->position [app location]
   (let [config {:card {:margin {:row 0 :col 2}
@@ -30,29 +31,48 @@
       _ (error (Error "Unable to convert location to position, unknown location #{location}"
                       {: location})))))
 
-(fn AppState.Default.OnEvent.app.maybe-auto-move [app]
-  (case-try
-    (Logic.Plan.next-complete-sequence app.game) from
-    (Logic.Action.remove-complete-sequence app.game from) (next-game events)
-    (let [after #(do
-                   (app:switch-state AppState.Default)
-                   (app:queue-event :app :maybe-auto-move)
-                   (app:update-game next-game [:remove-complete-sequence from]))
-          timeline (app:build-event-animation events after {:stagger-ms 120})]
-      (app:switch-state AppState.Animating timeline)))
-  app)
+(fn M.build-other-components [app]
+  ;; Build invisible draw-buttons over draw piles, and an interaction blocker
+  ;; over the completed cards.
+  (let [{: row : col : z} (app:location->position [:draw 6 1])
+        {:z z-offset} (app:location->position [:draw 1 100])
+        draw-buttons (fcollect [i 1 5]
+                       ;; Note we initially have 6 draw piles, deal the
+                       ;; tableau from the top most. draws stack right to left,
+                       ;; so draw-6 is the last, most left one.
+                       (let [position {: row : col :z (+ z-offset i)}
+                             size {:height 5 :width (+ 7 (* (- i 1) 2))}]
+                         (Component.new {: size : position
+                                         :tag [:draw-button i]
+                                         :content [[] [] [] [] []]
+                                         :on {:click (fn [self cofx event fx]
+                                                       (case event
+                                                         {:action :release :button :left}
+                                                         (do
+                                                           (set self.visible? false)
+                                                           (fx.event.dispatch :app :draw)
+                                                           (fx.engine.render))))}})))
+        container (Component.new {:children draw-buttons})]
+    (table.merge app.components {: container})
+    app))
 
-(λ M.start [app-config game-config ?seed]
-  (let [game-config (table.merge {:suits 4} game-config)]
-    (PatienceApp.start
-      {:name (string.format "Spider (%s Suits)" game-config.suits)
-       :filetype (string.format "spider-%s" game-config.suits)
-       :view {:width 96 :height 42}
-       :empty-fields [[:tableau 10]]
-       :card-style {:colors 4}}
-      {:AppImpl M
-       :LogicImpl Logic
-       :StateImpl AppState}
-      app-config game-config ?seed)))
+(λ M.start [runtime-config game-config ?seed]
+  (let [patience-config {:LogicImpl Logic
+                         :StateImpl M.State
+                         :ComponentImpl {:spec {:slots [{:location :tableau
+                                                         :count 10
+                                                         :label "*"}]}
+                                         :card PatienceComponent.card-4-colors}}
+        game-config (table.merge {:suits 4} game-config)
+        app-config {:module M
+                    :name (string.format "Spider (%s Suits)" game-config.suits)
+                    :app-id (string.format "spider-%s" game-config.suits)
+                    :view {:width 96 :height 42}
+                    :menu [["Spider" [["New Game" [:app :new-game]]]]]}]
+    (PatienceApp.start patience-config
+                       app-config
+                       runtime-config
+                       game-config
+                       ?seed)))
 
 M

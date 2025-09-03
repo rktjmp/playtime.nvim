@@ -3,12 +3,10 @@
 
 (local Error (require :playtime.error))
 (local Logger (require :playtime.logger))
-(local Deck (require :playtime.common.card.deck))
-(local CardGameUtils (require :playtime.common.card.utils))
+(local Deck (require :playtime.game.shared.french-deck))
+(local CardGameUtils (require :playtime.game.shared.card-utils))
 
-(local M {:Action {}
-          :Plan {}
-          :Query {}})
+(local M {:Action {} :Query {}})
 
 (local {: inc-moves
         : apply-events} CardGameUtils)
@@ -202,7 +200,7 @@
       ;; on a lift fail etc.
       (nil err) (do))))
 
-(fn M.Plan.next-complete-sequence [state]
+(fn M.Query.automatic-action [state]
   (let [from (accumulate [start-at nil
                           col-n col (ipairs state.tableau)
                           &until start-at]
@@ -215,7 +213,8 @@
                    ;; Return the start of the complete sequence for use with
                    ;; Acton.remove-complete-sequence
                    [:tableau col-n index])))]
-    from))
+    (when from
+      [:remove-complete-sequence from])))
 
 (fn M.Query.liftable? [state location]
   (not (nil? (check-pick-up state location))))
@@ -224,6 +223,9 @@
   (case location
     [field] (eq-any? field [:tableau])
     _ false))
+
+(fn M.Query.moveable? [state from-location to-location]
+  (not (nil? (M.Action.move state from-location to-location))))
 
 (fn M.Query.game-ended? [state]
   (accumulate [won? true _ stack (ipairs state.complete)]
