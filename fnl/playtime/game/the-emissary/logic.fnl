@@ -3,8 +3,8 @@
 
 (local Error (require :playtime.error))
 (local Logger (require :playtime.logger))
-(local Deck (require :playtime.common.card.deck))
-(local CardGameUtils (require :playtime.common.card.utils))
+(local Deck (require :playtime.game.shared.french-deck))
+(local CardGameUtils (require :playtime.game.shared.card-utils))
 
 (local M {:Action {}
           :Plan {}
@@ -236,8 +236,8 @@
   (case (. state :advisor suit advisor-n)
     card (if (card-face-up? card)
            true
-           (values nil (<s> "advisor exhausted")))
-    nil (values nil (<s> "no advisor at #{advisor-n}"))))
+           (values nil (<s> "Advisor exhausted")))
+    nil (values nil (<s> "No advisor at #{advisor-n}"))))
 
 (λ M.Query.diplomacy [state advisor-n]
   (check-advisor state :hearts advisor-n))
@@ -268,7 +268,6 @@
 (λ M.Query.hand-exhausted? [state]
   (= 0 (length state.hand)))
 
-
 (λ M.Query.game-ended? [state]
   ;; Ended when we've visited all and won (card now in advisors)
   ;; or lost (card face down)
@@ -290,6 +289,9 @@
                 (table.insert unused true))))
         won? (= 8 (length supporting))
         score? (+ (length supporting) (length unused))]
-    [won? score?]))
+    {:allies (length supporting)
+     :unused (length unused)
+     :score (+ (length supporting) (length unused))
+     :won? won?}))
 
 M

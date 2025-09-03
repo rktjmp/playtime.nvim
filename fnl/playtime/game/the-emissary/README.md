@@ -29,12 +29,12 @@ permanently.
 
 The advisor abilities are
 
-|Name|Suit|Ability|
-|--|--|--|
-|Diplomacy|Hearts|Discard all cards matching the current rulers suit.|
-|Military|Clubs|Draw a card for every club in hand.|
-|Politics|Spades|Swap the current ruler with an unvisited one. Only alters the trump suit, not required number of wins.|
-|Commerce|Diamonds|Draw 2 cards then discard 2 cards.|
+| Name      | Suit     | Ability                                                                                                |
+| --        | --       | --                                                                                                     |
+| Diplomacy | Hearts   | Discard all cards matching the current rulers suit.                                                    |
+| Military  | Clubs    | Draw a card for every club in hand.                                                                    |
+| Politics  | Spades   | Swap the current ruler with an unvisited one. Only alters the trump suit, not required number of wins. |
+| Commerce  | Diamonds | Draw 2 cards then discard 2 cards.                                                                     |
 
 Scoring
 --
