@@ -87,7 +87,7 @@
 
   (PatienceApp.build-components app)
   (let [guides [[:A 2  3  4  5  6  7  8  9 10 :J :Q  :K]
-                 [2 4  6  8 10 :Q :A  3  5  7  8 :J  :K]
+                 [2 4  6  8 10 :Q :A  3  5  7  9 :J  :K]
                  [3 6  9 :Q  2  5  8 :J :A  4  7 10  :K]
                  [4 8 :Q  3  7 :J  2  6 10 :A  5  9 :K]]
         guides (icollect [i g (ipairs guides)]
