@@ -105,7 +105,7 @@
 
 
  local onto_card = state.foundation[f_col][f_card] local want_value
- do local _28_ = ((f_col + card_value(onto_card)) % 13) if (_28_ == 0) then want_value = 1 elseif (nil ~= _28_) then local n = _28_
+ do local _28_ = ((f_col + card_value(onto_card)) % 13) if (_28_ == 0) then want_value = 13 elseif (nil ~= _28_) then local n = _28_
 
  want_value = n else want_value = nil end end
  Logger.info({"held", card_value(held_card), "onto", card_value(onto_card), "want", want_value})

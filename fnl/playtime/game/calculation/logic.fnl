@@ -106,7 +106,7 @@
     (_ [:foundation f-col f-card] [held-card])
     (let [onto-card (. state :foundation f-col f-card)
           want-value (case (% (+ f-col (card-value onto-card)) 13)
-                       0 1
+                       0 13
                        n n)]
       (Logger.info [:held (card-value held-card)
                     :onto (card-value onto-card)
