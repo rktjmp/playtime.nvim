@@ -69,7 +69,7 @@
                         LogicImpl)
         _ (assert-match {: Idle : PlanningMove : GameEnded} StateImpl)
         _ (assert-match {:spec {:slots [data]}} ComponentImpl)
-        _ (set app-config.features (table.merge {:save-load true}
+        _ (set app-config.features (table.merge {:save-load false}
                                                 (or app-config.features {})))
         app (App.new app-config runtime-config)]
     (table.merge app {: LogicImpl : StateImpl : ComponentImpl : game-config})
