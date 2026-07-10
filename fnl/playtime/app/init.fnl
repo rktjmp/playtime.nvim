@@ -46,6 +46,7 @@
 (local default-on-handlers
   {:input {}
    :app {:noop (fn [])
+         :readme (fn [app cofx event fx] (app:open-readme event.path))
          :notify (fn [app cofx event fx] (app:notify (tostring event.message)))
          :quit (fn [app cofx event fx] (app:quit))}
    :window {:unfocused (fn [app cofx {: window} fx]
@@ -85,12 +86,16 @@
                                       handler))))
   module)
 
-(λ M.new [{: module : name : app-id :view ?view :menu ?menu :features ?features} runtime-config]
+(λ M.new [{: module : name : app-id :view ?view :menu ?menu :features ?features &as app-config}
+          runtime-config]
   (let [app {: name : app-id}
         features {:save-load (?. ?features :save-load)
                   :statistics (?. ?features :statistics)}
         data-dir (-> (string.format "%s/playtime/%s" (vim.fn.stdpath :data) app-id)
                      (vim.fs.normalize))
+        readme (let [readme-query (string.format "fnl/playtime/game/%s/README.md" app-id)]
+                     (case (vim.api.nvim_get_runtime_file readme-query false)
+                       [path] path))
         event-queue (EventQueue.new {:on-enqueued #(app.engine:request-tick)})
         game-manager (GameManager.new)
         fsm (FSM.new)
@@ -142,6 +147,8 @@
                              (each [_ [name action] (ipairs item-group)]
                                (table.insert a-drop-down [name action]))
                              (table.insert a-drop-down separator))]
+                     (when readme
+                       (table.insert a-drop-down ["How to Play" [:app :readme {:path readme}]]))
                      (when (and features.save-load (= 1 menu-i))
                        (table.insert a-drop-down ["Load" [:app :load]])
                        (table.insert a-drop-down ["Save" [:app :save]])
@@ -171,6 +178,10 @@
   (app.engine:halt)
   (if (and app.view (vim.api.nvim_win_is_valid app.view.win))
     (vim.api.nvim_win_close app.view.win true))
+  app)
+
+(λ M.open-readme [app path]
+  (vim.cmd.vsplit path)
   app)
 
 (λ M.queue-event [app ns name ?data]
