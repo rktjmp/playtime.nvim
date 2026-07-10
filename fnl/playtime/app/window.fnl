@@ -53,7 +53,7 @@
         win (api.nvim_open_win buf true window-config)]
     ;; We set the lines to 2x the height to allow window overflow and
     ;; scrolling, performance impact seems minimal
-    (api.nvim_buf_set_lines buf 0 -1 false (fcollect [row 1 (* height 2)] (string.rep " " width)))
+    (api.nvim_buf_set_lines buf 0 -1 false (fcollect [_row 1 (* height 2)] (string.rep " " width)))
     (api.nvim_buf_set_option buf :modifiable false)
     (api.nvim_buf_set_option buf :filetype filetype)
     (api.nvim_win_set_option win :wrap false)
@@ -188,10 +188,12 @@
 
 (λ M.minimise [window]
   (set window.minimised? true)
+  (window:update-window-size)
   (window:update-window-position))
 
 (λ M.maximise [window]
   (set window.minimised? false)
+  (window:update-window-size)
   (window:update-window-position))
 
 (λ M.update-highlights [window]
@@ -277,11 +279,11 @@
         {: min : max} window.config
         ({: width : height} fill) (case window.minimised?
                                     true (values
-                                           {:width 18 :height 1}
-                                           [(string.rep " " 18)])
+                                           {:width window.logo-component.size.width :height 1}
+                                           [(string.rep " " window.logo-component.size.width)])
                                     false (values
                                             {:width max.width :height (math.min max.height (- vim.o.lines 4))}
-                                            (fcollect [row 1 (* max.width 2)] (string.rep " " max.width))))
+                                            (fcollect [_row 1 (* max.height 2)] (string.rep " " max.width))))
         config (case window.minimised?
                  true (table.merge min {: width : height})
                  false (table.merge max {: width : height}))]
@@ -308,9 +310,7 @@
   ;; It has the downsides that you cant copy the UI state out, or save the
   ;; buffer in some meaningful way ("screenshotting", etc)
   ;;
-  (let [component-trees (if view.minimised?
-                           [[view.logo-component]]
-                           component-trees)
+  (let [component-trees (if view.minimised? [view.logo-component] component-trees)
         {:size {:width frame-width :height frame-height} : ns : buf : win} view
         {: nvim_buf_set_extmark} vim.api
         extmark-tags []

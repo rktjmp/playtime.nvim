@@ -51,11 +51,14 @@
    :window {:unfocused (fn [app cofx {: window} fx]
                          (when (vim.api.nvim_win_is_valid window.win)
                            (app.view:minimise)
-                           (app.clock:pause)))
+                           (app.clock:pause)
+                           (app:request-render)))
             :focused (fn [app cofx {: window} fx]
                        (when (vim.api.nvim_win_is_valid window.win)
                          (app.view:maximise)
-                         (app.clock:resume)))
+                         (app.clock:resume)
+                         (app:request-render)
+                         (app:request-tick)))
             :closed (fn [app cofx {: window} fx]
                       (fx.event.dispatch :app :quit))}})
 
@@ -116,12 +119,18 @@
     (case ?view
       {: width : height :filetype ?filetype}
       (let [filetype (or ?filetype app-id)
+            logo-component (let [Component (require :playtime.component)]
+                             (Component.new {:size {:width (string.col-width "🄿 🄻 🄰 🅈 🅃 🄸 🄼 🄴 ")
+                                                    :height 1}
+                                             :position {:row 0 :col 0 :z 1}
+                                             :content [[["🄿 🄻 🄰 🅈 🅃 🄸 🄼 🄴 " "@playtime.ui.menu"]]]}))
             view (Window.new {: filetype
                               :dispatch-event #(app:queue-event $...)
                               :size {: width : height}
                               :position {:when-maximised runtime-config.app.window.maximise-position
                                          :when-minimised runtime-config.app.window.minimise-position}
                               :style runtime-config.app.window.border})]
+        (set view.logo-component logo-component)
         (set app.view view)))
     ;; Create default menu component if menu configuration is given
     (when ?menu
