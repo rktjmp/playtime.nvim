@@ -124,7 +124,7 @@
         (set app.game next-game))
       (nil ?err)
       (do
-        (fx.notify (or ?err "no"))))))
+        (fx.notify (or ?err "invalid action"))))))
 
 (fn M.State.Idle.on.app.maybe-auto-move [state {: app} event fx]
   (let [{: LogicImpl : StateImpl} app]
@@ -149,7 +149,7 @@
       (fx.state.transition StateImpl.PlanningMove {: card : component : location
                                                    :allow {:click? true :drag? true}})
       (catch
-        (false ?err) (fx.notify (or ?err "no"))))))
+        (false ?err) (fx.notify (or ?err "invalid action"))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -227,7 +227,7 @@
           (fx.animation.fast-forward)))
       (nil ?err)
       (do
-        (fx.notify (or ?err "no"))
+        (fx.notify (or ?err "invalid action"))
         (when return-card?
           (state.component:put-down)
           (fx.state.transition StateImpl.Idle)
