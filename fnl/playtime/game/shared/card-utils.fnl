@@ -117,6 +117,9 @@
   (doto state
     (tset :moves (+ (or ?count 1) state.moves))))
 
+;; TODO: making this actually recursive would probably simplify [a b :top]
+;; stuff, where we just operate on the actual state given instead of having to
+;; track the "state" and "true state" stuff.
 (λ M.apply-events [state events]
   (accumulate [(state true-events) (values state [])
                event-num event (ipairs events)]
