@@ -47,12 +47,17 @@
                         ["@playtime.color.yellow" "@playtime.ui.off" "@playtime.ui.off"])
                (justify desc "" ""
                         ["@playtime.color.blue" "@playtime.ui.off" "@playtime.ui.off"])]
-        _ (fcollect [_i 1 (length rulesets) &into lines] [])
-        height (length lines)
+        height (+ 1 (length lines))
+        play-offset {:col col}
         buttons (icollect [i ruleset (ipairs rulesets)]
-                  (let [text (.. "Play " ruleset.menu)]
-                    (Component.new {:position {:row (+ row 1 i) : col :z 101}
-                                    :size {:width (string.col-width text) :height 1}
+                  (let [text (case i
+                               1 (.. "Play " ruleset.menu)
+                               _ ruleset.menu)
+                        width (string.col-width text)
+                        {: col} play-offset]
+                    (set play-offset.col (+ col width 1))
+                    (Component.new {:position {:row (+ row 1 1) : col :z 101}
+                                    :size {:width width :height 1}
                                     :content [[[text "@playtime.ui.menu"]]]
                                     :on {:click (fn [_self _cofx event fx]
                                                   (case event
@@ -74,15 +79,13 @@
                                                   game-meta)]
                     (values (table.insert bs button)
                             (+ row button.size.height 1))))
-        scroll-prompt (let [text "More↓ "
+        _scroll-prompt (let [text "More↓ "
                             pos {:row (- app.view.size.height 1)
                                  :col (/ app.view.size.width 2)
                                  :z 100}]
                         (Component.new {:position pos
                                         :size {:width 100 :height 1}
                                         :content [[[text "@playtime.ui.off"]]]}))]
-    {:buttons (Component.new {:children buttons})
-     :scroll scroll-prompt }))
-
+    {:buttons (Component.new {:children buttons})}))
 
 M
