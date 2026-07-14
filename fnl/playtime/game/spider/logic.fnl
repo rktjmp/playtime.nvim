@@ -200,6 +200,21 @@
       ;; on a lift fail etc.
       (nil err) (do))))
 
+(fn M.Query.draw? [state]
+  (let [draw-index (accumulate [d nil i draw (ipairs state.draw) &until d]
+                     (if (not (table.empty? draw)) i))
+        any-empty-columns? (accumulate [yes? false _ col (ipairs state.tableau) &until yes?]
+                             (table.empty? col))
+        num-cards-in-tableu (accumulate [sum 0 _ col (ipairs state.tableau)]
+                              (+ sum (length col)))]
+    ;; TODO: is the rule here, you must spread your 4 high stack into 4
+    ;; single cards if before drawing, even if that would not fill all 8 columns?
+    (if (and any-empty-columns? (< (length state.tableau) num-cards-in-tableu))
+      (values nil (Error "Cannot draw with empty columns"))
+      (if draw-index
+        true
+        (values nil (Error "No more draws"))))))
+
 (fn M.Query.automatic-action [state]
   (let [from (accumulate [start-at nil
                           col-n col (ipairs state.tableau)

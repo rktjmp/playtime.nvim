@@ -48,10 +48,12 @@
                                          :on {:click (fn [self cofx event fx]
                                                        (case event
                                                          {:action :release :button :left}
-                                                         (do
-                                                           (set self.visible? false)
-                                                           (fx.event.dispatch :app :draw)
-                                                           (fx.engine.render))))}})))
+                                                           (case (Logic.Query.draw? cofx.app.game)
+                                                             true (do
+                                                                    (set self.visible? false)
+                                                                    (fx.event.dispatch :app :draw)
+                                                                    (fx.engine.render))
+                                                             (nil err) (fx.notify err))))}})))
         container (Component.new {:children draw-buttons})]
     (table.merge app.components {: container})
     app))
