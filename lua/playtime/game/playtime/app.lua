@@ -65,16 +65,8 @@ local function build_game_button(width, _5_, game_meta)
     end
   end
   local lines = {justify(name, ("by " .. table.concat(authors, ", ")), table.concat(table.sort(categories), ", "), {"@playtime.color.yellow", "@playtime.ui.off", "@playtime.ui.off"}), justify(desc, "", "", {"@playtime.color.blue", "@playtime.ui.off", "@playtime.ui.off"})}
-  local _
-  do
-    local tbl_24_ = lines
-    for _i = 1, #rulesets do
-      local val_25_ = {}
-      table.insert(tbl_24_, val_25_)
-    end
-    _ = tbl_24_
-  end
-  local height = #lines
+  local height = (1 + #lines)
+  local play_offset = {col = col}
   local buttons
   do
     local tbl_26_ = {}
@@ -82,15 +74,24 @@ local function build_game_button(width, _5_, game_meta)
     for i, ruleset in ipairs(rulesets) do
       local val_28_
       do
-        local text = ("Play " .. ruleset.menu)
-        local function _8_(_self, _cofx, event, fx)
+        local text
+        if (i == 1) then
+          text = ("Play " .. ruleset.menu)
+        else
+          local _ = i
+          text = ruleset.menu
+        end
+        local width0 = string["col-width"](text)
+        local col0 = play_offset.col
+        play_offset.col = (col0 + width0 + 1)
+        local function _9_(_self, _cofx, event, fx)
           if ((_G.type(event) == "table") and (event.action == "release")) then
             return fx.event.dispatch("app", "start-game", {modname = game_meta.mod, config = ruleset.config})
           else
             return nil
           end
         end
-        val_28_ = Component.new({position = {row = (row + 1 + i), col = col, z = 101}, size = {width = string["col-width"](text), height = 1}, content = {{{text, "@playtime.ui.menu"}}}, on = {click = _8_}})
+        val_28_ = Component.new({position = {row = (row + 1 + 1), col = col0, z = 101}, size = {width = width0, height = 1}, content = {{{text, "@playtime.ui.menu"}}}, on = {click = _9_}})
       end
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
@@ -112,12 +113,12 @@ M["build-components"] = function(app)
     end
     buttons = bs, row
   end
-  local scroll_prompt
+  local _scroll_prompt
   do
     local text = "More\226\134\147 "
     local pos = {row = (app.view.size.height - 1), col = (app.view.size.width / 2), z = 100}
-    scroll_prompt = Component.new({position = pos, size = {width = 100, height = 1}, content = {{{text, "@playtime.ui.off"}}}})
+    _scroll_prompt = Component.new({position = pos, size = {width = 100, height = 1}, content = {{{text, "@playtime.ui.off"}}}})
   end
-  return {buttons = Component.new({children = buttons}), scroll = scroll_prompt}
+  return {buttons = Component.new({children = buttons})}
 end
 return M

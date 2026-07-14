@@ -456,6 +456,47 @@ M.Action["remove-complete-sequence"] = function(state, sequence_starts_at)
   end
   return _51_(check_pick_up(state, sequence_starts_at))
 end
+M.Query["draw?"] = function(state)
+  local draw_index
+  do
+    local d = nil
+    for i, draw in ipairs(state.draw) do
+      if d then break end
+      if not table["empty?"](draw) then
+        d = i
+      else
+        d = nil
+      end
+    end
+    draw_index = d
+  end
+  local any_empty_columns_3f
+  do
+    local yes_3f = false
+    for _, col in ipairs(state.tableau) do
+      if yes_3f then break end
+      yes_3f = table["empty?"](col)
+    end
+    any_empty_columns_3f = yes_3f
+  end
+  local num_cards_in_tableu
+  do
+    local sum = 0
+    for _, col in ipairs(state.tableau) do
+      sum = (sum + #col)
+    end
+    num_cards_in_tableu = sum
+  end
+  if (any_empty_columns_3f and (#state.tableau < num_cards_in_tableu)) then
+    return nil, Error("Cannot draw with empty columns")
+  else
+    if draw_index then
+      return true
+    else
+      return nil, Error("No more draws")
+    end
+  end
+end
 M.Query["automatic-action"] = function(state)
   local from
   do

@@ -57,9 +57,17 @@ M["build-other-components"] = function(app)
         local size = {height = 5, width = (7 + ((i - 1) * 2))}
         local function _5_(self, cofx, event, fx)
           if ((_G.type(event) == "table") and (event.action == "release") and (event.button == "left")) then
-            self["visible?"] = false
-            fx.event.dispatch("app", "draw")
-            return fx.engine.render()
+            local case_6_, case_7_ = Logic.Query["draw?"](cofx.app.game)
+            if (case_6_ == true) then
+              self["visible?"] = false
+              fx.event.dispatch("app", "draw")
+              return fx.engine.render()
+            elseif ((case_6_ == nil) and (nil ~= case_7_)) then
+              local err = case_7_
+              return fx.notify(err)
+            else
+              return nil
+            end
           else
             return nil
           end
@@ -80,11 +88,11 @@ M["build-other-components"] = function(app)
 end
 M.start = function(runtime_config, game_config, _3fseed)
   if (nil == game_config) then
-    _G.error("Missing argument game-config on fnl/playtime/game/spider/app.fnl:59", 2)
+    _G.error("Missing argument game-config on fnl/playtime/game/spider/app.fnl:61", 2)
   else
   end
   if (nil == runtime_config) then
-    _G.error("Missing argument runtime-config on fnl/playtime/game/spider/app.fnl:59", 2)
+    _G.error("Missing argument runtime-config on fnl/playtime/game/spider/app.fnl:61", 2)
   else
   end
   local patience_config = {LogicImpl = Logic, StateImpl = M.State, ComponentImpl = {spec = {slots = {{location = "tableau", count = 10, label = "*"}}}, card = PatienceComponent["card-4-colors"]}}

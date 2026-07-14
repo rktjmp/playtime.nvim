@@ -64,20 +64,19 @@ M["location->position"] = function(app, location)
   end
 end
 M.State.PlanningMove.on.app.move = function(state, cofx, event, fx)
-  event["fast-forward-animation?"] = false
   return PatienceApp.State.PlanningMove.on.app.move(state, cofx, event, fx)
 end
 M.start = function(runtime_config, game_config, _3fseed)
   if (nil == game_config) then
-    _G.error("Missing argument game-config on fnl/playtime/game/forty-fortunes/app.fnl:45", 2)
+    _G.error("Missing argument game-config on fnl/playtime/game/forty-fortunes/app.fnl:56", 2)
   else
   end
   if (nil == runtime_config) then
-    _G.error("Missing argument runtime-config on fnl/playtime/game/forty-fortunes/app.fnl:45", 2)
+    _G.error("Missing argument runtime-config on fnl/playtime/game/forty-fortunes/app.fnl:56", 2)
   else
   end
   local patience_config = {LogicImpl = Logic, StateImpl = M.State, ComponentImpl = {spec = {slots = {{location = "cell", count = 1, label = "*"}, {location = "foundation", count = 8, label = "A"}, {location = "tableau", count = 13, label = "*"}}}, card = PatienceComponent["card-4-colors"]}}
-  local app_config = {module = M, name = "Forty Fortunes", ["app-id"] = "forty-fortunes", view = {width = 123, height = 42}, menu = {{"Forty Fortunes", {"New Game", {"app", "new-game"}}}}}
+  local app_config = {module = M, name = "Forty Fortunes", ["app-id"] = "forty-fortunes", view = {width = 123, height = 42}, menu = {{"Forty Fortunes", {{"New Game", {"app", "new-game"}}}}}}
   local app = PatienceApp.start(patience_config, app_config, runtime_config, game_config, _3fseed)
   return app
 end
