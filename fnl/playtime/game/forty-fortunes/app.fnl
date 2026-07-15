@@ -59,7 +59,7 @@
                     :name "Forty Fortunes"
                     :app-id :forty-fortunes
                     :view {:width 123 :height 42}
-                    :menu [["Forty Fortunes" ["New Game" [:app :new-game]]]]}
+                    :menu [["Forty Fortunes" [["New Game" [:app :new-game]]]]]}
         app (PatienceApp.start patience-config
                                app-config
                                runtime-config
