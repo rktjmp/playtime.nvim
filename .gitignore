@@ -1,1 +1,2 @@
-lua/**
+# better jj compatibility by not ignoring lua dir
+# lua/**
