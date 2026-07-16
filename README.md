@@ -5,11 +5,7 @@
 
 A collection of (mostly card) games for Neovim that I (mostly) like.
 
-> Playtime is a bit of a toy and currently does not have semver releases.
-> Configuration options, stats and included games may change or disappear.
-> Some interface or interactions may be wonky.
-
-![A game of The Emissary being played](https://github.com/rktjmp/playtime.nvim/assets/866010/2a9eccbf-d403-4761-b080-18e9112cbce1)
+![A game of The Emissary being played](https://github.com/user-attachments/assets/ac8c5c89-dd26-4e36-ab7f-d6647df6cae6)
 
 Requirements
 --
@@ -51,6 +47,8 @@ Basic how-to-play guides are included in the links above or via the "How
 to play" menu item, with additional links to more complete or thematic
 instructions. Accessing some external instructions may require a Board Game
 Geek account (free), check the "files" section after logging in.
+
+![A game of Sweeper being lost.](https://github.com/user-attachments/assets/b1957130-f39f-4b25-b6df-b57be8cabc45)
 
 Installation
 --
@@ -100,6 +98,8 @@ Supported options (struck through options are currently ... not supported):
 
 You may also adjust the colors, see the [FAQ](#FAQ).
 
+![Shenzhen Solitaire](https://github.com/user-attachments/assets/3294a3b9-f2fa-48b4-824f-f377bf6ea38b)
+
 Building
 --
 
@@ -114,25 +114,6 @@ for review.
 
 FAQ
 --
-
-> **I thought this was a Neovim plugin, why do I need a mouse?!**
-
-When I wrote
-[shenzhen-solitaire.nvim](https://github.com/rktjmp/shenzhen-solitaire.nvim), I
-included support for keyboard control, then never used it once in two years.
-
-Initially I did include keyboard controls in Playtime but again - never used
-them. I am not *against* including keyboard controls, especially in regard
-accessibility, but the simplest "tab around positions" is painfully
-slow to use and building a [leap](https://github.com/ggandor/leap.nvim)-like
-interface was a bit more than I wanted to take on initially.
-
-Some terminals or setups might struggle with a mouse-only interface, such as
-ssh+terminal.app. If you are having trouble, first confirm that your terminal
-supports both left and right click (may require an modifier key) and that the
-events are being sent over ssh *or whatever*. You might also have to enable the
-mouse in Neovim or something. Think of it as a fun puzzle to solve! Wow, a free
-extra game!
 
 > **My colors are U. G. L. Y.**
 
@@ -187,10 +168,23 @@ You can alter this behaviour by linking
 `@playtime.game.card.diamonds.four_colors` to `@playtime.game.card.diamonds`
 and `@playtime.game.card.clubs.four_colors` to `@playtime.game.clubs.spades`.
 
-> **I cant win <seed>!**
+> **I thought this was a Neovim plugin, why do I need a mouse?!**
 
-Playtime does not stack any decks to guarantee deals are winnable. Try holding
-the appropriate totems or invoking an incantation to improve your luck stat next
-time. Don't give up, skeleton!
+When I wrote
+[shenzhen-solitaire.nvim](https://github.com/rktjmp/shenzhen-solitaire.nvim), I
+included support for keyboard control, then never used it once in two years.
+
+Initially I did include keyboard controls in Playtime but again - never used
+them. I am not *against* including keyboard controls, especially in regard
+accessibility, but the simplest "tab around positions" is painfully
+slow to use and building a [leap](https://github.com/ggandor/leap.nvim)-like
+interface was a bit more than I wanted to take on initially.
+
+Some terminals or setups might struggle with a mouse-only interface, such as
+ssh+terminal.app. If you are having trouble, first confirm that your terminal
+supports both left and right click (may require an modifier key) and that the
+events are being sent over ssh *or whatever*. You might also have to enable the
+mouse in Neovim or something. Think of it as a fun puzzle to solve! Wow, a free
+extra game!
 
 ![A game of freecell being played](https://github.com/rktjmp/playtime.nvim/assets/866010/69459815-1a16-45f5-bc87-23fd8406da1d)
