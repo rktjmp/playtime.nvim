@@ -264,7 +264,7 @@ M.start = function(runtime_config, game_config, _3fseed)
     _40_ = nil
   end
   patience_config = {LogicImpl = Logic, StateImpl = M.State, ComponentImpl = {spec = {slots = {{location = "tableau", count = 8, label = "*"}, {location = "foundation", count = 4, label = "A"}, {location = "cell", count = 4, label = "*"}}}, card = _40_}}
-  local app_config = {module = M, name = "", ["app-id"] = filetype, view = {width = 78, height = 42}, menu = {{name, {{"New Game", {"app", "new-game"}}}}}}
+  local app_config = {module = M, name = name, ["app-id"] = filetype, view = {width = 78, height = 42}, menu = {{name, {{"New Game", {"app", "new-game"}}}}}}
   return PatienceApp.start(patience_config, app_config, runtime_config, game_config0, _3fseed)
 end
 return M

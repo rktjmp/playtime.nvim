@@ -18,7 +18,7 @@ M.start = function(runtime_config, _game_config, _3fseed_)
     _G.error("Missing argument runtime-config on fnl/playtime/game/playtime/app.fnl:10", 2)
   else
   end
-  local app = App.new({module = M, name = "Playtime", ["app-id"] = "playtime-menu", view = {width = 80, height = 40}, menu = {{"Playtime", {}}}}, runtime_config)
+  local app = App.new({module = M, name = "Playtime", ["app-id"] = "playtime-menu", view = {width = 80, height = 44}, menu = {{"Playtime", {}}}}, runtime_config)
   table.merge(app.components, app["build-components"](app))
   app.view:open()
   app["request-tick"](app)
