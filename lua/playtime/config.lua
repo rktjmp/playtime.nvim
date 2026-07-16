@@ -52,14 +52,17 @@ local function _15_(_241)
   return eq_any_3f(_241, {"minimise"})
 end
 local function _16_(_241)
+  return type["string?"](_241)
+end
+local function _17_(_241)
   return eq_any_3f(_241, {"wide", nil})
 end
-config_schema = {fps = {_2_, "must be positive integer"}, ["window-border"] = {_3_, "must be valid window border name"}, notify = {_4_, "must be a function"}, ["window-position"] = {_5_, "must be `center`, `nw`, `ne` or a table or function returning`{row=row, col=col}`"}, ["minimise-position"] = {_10_, "must be `ne`, `nw`, `se`, `sw` or a table or function returning`{row=row, col=col}`"}, unfocused = {_15_, "must be `minimise`"}, ["__beta-game-set-font-glyph-width"] = {_16_, "must be `wide` or `nil`"}}
+config_schema = {fps = {_2_, "must be positive integer"}, ["window-border"] = {_3_, "must be valid window border name"}, notify = {_4_, "must be a function"}, ["window-position"] = {_5_, "must be `center`, `nw`, `ne` or a table or function returning`{row=row, col=col}`"}, ["minimise-position"] = {_10_, "must be `ne`, `nw`, `se`, `sw` or a table or function returning`{row=row, col=col}`"}, unfocused = {_15_, "must be `minimise`"}, ["__game-the-emissary-icon"] = {_16_, "must be string"}, ["__beta-game-set-font-glyph-width"] = {_17_, "must be `wide` or `nil`"}}
 local defaults
-local function _17_(...)
+local function _18_(...)
   return vim.notify(...)
 end
-defaults = {fps = 30, notify = _17_, ["window-border"] = nil, ["window-position"] = "center", ["minimise-position"] = "se", unfocused = "minimise", ["__beta-game-set-font-glyph-width"] = nil}
+defaults = {fps = 30, notify = _18_, ["window-border"] = nil, ["window-position"] = "center", ["minimise-position"] = "se", unfocused = "minimise", ["__beta-game-set-font-glyph-width"] = nil, ["__game-the-emissary-icon"] = nil}
 local user_config = {}
 local validation_errors = nil
 local function lua_name_to_fennel_name(name)
@@ -67,11 +70,11 @@ local function lua_name_to_fennel_name(name)
 end
 local function validate_against_schema(a_config, a_schema)
   if (nil == a_schema) then
-    _G.error("Missing argument a-schema on fnl/playtime/config.fnl:39", 2)
+    _G.error("Missing argument a-schema on fnl/playtime/config.fnl:41", 2)
   else
   end
   if (nil == a_config) then
-    _G.error("Missing argument a-config on fnl/playtime/config.fnl:39", 2)
+    _G.error("Missing argument a-config on fnl/playtime/config.fnl:41", 2)
   else
   end
   if type["table?"](a_config) then
@@ -82,71 +85,71 @@ local function validate_against_schema(a_config, a_schema)
       for k, v in pairs(a_config) do
         local val_28_
         do
-          local case_20_ = a_schema[lua_name_to_fennel_name(k)]
-          if ((_G.type(case_20_) == "table") and (nil ~= case_20_[1]) and (nil ~= case_20_[2])) then
-            local f = case_20_[1]
-            local msg = case_20_[2]
+          local case_21_ = a_schema[lua_name_to_fennel_name(k)]
+          if ((_G.type(case_21_) == "table") and (nil ~= case_21_[1]) and (nil ~= case_21_[2])) then
+            local f = case_21_[1]
+            local msg = case_21_[2]
             if not f(v) then
               local data_5_auto = {k = k, msg = msg}
               local resolve_6_auto
-              local function _21_(name_7_auto)
-                local case_22_ = data_5_auto[name_7_auto]
-                local and_23_ = (nil ~= case_22_)
-                if and_23_ then
-                  local t_8_auto = case_22_
-                  and_23_ = ("table" == type(t_8_auto))
+              local function _22_(name_7_auto)
+                local case_23_ = data_5_auto[name_7_auto]
+                local and_24_ = (nil ~= case_23_)
+                if and_24_ then
+                  local t_8_auto = case_23_
+                  and_24_ = ("table" == type(t_8_auto))
                 end
-                if and_23_ then
-                  local t_8_auto = case_22_
-                  local case_25_ = getmetatable(t_8_auto)
-                  if ((_G.type(case_25_) == "table") and (nil ~= case_25_.__tostring)) then
-                    local f_9_auto = case_25_.__tostring
+                if and_24_ then
+                  local t_8_auto = case_23_
+                  local case_26_ = getmetatable(t_8_auto)
+                  if ((_G.type(case_26_) == "table") and (nil ~= case_26_.__tostring)) then
+                    local f_9_auto = case_26_.__tostring
                     return f_9_auto(t_8_auto)
                   else
-                    local __10_auto = case_25_
+                    local __10_auto = case_26_
                     return vim.inspect(t_8_auto)
                   end
-                elseif (nil ~= case_22_) then
-                  local v_11_auto = case_22_
+                elseif (nil ~= case_23_) then
+                  local v_11_auto = case_23_
                   return tostring(v_11_auto)
                 else
                   return nil
                 end
               end
-              resolve_6_auto = _21_
+              resolve_6_auto = _22_
               val_28_ = string.gsub("config key `#{k}` did not pass validation, #{msg}", "#{(.-)}", resolve_6_auto)
             else
               val_28_ = nil
             end
           else
-            local _ = case_20_
+            local _ = case_21_
             local data_5_auto = {k = k}
             local resolve_6_auto
-            local function _29_(name_7_auto)
-              local case_30_ = data_5_auto[name_7_auto]
-              local and_31_ = (nil ~= case_30_)
-              if and_31_ then
-                local t_8_auto = case_30_
-                and_31_ = ("table" == type(t_8_auto))
+            local function _30_(name_7_auto)
+              local case_31_ = data_5_auto[name_7_auto]
+              local and_32_ = (nil ~= case_31_)
+              if and_32_ then
+                local t_8_auto = case_31_
+                and_32_ = ("table" == type(t_8_auto))
               end
-              if and_31_ then
-                local t_8_auto = case_30_
-                local case_33_ = getmetatable(t_8_auto)
-                if ((_G.type(case_33_) == "table") and (nil ~= case_33_.__tostring)) then
-                  local f_9_auto = case_33_.__tostring
+              if and_32_ then
+                local t_8_auto = case_31_
+                local case_34_ = getmetatable(t_8_auto)
+                if ((_G.type(case_34_) == "table") and (nil ~= case_34_.__tostring)) then
+                  local f_9_auto = case_34_.__tostring
                   return f_9_auto(t_8_auto)
                 else
-                  local __10_auto = case_33_
+                  local __10_auto = case_34_
                   return vim.inspect(t_8_auto)
                 end
-              elseif (nil ~= case_30_) then
-                local v_11_auto = case_30_
+              elseif (nil ~= case_31_) then
+                local v_11_auto = case_31_
                 return tostring(v_11_auto)
               else
                 return nil
               end
             end
-            resolve_6_auto = _29_
+            resolve_6_auto = _30_
             val_28_ = string.gsub("config key `#{k}` not recognised", "#{(.-)}", resolve_6_auto)
           end
         end
@@ -165,16 +168,16 @@ local function validate_against_schema(a_config, a_schema)
 end
 M["set-user-config"] = function(new_config)
   if (nil == new_config) then
-    _G.error("Missing argument new-config on fnl/playtime/config.fnl:49", 2)
+    _G.error("Missing argument new-config on fnl/playtime/config.fnl:51", 2)
   else
   end
-  local case_40_, case_41_ = validate_against_schema(new_config, config_schema)
-  if (case_40_ == true) then
+  local case_41_, case_42_ = validate_against_schema(new_config, config_schema)
+  if (case_41_ == true) then
     user_config = new_config
     validation_errors = nil
     return true
-  elseif ((case_40_ == false) and (nil ~= case_41_)) then
-    local errors = case_41_
+  elseif ((case_41_ == false) and (nil ~= case_42_)) then
+    local errors = case_42_
     user_config = new_config
     validation_errors = errors
     return false, errors
@@ -187,15 +190,15 @@ M["get-user-config"] = function()
 end
 M["config->runtime-config"] = function(a_config)
   if (nil == a_config) then
-    _G.error("Missing argument a-config on fnl/playtime/config.fnl:63", 2)
+    _G.error("Missing argument a-config on fnl/playtime/config.fnl:65", 2)
   else
   end
   local merged_config = table.merge(clone(defaults), a_config)
-  local case_44_, case_45_ = validate_against_schema(merged_config, config_schema)
-  if (case_44_ == true) then
-    return {app = {engine = {fps = merged_config.fps}, notify = merged_config.notify, window = {border = merged_config["window-border"], ["maximise-position"] = merged_config["window-position"], ["minimise-position"] = merged_config["minimise-position"]}}, game = {set = {["font-glyph-width"] = merged_config["__beta-game-set-font-glyph-width"]}}}
-  elseif ((case_44_ == false) and (nil ~= case_45_)) then
-    local errors = case_45_
+  local case_45_, case_46_ = validate_against_schema(merged_config, config_schema)
+  if (case_45_ == true) then
+    return {app = {engine = {fps = merged_config.fps}, notify = merged_config.notify, window = {border = merged_config["window-border"], ["maximise-position"] = merged_config["window-position"], ["minimise-position"] = merged_config["minimise-position"]}}, game = {set = {["font-glyph-width"] = merged_config["__beta-game-set-font-glyph-width"]}, ["the-emissary"] = {glyph = merged_config["__game-the-emissary-icon"]}}}
+  elseif ((case_45_ == false) and (nil ~= case_46_)) then
+    local errors = case_46_
     return nil, errors
   else
     return nil

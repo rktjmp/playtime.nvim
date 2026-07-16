@@ -506,6 +506,10 @@ M.start = function(runtime_config, game_config, _3fseed)
   else
   end
   local app = App.new({module = M, name = "The Emissary", ["app-id"] = "the-emissary", view = {width = 83, height = 32}, features = {["save-load"] = false}, menu = {{"The Emissary", {{"New Game", {"app", "new-game"}}}}}}, runtime_config)
+  local _let_93_ = runtime_config.game
+  local _let_94_ = _let_93_["the-emissary"]
+  local mr_e = _let_94_.glyph
+  app["mr-e"] = {width = string["col-width"]((mr_e or "\240\159\174\178\240\159\174\179")), text = (mr_e or "\240\159\174\178\240\159\174\179")}
   app["game-config"] = game_config
   app.view:open()
   app["queue-event"](app, "app", "new-game", table.merge(game_config, {seed = _3fseed}))
@@ -513,25 +517,6 @@ M.start = function(runtime_config, game_config, _3fseed)
   return app
 end
 M.on.app.save = function(app, cofx, event, fx)
-  if (nil == fx) then
-    _G.error("Missing argument fx on fnl/playtime/game/the-emissary/app.fnl:404", 2)
-  else
-  end
-  if (nil == event) then
-    _G.error("Missing argument event on fnl/playtime/game/the-emissary/app.fnl:404", 2)
-  else
-  end
-  if (nil == cofx) then
-    _G.error("Missing argument cofx on fnl/playtime/game/the-emissary/app.fnl:404", 2)
-  else
-  end
-  if (nil == app) then
-    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:404", 2)
-  else
-  end
-  return app:save("user-save", app.game)
-end
-M.on.app.load = function(app, cofx, event, fx)
   if (nil == fx) then
     _G.error("Missing argument fx on fnl/playtime/game/the-emissary/app.fnl:407", 2)
   else
@@ -548,6 +533,25 @@ M.on.app.load = function(app, cofx, event, fx)
     _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:407", 2)
   else
   end
+  return app:save("user-save", app.game)
+end
+M.on.app.load = function(app, cofx, event, fx)
+  if (nil == fx) then
+    _G.error("Missing argument fx on fnl/playtime/game/the-emissary/app.fnl:410", 2)
+  else
+  end
+  if (nil == event) then
+    _G.error("Missing argument event on fnl/playtime/game/the-emissary/app.fnl:410", 2)
+  else
+  end
+  if (nil == cofx) then
+    _G.error("Missing argument cofx on fnl/playtime/game/the-emissary/app.fnl:410", 2)
+  else
+  end
+  if (nil == app) then
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:410", 2)
+  else
+  end
   app.game = app:load("user-save")
   app["build-components"](app)
   app["synchronise-components-to-game-state"](app)
@@ -556,7 +560,7 @@ M.on.app.load = function(app, cofx, event, fx)
 end
 M["synchronise-components-to-game-state"] = function(app)
   if (nil == app) then
-    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:414", 2)
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:417", 2)
   else
   end
   for location, card in Logic["iter-cards"](app.game) do
@@ -574,12 +578,12 @@ M["synchronise-components-to-game-state"] = function(app)
   for _, label in ipairs(app.components["kingdom-win-requirements"].children) do
     if ((_G.type(label) == "table") and ((_G.type(label.location) == "table") and (label.location[1] == "kingdom") and (nil ~= label.location[2]))) then
       local n = label.location[2]
-      local case_103_ = app.game.kingdom[n]
-      if ((_G.type(case_103_) == "table") and ((_G.type(case_103_[1]) == "table") and (case_103_[1].face == "down"))) then
+      local case_105_ = app.game.kingdom[n]
+      if ((_G.type(case_105_) == "table") and ((_G.type(case_105_[1]) == "table") and (case_105_[1].face == "down"))) then
         label:lost()
-      elseif ((_G.type(case_103_) == "table") and ((_G.type(case_103_[1]) == "table") and (case_103_[1].face == "up"))) then
+      elseif ((_G.type(case_105_) == "table") and ((_G.type(case_105_[1]) == "table") and (case_105_[1].face == "up"))) then
         label:available()
-      elseif ((_G.type(case_103_) == "table") and (case_103_[1] == nil)) then
+      elseif ((_G.type(case_105_) == "table") and (case_105_[1] == nil)) then
         label:won()
       else
       end
@@ -590,11 +594,11 @@ M["synchronise-components-to-game-state"] = function(app)
 end
 M["find-card-component-by-card-id"] = function(app, card_id)
   if (nil == card_id) then
-    _G.error("Missing argument card-id on fnl/playtime/game/the-emissary/app.fnl:431", 2)
+    _G.error("Missing argument card-id on fnl/playtime/game/the-emissary/app.fnl:434", 2)
   else
   end
   if (nil == app) then
-    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:431", 2)
+    _G.error("Missing argument app on fnl/playtime/game/the-emissary/app.fnl:434", 2)
   else
   end
   local lookup = (app["__find-card-component-by-card-id-lookup"] or table.set(app, "__find-card-component-by-card-id-lookup", {memo = nil, table = nil}))
@@ -615,38 +619,33 @@ M["find-card-component-by-card-id"] = function(app, card_id)
   return lookup.table[card_id]
 end
 M["build-components"] = function(app)
-  local emissary = Component.new({size = {width = 2, height = 1}, position = {row = 7, col = 41, z = 500}, content = {{{"\240\159\174\178\240\159\174\179", "@playtime.ui.on"}}}})
+  local mr_e = app["mr-e"].text
+  local mr_e_width = app["mr-e"].width
+  local emissary = Component.new({size = {width = mr_e_width, height = 1}, position = {row = 7, col = 41, z = 500}, content = {{{mr_e, "@playtime.ui.on"}}}})
   local guide_text
-  local function _110_(self, text)
+  local function _112_(self, text)
     local len = #text
     local pad_left = math.floor(((self.size.width - len) / 2))
     self.position.col = pad_left
     self.content = {{{text, "@playtime.ui.off"}}}
     return nil
   end
-  guide_text = Component.new({size = {width = app.view.size.width, height = 1}, position = {row = 13, col = 1, z = 100}, ["set-text"] = _110_})
+  guide_text = Component.new({size = {width = app.view.size.width, height = 1}, position = {row = 13, col = 1, z = 100}, ["set-text"] = _112_})
   local ability_help = Component.new({size = {width = app.view.size.width, height = 4}, position = {row = 27, col = 17, z = 100}, content = {{{"Diplomacy - discard all cards matching current ruler.", "@playtime.ui.off"}}, {{"Military  - draw a card for every club in hand.", "@playtime.ui.off"}}, {{"Politics  - swap the current ruler with an unvisited one.", "@playtime.ui.off"}}, {{"Commerce  - draw 2 cards then discard 2 cards.", "@playtime.ui.off"}}}})
   local continue_button
   do
     local enter_the_court = Component.new({size = {width = 5, height = 3}, position = {row = 9, col = 39, z = 200}, content = {{{"ENTER", "@playtime.ui.on"}}, {{" THE ", "@playtime.ui.on"}}, {{"COURT", "@playtime.ui.on"}}}, ["visible?"] = false})
     local continue_debate = Component.new({size = {width = 8, height = 2}, position = {row = 9, col = 37, z = 200}, content = {{{"CONTINUE", "@playtime.ui.on"}}, {{" DEBATE ", "@playtime.ui.on"}}}, ["visible?"] = false})
     local button
-    local function _111_(self, fx)
-      local case_112_ = self.children
-      if ((_G.type(case_112_) == "table") and (nil ~= case_112_[1])) then
-        local child = case_112_[1]
+    local function _113_(self, fx)
+      local case_114_ = self.children
+      if ((_G.type(case_114_) == "table") and (nil ~= case_114_[1])) then
+        local child = case_114_[1]
         if (enter_the_court["visible?"] or continue_debate["visible?"]) then
           return fx.event.dispatch("app", "continue")
         else
           return nil
         end
-      else
-        return nil
-      end
-    end
-    local function _115_(self, cofx, event, fx)
-      if ((_G.type(event) == "table") and (event.button == "left") and (event.action == "release")) then
-        return self:_continue(fx)
       else
         return nil
       end
@@ -658,13 +657,20 @@ M["build-components"] = function(app)
         return nil
       end
     end
-    local function _119_()
+    local function _119_(self, cofx, event, fx)
+      if ((_G.type(event) == "table") and (event.button == "left") and (event.action == "release")) then
+        return self:_continue(fx)
+      else
+        return nil
+      end
+    end
+    local function _121_()
       return nil
     end
-    local function _120_()
+    local function _122_()
       return nil
     end
-    local function _121_(self, state)
+    local function _123_(self, state)
       if (state == "pick-kingdom") then
         enter_the_court["visible?"] = false
         continue_debate["visible?"] = false
@@ -682,66 +688,66 @@ M["build-components"] = function(app)
         return error(state)
       end
     end
-    local function _123_(self)
+    local function _125_(self)
       self["visible?"] = true
       return nil
     end
-    local function _124_(self)
+    local function _126_(self)
       self["visible?"] = false
       return nil
     end
-    button = Component.new({size = {width = 39, height = 11}, position = {row = 8, col = 22, z = 300}, _continue = _111_, on = {click = _115_, drag = _117_}, children = {enter_the_court, continue_debate, Component.new({size = {width = app.view.size.width, height = 5}, position = {row = 14, col = 2, z = 299}, on = {click = _119_, drag = _120_}})}, ["set-state"] = _121_, show = _123_, hide = _124_})
+    button = Component.new({size = {width = 39, height = 11}, position = {row = 8, col = 22, z = 300}, _continue = _113_, on = {click = _117_, drag = _119_}, children = {enter_the_court, continue_debate, Component.new({size = {width = app.view.size.width, height = 5}, position = {row = 14, col = 2, z = 299}, on = {click = _121_, drag = _122_}})}, ["set-state"] = _123_, show = _125_, hide = _126_})
     continue_button = button
   end
   local advisor_selector
-  local function _125_(self)
+  local function _127_(self)
     self["visible?"] = false
     return nil
   end
-  local function _126_(self)
+  local function _128_(self)
     self["visible?"] = true
     return nil
   end
-  local function _127_()
+  local function _129_()
     return nil
   end
-  local function _128_()
+  local function _130_()
     return nil
   end
-  advisor_selector = Component.new({size = {width = 37, height = 9}, position = {row = 20, col = 23, z = 300}, enable = _125_, disable = _126_, on = {click = _127_, drag = _128_}})
+  advisor_selector = Component.new({size = {width = 37, height = 9}, position = {row = 20, col = 23, z = 300}, enable = _127_, disable = _128_, on = {click = _129_, drag = _130_}})
   local kingdom_win_requirements
   do
     local tbl_26_ = {}
     local i_27_ = 0
     for n = 1, 8 do
       local val_28_
-      local _129_
+      local _131_
       do
         local tmp_9_ = app["location->position"](app, {"kingdom", n, "requirement"})
-        local function _130_(_241)
+        local function _132_(_241)
           return (_241 + 4)
         end
-        table["update-in"](tmp_9_, {"row"}, _130_)
-        local function _131_(_241)
+        table["update-in"](tmp_9_, {"row"}, _132_)
+        local function _133_(_241)
           return (_241 + 2)
         end
-        table["update-in"](tmp_9_, {"col"}, _131_)
-        _129_ = tmp_9_
+        table["update-in"](tmp_9_, {"col"}, _133_)
+        _131_ = tmp_9_
       end
-      local function _132_(self, hl)
+      local function _134_(self, hl)
         self.content = {{{string.fmt(" %d ", n), hl}}}
         return nil
       end
-      local function _133_(self)
-        return self:update("@playtime.ui.off")
-      end
-      local function _134_(self)
-        return self:update("@playtime.ui.off")
-      end
       local function _135_(self)
+        return self:update("@playtime.ui.off")
+      end
+      local function _136_(self)
+        return self:update("@playtime.ui.off")
+      end
+      local function _137_(self)
         return self:update("@playtime.ui.on")
       end
-      val_28_ = Component.new({size = {width = 3, height = 1}, location = {"kingdom", n}, position = _129_, update = _132_, lost = _133_, won = _134_, available = _135_, content = {{{string.fmt(" %d ", n), "@playtime.ui.on"}}}})
+      val_28_ = Component.new({size = {width = 3, height = 1}, location = {"kingdom", n}, position = _131_, update = _134_, lost = _135_, won = _136_, available = _137_, content = {{{string.fmt(" %d ", n), "@playtime.ui.on"}}}})
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
         tbl_26_[i_27_] = val_28_
@@ -756,20 +762,20 @@ M["build-components"] = function(app)
     local i_27_ = 0
     for n = 1, 8 do
       local val_28_
-      local _137_
+      local _139_
       do
         local tmp_9_ = app["location->position"](app, {"kingdom", n, "score"})
-        local function _138_(_241)
+        local function _140_(_241)
           return (_241 + 2)
         end
-        table["update-in"](tmp_9_, {"row"}, _138_)
-        local function _139_(_241)
+        table["update-in"](tmp_9_, {"row"}, _140_)
+        local function _141_(_241)
           return (_241 + 2)
         end
-        table["update-in"](tmp_9_, {"col"}, _139_)
-        _137_ = tmp_9_
+        table["update-in"](tmp_9_, {"col"}, _141_)
+        _139_ = tmp_9_
       end
-      val_28_ = Component.new({size = {width = 2, height = 1}, location = {"kingdom", n}, position = _137_, content = {{{string.fmt("+1", n), "@playtime.color.yellow"}}}})
+      val_28_ = Component.new({size = {width = 2, height = 1}, location = {"kingdom", n}, position = _139_, content = {{{string.fmt("+1", n), "@playtime.color.yellow"}}}})
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
         tbl_26_[i_27_] = val_28_
@@ -793,15 +799,15 @@ M["build-components"] = function(app)
     advisor_labels = tbl_26_
   end
   local score_label
-  local function _142_(self)
+  local function _144_(self)
     self.content = {{{"?/?", "@playtime.ui.off"}}}
     return nil
   end
-  local function _143_(self, want)
+  local function _145_(self, want)
     self.content = {{{string.format("?/%d", want), "@playtime.ui.off"}}}
     return nil
   end
-  local function _144_(self, have, want)
+  local function _146_(self, have, want)
     local content
     if (have == want) then
       content = {{{string.format("%d/%d", have, want), "@playtime.color.green"}}}
@@ -811,7 +817,7 @@ M["build-components"] = function(app)
     self.content = content
     return nil
   end
-  score_label = Component.new({size = {width = 3, height = 1}, position = app["location->position"](app, {"score", "label"}), unknown = _142_, possible = _143_, actual = _144_, content = {{{"?/?", "@playtime.ui.off"}}}})
+  score_label = Component.new({size = {width = 3, height = 1}, position = app["location->position"](app, {"score", "label"}), unknown = _144_, possible = _145_, actual = _146_, content = {{{"?/?", "@playtime.ui.off"}}}})
   local cards
   do
     local tbl_26_ = {}
@@ -822,21 +828,21 @@ M["build-components"] = function(app)
         local position = app["location->position"](app, location)
         local card_type
         do
-          local matched_3f_146_, __147_
+          local matched_3f_148_, __149_
           if ((_G.type(card) == "table") and true and (card[2] == "king")) then
             local _ = card[1]
-            matched_3f_146_, __147_ = true, _
+            matched_3f_148_, __149_ = true, _
           elseif ((_G.type(card) == "table") and true and (card[2] == "queen")) then
             local _ = card[1]
-            matched_3f_146_, __147_ = true, _
+            matched_3f_148_, __149_ = true, _
           elseif ((_G.type(card) == "table") and true and (card[2] == "jack")) then
             local _ = card[1]
-            matched_3f_146_, __147_ = true, _
+            matched_3f_148_, __149_ = true, _
           else
-            matched_3f_146_, __147_ = nil
+            matched_3f_148_, __149_ = nil
           end
-          if matched_3f_146_ then
-            local _ = __147_
+          if matched_3f_148_ then
+            local _ = __149_
             card_type = "ruler"
           else
             local _ = card
@@ -853,17 +859,17 @@ M["build-components"] = function(app)
         end
         local on
         if (card_type == "ruler") then
-          local function _151_(self, cofx, event, fx)
+          local function _153_(self, cofx, event, fx)
             if ((_G.type(event) == "table") and (event.action == "press") and (event.button == "left")) then
               self:hover()
               return fx.engine.render()
             elseif ((_G.type(event) == "table") and (event.action == "release") and (event.button == "left")) then
               self:unhover()
               fx.engine.render()
-              local case_152_, case_153_ = self.card.face, self.location
-              if ((case_152_ == "up") and ((_G.type(case_153_) == "table") and (case_153_[1] == "kingdom"))) then
+              local case_154_, case_155_ = self.card.face, self.location
+              if ((case_154_ == "up") and ((_G.type(case_155_) == "table") and (case_155_[1] == "kingdom"))) then
                 return fx.event.dispatch("app", "select-kingdom", {location = self.location, component = self})
-              elseif ((case_152_ == "up") and ((_G.type(case_153_) == "table") and (case_153_[1] == "advisor"))) then
+              elseif ((case_154_ == "up") and ((_G.type(case_155_) == "table") and (case_155_[1] == "advisor"))) then
                 return fx.event.dispatch("app", "select-advisor", {location = self.location, component = self})
               else
                 return nil
@@ -872,7 +878,7 @@ M["build-components"] = function(app)
               return nil
             end
           end
-          local function _156_(self, cofx, event, fx)
+          local function _158_(self, cofx, event, fx)
             if ((_G.type(event) == "table") and (event.action == "enter") and (event.button == "left")) then
               self:hover()
               return fx.engine.render()
@@ -882,10 +888,10 @@ M["build-components"] = function(app)
             elseif ((_G.type(event) == "table") and (event.action == "release") and (event.button == "left")) then
               self:unhover()
               fx.engine.render()
-              local case_157_, case_158_ = self.card.face, self.location
-              if ((case_157_ == "up") and ((_G.type(case_158_) == "table") and (case_158_[1] == "kingdom"))) then
+              local case_159_, case_160_ = self.card.face, self.location
+              if ((case_159_ == "up") and ((_G.type(case_160_) == "table") and (case_160_[1] == "kingdom"))) then
                 return fx.event.dispatch("app", "select-kingdom", {location = self.location, component = self})
-              elseif ((case_157_ == "up") and ((_G.type(case_158_) == "table") and (case_158_[1] == "advisor"))) then
+              elseif ((case_159_ == "up") and ((_G.type(case_160_) == "table") and (case_160_[1] == "advisor"))) then
                 return fx.event.dispatch("app", "select-advisor", {location = self.location, component = self})
               else
                 return nil
@@ -894,11 +900,11 @@ M["build-components"] = function(app)
               return nil
             end
           end
-          on = {click = _151_, drag = _156_}
+          on = {click = _153_, drag = _158_}
         elseif (card_type == "regular") then
-          local function _161_(self, cofx, event, fx)
-            local case_162_ = self.location
-            if ((_G.type(case_162_) == "table") and (case_162_[1] == "hand")) then
+          local function _163_(self, cofx, event, fx)
+            local case_164_ = self.location
+            if ((_G.type(case_164_) == "table") and (case_164_[1] == "hand")) then
               if ((_G.type(event) == "table") and (event.action == "press") and (event.button == "left")) then
                 self:hover()
                 return fx.engine.render()
@@ -912,9 +918,9 @@ M["build-components"] = function(app)
               return nil
             end
           end
-          local function _165_(self, cofx, event, fx)
-            local case_166_ = self.location
-            if ((_G.type(case_166_) == "table") and (case_166_[1] == "hand")) then
+          local function _167_(self, cofx, event, fx)
+            local case_168_ = self.location
+            if ((_G.type(case_168_) == "table") and (case_168_[1] == "hand")) then
               if ((_G.type(event) == "table") and (event.action == "enter") and (event.button == "left")) then
                 self:hover()
                 return fx.engine.render()
@@ -931,11 +937,11 @@ M["build-components"] = function(app)
               return nil
             end
           end
-          on = {click = _161_, drag = _165_}
+          on = {click = _163_, drag = _167_}
         else
           on = nil
         end
-        local function _170_(self)
+        local function _172_(self)
           if (nil == self["__select-row"]) then
             self["__hover-row"] = self.position.row
             self.position.row = (self.position.row - 1)
@@ -945,7 +951,7 @@ M["build-components"] = function(app)
             return nil
           end
         end
-        local function _172_(self)
+        local function _174_(self)
           if ((nil == self["__select-row"]) and self["__hover-row"]) then
             self.position.row = self["__hover-row"]
             self["__hover-row"] = nil
@@ -955,7 +961,7 @@ M["build-components"] = function(app)
             return nil
           end
         end
-        local function _174_(self)
+        local function _176_(self)
           if (nil == self["__select-row"]) then
             self["__select-row"] = self.position.row
             self.position.row = (self.position.row - 1)
@@ -964,7 +970,7 @@ M["build-components"] = function(app)
             return nil
           end
         end
-        local function _176_(self)
+        local function _178_(self)
           if self["__select-row"] then
             self.position.row = self["__select-row"]
             self["__select-row"] = nil
@@ -973,7 +979,7 @@ M["build-components"] = function(app)
             return nil
           end
         end
-        val_28_ = CardComponent.card({["stacking-orientation"] = stacking_orientation, on = on, hover = _170_, unhover = _172_, select = _174_, deselect = _176_, ["color-count"] = 4, card = card, location = location, position = position})
+        val_28_ = CardComponent.card({["stacking-orientation"] = stacking_orientation, on = on, hover = _172_, unhover = _174_, select = _176_, deselect = _178_, ["color-count"] = 4, card = card, location = location, position = position})
       end
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
@@ -999,7 +1005,7 @@ M["build-components"] = function(app)
   table.merge(app.components, {emissary = emissary, ["guide-text"] = guide_text, ["advisor-selector"] = advisor_selector, ["score-label"] = score_label, ["continue-button"] = continue_button, ["ability-help"] = ability_help, ["advisor-labels"] = Component.new({children = advisor_labels}), ["kingdom-win-requirements"] = Component.new({children = kingdom_win_requirements}), ["kingdom-win-scores"] = Component.new({children = kingdom_win_scores}), cards = Component.new({children = cards}), slots = Component.new({children = slots})})
   return app
 end
-M["location->position"] = function(app, location, _3fhand_length)
+M["location->position"] = function(app, location, __3fhand_length)
   local config = {card = {margin = {row = 1, col = 1}, width = 7, height = 5}}
   local card_col_step = (config.card.width + config.card.margin.col + 2)
   local kingdom = {row = 2, col = 3}
@@ -1009,26 +1015,9 @@ M["location->position"] = function(app, location, _3fhand_length)
   local score = {row = 8, col = (draw.col + card_col_step)}
   local hand = {row = 14, col = 28}
   local advisor = {row = 20, col = 23}
-  local hand_offset
-  do
-    local case_179_ = (_3fhand_length or #app.game.hand)
-    if (case_179_ == 0) then
-      hand.col = draw.col
-      hand_offset = nil
-    elseif (case_179_ == 1) then
-      hand.col = draw.col
-      hand_offset = nil
-    elseif (nil ~= case_179_) then
-      local n = case_179_
-      hand.col = (draw.col - (2 * (n - 1)))
-      hand_offset = nil
-    else
-      hand_offset = nil
-    end
-  end
   if ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and (location[3] == "emissary")) then
     local n = location[2]
-    return {row = (kingdom.row + 1), col = ((kingdom.col + (card_col_step * (n - 1))) - 2), z = (0 + 101)}
+    return {row = (kingdom.row + 1), col = ((kingdom.col + (card_col_step * (n - 1))) - app["mr-e"].width), z = 101}
   elseif ((_G.type(location) == "table") and (location[1] == "kingdom") and (nil ~= location[2]) and true) then
     local n = location[2]
     local _3fc = location[3]
