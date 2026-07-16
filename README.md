@@ -90,11 +90,16 @@ Supported options (struck through options are currently ... not supported):
   `center`, `ne`, `nw` or a table or function that returns `{row=row, col=col}`.
 - `minimise-position` (`se`): Where to position the minimised window, may be
   `ne`, `nw`, `se`, `sw` or a table or function that returns `{row=row, col=col}`.
+- ~~`unfocused` (`minimise`): what to do when the window loses focus.~~
+
+The following configurations are game specific and names will change in the
+future, with a deprecation period.
+
 - `__beta-game-set-font-glyph-width` (`nil`): Hint to playtime that the font
   glyphs used by SET are wider than one character, may be `wide` or `nil`. If
-  your cards look off center, try setting this to `wide`. *Note: this option
-  will change name at some point...*
-- ~~`unfocused` (`minimise`): what to do when the window loses focus.~~
+  your cards look off center, try setting this to `wide`.
+- `__game-the-emissary-icon` (`nil`): Text used to show the Emissary character,
+  if your font does not support the default, eg: "🯁🯂🯃".
 
 You may also adjust the colors, see the [FAQ](#FAQ).
 

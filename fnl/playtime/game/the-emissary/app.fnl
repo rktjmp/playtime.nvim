@@ -394,7 +394,10 @@
                       :view {:width 83 :height 32}
                       :features {:save-load false}
                       :menu [["The Emissary" [["New Game" [:app :new-game]]]]]}
-                     runtime-config)]
+                     runtime-config)
+        {:game {:the-emissary {:glyph mr-e}}} runtime-config]
+    (set app.mr-e {:width (string.col-width (or mr-e "🮲🮳"))
+                   :text (or mr-e "🮲🮳")})
     (set app.game-config game-config)
     (app.view:open)
     (app:queue-event :app :new-game (table.merge game-config {:seed ?seed}))
@@ -440,9 +443,10 @@
     (. lookup.table card-id)))
 
 (fn M.build-components [app]
-  (let [emissary (Component.new {:size {:width 2 :height 1}
-                                  :position {:row 7 :col 41 :z 500}
-                                  :content [[["🮲🮳" "@playtime.ui.on"]]]})
+  (let [{:text mr-e :width mr-e-width} app.mr-e
+        emissary (Component.new {:size {:width mr-e-width :height 1}
+                                 :position {:row 7 :col 41 :z 500}
+                                 :content [[[mr-e "@playtime.ui.on"]]]})
         guide-text (Component.new {:size {:width app.view.size.width :height 1}
                                    :position {:row 13 :col 1 :z 100}
                                    :set-text (fn [self text]
@@ -673,7 +677,7 @@
     app))
 
 
-(fn M.location->position [app location ?hand-length]
+(fn M.location->position [app location _?hand-length]
   (let [config {:card {:margin {:row 1 :col 1}
                        :width 7 :height 5}}
         card-col-step (+ config.card.width config.card.margin.col 2)
@@ -683,15 +687,11 @@
         debate {:row 8 :col draw.col}
         score {:row 8 :col (+ draw.col card-col-step)}
         hand {:row 14 :col 28}
-        advisor {:row 20 :col 23}
-        hand-offset (case (or ?hand-length (length app.game.hand))
-                      0 (set hand.col draw.col)
-                      1 (set hand.col draw.col)
-                      n (set hand.col (- draw.col (* 2 (- n 1)))))]
+        advisor {:row 20 :col 23}]
     (case location
       [:kingdom n :emissary] {:row (+ kingdom.row 1)
-                              :col (- (+ kingdom.col (* card-col-step (- n 1))) 2)
-                              :z (+ 101)}
+                              :col (- (+ kingdom.col (* card-col-step (- n 1))) app.mr-e.width)
+                              :z 101}
       [:kingdom n ?c] {:row kingdom.row
                       :col (+ kingdom.col (* card-col-step (- n 1)))
                       :z (case ?c

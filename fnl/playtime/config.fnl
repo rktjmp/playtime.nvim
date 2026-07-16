@@ -17,6 +17,7 @@
                        "must be `ne`, `nw`, `se`, `sw` or a table or function returning`{row=row, col=col}`"]
    :unfocused [#(eq-any? $1 [:minimise])
                "must be `minimise`"]
+   :__game-the-emissary-icon [#(type.string? $1) "must be string"]
    :__beta-game-set-font-glyph-width [#(eq-any? $1 [:wide nil])
                                       "must be `wide` or `nil`"]})
 
@@ -27,7 +28,8 @@
    :window-position :center
    :minimise-position :se
    :unfocused :minimise
-   :__beta-game-set-font-glyph-width nil})
+   :__beta-game-set-font-glyph-width nil
+   :__game-the-emissary-icon nil})
 
 (var user-config {})
 (var validation-errors nil)
@@ -68,7 +70,8 @@
                   :window {:border merged-config.window-border
                            :maximise-position merged-config.window-position
                            :minimise-position merged-config.minimise-position}}
-            :game {:set {:font-glyph-width merged-config.__beta-game-set-font-glyph-width}}}
+            :game {:set {:font-glyph-width merged-config.__beta-game-set-font-glyph-width}
+                   :the-emissary {:glyph merged-config.__game-the-emissary-icon}}}
       (false errors) (values nil errors))))
 
 (fn M.health []
