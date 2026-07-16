@@ -11,7 +11,7 @@
   (let [app (App.new {:module M
                       :name "Playtime"
                       :app-id :playtime-menu
-                      :view {:width 80 :height 40}
+                      :view {:width 80 :height 44}
                       :menu [["Playtime" []]]}
                      runtime-config)]
     (table.merge app.components (app:build-components))
