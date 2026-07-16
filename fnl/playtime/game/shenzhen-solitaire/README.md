@@ -1,5 +1,4 @@
-
-Spider
+Shenzhen I/O Solitaire
 ==
 
 A unique FreeCell-like, from the game Shenzhen I/O by Zachtronics.
