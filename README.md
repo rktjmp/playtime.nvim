@@ -24,6 +24,7 @@ versions. **If you like the game, buy it!**
 [FreeCell](fnl/playtime/game/freecell/README.md) & [Bakers
 Game](fnl/playtime/game/freecell/README.md#variants).
 [Spider](fnl/playtime/game/spider/README.md) (4, 2 and 1 suit variants).
+[Calculation](fnl/playtime/game/calculation/README.md).
 
 **Classic-style Solitaires**
 
