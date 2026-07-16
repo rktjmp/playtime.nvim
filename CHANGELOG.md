@@ -2,6 +2,10 @@
 
 Breaking changes are in **bold**.
 
+## v1.0.0
+
+First tagged version release.
+
 ## Some time in 2025-2026
 
 Large rewrite with new engine internals.
