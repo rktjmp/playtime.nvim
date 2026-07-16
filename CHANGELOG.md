@@ -4,7 +4,15 @@ Breaking changes are in **bold**.
 
 ## v1.0.0
 
-First tagged version release.
+First tagged version release with:
+
+- Freecell (& Bakers Game)
+- Shenzhen Solitaire
+- Penguin
+- Forty Fortunes
+- The Emissary
+- Sweeper
+- SET
 
 ## Some time in 2025-2026
 
