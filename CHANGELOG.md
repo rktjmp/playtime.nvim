@@ -2,6 +2,10 @@
 
 Breaking changes are in **bold**.
 
+## v1.1.0
+
+- Add Calculation
+
 ## v1.0.0
 
 First tagged version release with:
