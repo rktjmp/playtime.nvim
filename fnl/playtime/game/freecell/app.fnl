@@ -113,7 +113,7 @@
                                                  4 PatienceComponent.card-4-colors)}}
 
         app-config {:module M
-                    :name ""
+                    :name name
                     :app-id filetype
                     :view {:width 78 :height 42}
                     :menu [[name [["New Game" [:app :new-game]]]]]}]
