@@ -38,8 +38,19 @@
       _ (error (Error "Unable to convert location to position, unknown location #{location}"
                       {: location})))))
 
-(fn M.State.PlanningMove.on.app.move [state cofx event fx] 
-  (set event.fast-forward-animation? false)
+(fn M.State.PlanningMove.on.app.move [state cofx event fx]
+  ;; TODO: in patience, mark a `drop` as `drop?: true` in the event,
+  ;; then we can build the tail-move animation manually.
+  ;; forty-fortunes is unique in that in other patienci, when you "drop" a
+  ;; stack, you have also dragged the stack, where as here we always drag one
+  ;; card and then the tail follows.
+  ;; Alternatively, we could make the "pick up" always pull the tail into the
+  ;; hand, but that would require a reordering of the cards "into" the hand
+  ;; stack which might be weird to animate too... And also wont work when
+  ;; dropping onto the cell.
+  ;; For now, we will just fast forward drops, which does have a funny "shazam"
+  ;; effect of cards appearing.
+  ; (set event.fast-forward-animation? false)
   (PatienceApp.State.PlanningMove.on.app.move state cofx event fx))
 
 (λ M.start [runtime-config game-config ?seed]
